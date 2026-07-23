@@ -16,7 +16,7 @@ scoreboard players operation @n[tag=summoned] test.status.mp_max = #enemy test.s
 scoreboard players operation @n[tag=summoned] test.status.mp = #enemy test.status.mp
 scoreboard players operation @n[tag=summoned] test.status.exp = #enemy test.status.exp
 scoreboard players operation @n[tag=summoned] test.def.debuff = #enemy test.def.debuff
-scoreboard players operation @n[tag=summoned] test.def.cofficient = #enemy test.def.cofficient
+scoreboard players operation @n[tag=summoned] test.def.coefficient = #enemy test.def.coefficient
 
 scoreboard players operation @n[tag=summoned] test.fire_resist = #enemy test.fire_resist
 scoreboard players operation @n[tag=summoned] test.water_resist = #enemy test.water_resist

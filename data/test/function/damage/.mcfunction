@@ -17,7 +17,7 @@ tellraw @a {score:{name:"#victim",objective:"test.physics_damage"}}
  scoreboard players operation #damage test.temporary -= @s test.def.debuff
  scoreboard players operation #victim test.temporary *= #damage test.temporary
  scoreboard players operation #victim test.temporary /= #100 test.constant
- scoreboard players operation #victim test.temporary += @s test.def.cofficient
+ scoreboard players operation #victim test.temporary += @s test.def.coefficient
  scoreboard players operation #victim test.status.def *= #100 test.constant
  scoreboard players operation #victim test.status.def /= #victim test.temporary
  tellraw @a {score:{name:"#victim",objective:"test.status.def"}}

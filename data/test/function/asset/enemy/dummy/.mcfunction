@@ -14,7 +14,7 @@ scoreboard players set #enemy test.status.exp 0
 scoreboard players set #enemy test.status.magic_efficiency 0
 scoreboard players set #enemy test.status.mp 0
 scoreboard players set #enemy test.status.mp_max 0
-scoreboard players set #enemy test.def.cofficient 1000
+scoreboard players set #enemy test.def.coefficient 1000
 scoreboard players set #enemy test.def.debuff 0
 
 scoreboard players set #enemy test.fire_resist 20

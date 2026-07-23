@@ -74,7 +74,7 @@ scoreboard objectives remove test.physics_damage_inc.bonus
 
 scoreboard objectives remove test.def.pene
 scoreboard objectives remove test.def.debuff
-scoreboard objectives remove test.def.cofficient
+scoreboard objectives remove test.def.coefficient
 
 # ステータス用
  scoreboard objectives remove test.status.level

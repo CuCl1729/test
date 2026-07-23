@@ -80,7 +80,7 @@ scoreboard objectives add test.physics_damage_inc.bonus dummy
 
 scoreboard objectives add test.def.pene dummy
 scoreboard objectives add test.def.debuff dummy
-scoreboard objectives add test.def.cofficient dummy
+scoreboard objectives add test.def.coefficient dummy
 
 scoreboard objectives add test.slotnumber dummy
 
