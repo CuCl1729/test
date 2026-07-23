@@ -33,6 +33,8 @@ scoreboard objectives add test.range dummy
 scoreboard objectives add test.substatus dummy
 
 scoreboard objectives add test.multiplier dummy
+scoreboard objectives add test.calc.base dummy
+scoreboard objectives add test.calc.add dummy
 
 scoreboard objectives add test.scale dummy
 
