@@ -1,0 +1,65 @@
+[
+  {
+    "function": "minecraft:set_lore",
+    "entity": "this",
+    "lore": [
+      {
+        "storage": "test:",
+        "nbt": "loot.item.components.\"minecraft:lore\"[0].text",
+        "source": "storage",
+        "type": "nbt",
+        "extra": [
+          {
+            "score": {
+              "objective": "test.temporary",
+              "name": "#base_status"
+            },
+            "type": "score",
+            "extra": [
+              {
+                "storage": "test:",
+                "nbt": "loot.item.components.\"minecraft:custom_data\".base_status.status_type"
+              }
+            ],
+            "color": "aqua"
+          }
+        ],
+        "color": "gray",
+        "italic": false
+      }
+    ],
+    "mode": "replace_section",
+    "offset": 0,
+    "size": 1,
+    "conditions": []
+  },
+  {
+    "function": "minecraft:set_lore",
+    "entity": "this",
+    "lore": [
+      {
+        "storage": "test:",
+        "nbt": "loot.item.components.\"minecraft:lore\"[1].text",
+        "source": "storage",
+        "type": "nbt",
+        "extra": [
+          {
+            "score": {
+              "objective": "test.temporary",
+              "name": "#status_bonus"
+            },
+            "extra": [
+              "%"
+            ],
+            "color": "aqua"
+          }
+        ],
+        "color": "gray",
+        "italic": false
+      }
+    ],
+    "mode": "replace_section",
+    "offset": 1,
+    "size": 1
+  }
+]

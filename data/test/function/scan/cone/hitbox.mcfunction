@@ -1,0 +1,2 @@
+particle end_rod ~ ~ ~ 0 0 0 0 0 force @a
+$execute as @e[dx=-$(HitSize),dy=-$(HitSize),dz=-$(HitSize),tag=!cone,tag=!hit,tag=!executer] positioned ~-1 ~-1 ~-1 if entity @s[dx=$(HitSize),dy=$(HitSize),dz=$(HitSize)] run function test:scan/hit

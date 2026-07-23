@@ -1,0 +1,25 @@
+{
+  "function": "minecraft:set_name",
+  "entity": "this",
+  "name": [
+    {
+      "storage": "test:",
+      "nbt": "loot.item.components.\"minecraft:custom_name\".text",
+      "source": "storage",
+      "italic": false
+    },
+    {
+      "text": "Level",
+      "color": "gray"
+    },
+    {
+      "score": {
+        "objective": "test.status.level",
+        "name": "#level"
+      },
+      "type": "score",
+      "color": "aqua"
+    }
+  ],
+  "target": "custom_name"
+}

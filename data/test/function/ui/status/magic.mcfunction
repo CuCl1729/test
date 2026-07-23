@@ -1,0 +1,1 @@
+title @s actionbar [{color:"#01FF08",text:"MP:"},{color:"#01FF08",score:{name:"@s",objective:"test.status.mp"}},{color:red,text:"BurnOut"},{color:aqua,score:{name:"@s",objective:"test.status.burnout"}}]

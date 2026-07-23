@@ -1,0 +1,1 @@
+$function test:asset/magic/type/$(type)

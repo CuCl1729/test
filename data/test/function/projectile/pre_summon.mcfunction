@@ -1,0 +1,1 @@
+$execute positioned ^$(teleport) ^ ^ run function test:projectile/summon with storage math:

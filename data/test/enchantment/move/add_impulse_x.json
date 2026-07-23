@@ -1,0 +1,1768 @@
+{
+  "description": "explode",
+  "supported_items": "minecraft:test_block",
+  "weight": 1,
+  "max_level": 255,
+  "min_cost": {
+    "base": 0,
+    "per_level_above_first": 0
+  },
+  "max_cost": {
+    "base": 0,
+    "per_level_above_first": 0
+  },
+  "anvil_cost": 2147483647,
+  "slots": [
+    "saddle"
+  ],
+  "effects": {
+    "minecraft:tick": [
+      {
+        "effect": {
+          "type": "minecraft:run_function",
+          "function": "test:motion/player/impulse/pre_x"
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.01,
+            "per_level_above_first": 0.01
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#2"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.02,
+            "per_level_above_first": 0.02
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#4"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.04,
+            "per_level_above_first": 0.04
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#8"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.08,
+            "per_level_above_first": 0.08
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#16"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.16,
+            "per_level_above_first": 0.16
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#32"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.32,
+            "per_level_above_first": 0.32
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#64"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.64,
+            "per_level_above_first": 0.64
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#128"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 1.28,
+            "per_level_above_first": 1.28
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#256"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 2.56,
+            "per_level_above_first": 2.56
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#512"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 5.12,
+            "per_level_above_first": 5.12
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#1024"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 10.24,
+            "per_level_above_first": 10.24
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#2048"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 20.48,
+            "per_level_above_first": 20.48
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#4096"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 40.96,
+            "per_level_above_first": 40.96
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#8192"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 81.92,
+            "per_level_above_first": 81.92
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#16384"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 163.84,
+            "per_level_above_first": 163.84
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#32768"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 327.68,
+            "per_level_above_first": 327.68
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#65536"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 0
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 655.36,
+            "per_level_above_first": 655.36
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.01,
+            "per_level_above_first": 0.01
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#2"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.02,
+            "per_level_above_first": 0.02
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#4"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.04,
+            "per_level_above_first": 0.04
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#8"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.08,
+            "per_level_above_first": 0.08
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#16"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.16,
+            "per_level_above_first": 0.16
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#32"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.32,
+            "per_level_above_first": 0.32
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#64"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 0.64,
+            "per_level_above_first": 0.64
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#128"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 1.28,
+            "per_level_above_first": 1.28
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#256"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 2.56,
+            "per_level_above_first": 2.56
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#512"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 5.12,
+            "per_level_above_first": 5.12
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#1024"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 10.24,
+            "per_level_above_first": 10.24
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#2048"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 20.48,
+            "per_level_above_first": 20.48
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#4096"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 40.96,
+            "per_level_above_first": 40.96
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#8192"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 81.92,
+            "per_level_above_first": 81.92
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#16384"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 163.84,
+            "per_level_above_first": 163.84
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#32768"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 327.68,
+            "per_level_above_first": 327.68
+          }
+        }
+      },
+      {
+        "requirements": {
+          "condition": "minecraft:all_of",
+          "terms": [
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#65536"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            },
+            {
+              "condition": "minecraft:value_check",
+              "value": {
+                "type": "minecraft:score",
+                "target": {
+                  "type": "minecraft:fixed",
+                  "name": "#-1"
+                },
+                "score": "test.X0",
+                "scale": 1
+              },
+              "range": 1
+            }
+          ]
+        },
+        "effect": {
+          "type": "minecraft:apply_impulse",
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "coordinate_scale": [
+            1,
+            1,
+            1
+          ],
+          "magnitude": {
+            "type": "minecraft:linear",
+            "base": 655.36,
+            "per_level_above_first": 655.36
+          }
+        }
+      },
+      {
+        "effect": {
+          "type": "run_function",
+          "function": "test:motion/player/impulse/post_x"
+        }
+      }
+    ]
+  }
+}

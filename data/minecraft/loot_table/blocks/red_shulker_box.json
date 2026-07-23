@@ -1,0 +1,45 @@
+{
+  "type": "block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "alternatives",
+          "children": [
+            {
+              "type": "dynamic",
+              "name": "contents",
+              "conditions": [
+                {
+                  "condition": "match_tool",
+                  "predicate": {
+                    "items": [
+                      "debug_stick"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "functions": [
+                {
+                  "function": "minecraft:copy_components",
+                  "include": [
+                    "minecraft:item_name",
+                    "minecraft:container",
+                    "minecraft:lock",
+                    "minecraft:container_loot"
+                  ],
+                  "source": "block_entity"
+                }
+              ],
+              "name": "minecraft:red_shulker_box"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

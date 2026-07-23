@@ -1,0 +1,12 @@
+{
+  "condition": "minecraft:random_chance",
+  "chance": {
+    "type": "minecraft:score",
+    "target": {
+      "type": "minecraft:fixed",
+      "name": "#damage"
+    },
+    "score": "test.status.crit_rate",
+    "scale": 0.0001
+  }
+}
