@@ -4,13 +4,13 @@ scoreboard players operation #substatus test.temporary += #status test.temporary
 
 $execute store result storage test: loot.item.components."minecraft:custom_data".substatus[$(substatus)].value double 0.01 run scoreboard players get #substatus test.temporary
 
-$data modify storage test: loot.item.components."minecraft:lore"[$(substatus)][{text:"+9"}] set value {italic:false,color:gold,text:"+10"}
-$data modify storage test: loot.item.components."minecraft:lore"[$(substatus)][{text:"+8"}] set value {italic:false,color:gold,text:"+9"}
-$data modify storage test: loot.item.components."minecraft:lore"[$(substatus)][{text:"+7"}] set value {italic:false,color:gold,text:"+8"}
-$data modify storage test: loot.item.components."minecraft:lore"[$(substatus)][{text:"+6"}] set value {italic:false,color:gold,text:"+7"}
-$data modify storage test: loot.item.components."minecraft:lore"[$(substatus)][{text:"+5"}] set value {italic:false,color:gold,text:"+6"}
-$data modify storage test: loot.item.components."minecraft:lore"[$(substatus)][{text:"+4"}] set value {italic:false,color:gold,text:"+5"}
-$data modify storage test: loot.item.components."minecraft:lore"[$(substatus)][{text:"+3"}] set value {italic:false,color:gold,text:"+4"}
-$data modify storage test: loot.item.components."minecraft:lore"[$(substatus)][{text:"+2"}] set value {italic:false,color:gold,text:"+3"}
-$data modify storage test: loot.item.components."minecraft:lore"[$(substatus)][{text:"+1"}] set value {italic:false,color:gold,text:"+2"}
-$execute unless data storage test: loot.item.components."minecraft:lore"[$(substatus)][4] run data modify storage test: loot.item.components."minecraft:lore"[$(substatus)] append value {italic:false,color:gold,text:"+1"}
+# 強化回数を実データとして加算（表示用の文字列パースには依存しない）
+$execute store result score #grow test.temporary run data get storage test: loot.item.components."minecraft:custom_data".substatus[$(substatus)].grow
+scoreboard players add #grow test.temporary 1
+$execute store result storage test: loot.item.components."minecraft:custom_data".substatus[$(substatus)].grow int 1 run scoreboard players get #grow test.temporary
+
+# 実データ(grow)から表示テキストを毎回作り直す
+data modify entity @n[tag=text] text set value {score:{name:"#grow",objective:"test.temporary"}}
+$execute unless data storage test: loot.item.components."minecraft:lore"[$(substatus)].extra[{text:"+"}] run data modify storage test: loot.item.components."minecraft:lore"[$(substatus)].extra append value {italic:false,color:gold,text:"+"}
+$execute if score #grow test.temporary matches 1 run data modify storage test: loot.item.components."minecraft:lore"[$(substatus)].extra append value {italic:false,color:gold,text:""}
+$data modify storage test: loot.item.components."minecraft:lore"[$(substatus)].extra[-1].text set from entity @n[tag=text] text

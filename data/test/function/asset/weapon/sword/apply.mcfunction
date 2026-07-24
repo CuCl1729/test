@@ -1,8 +1,10 @@
+#> test:asset/weapon/sword/apply
+# @macro material: wooden_sword | iron_sword | diamond_sword
+
 data remove storage test: loot.item
 
-data modify storage test: loot.item.id set from storage test: asset.iron_sword.item
-
-data modify storage test: loot.item.components set from storage test: asset.iron_sword.components
+$data modify storage test: loot.item.id set from storage test: asset.$(material).item
+$data modify storage test: loot.item.components set from storage test: asset.$(material).components
 
 execute if data storage test: {loot:{rare:3}} store result score #loot test.substatus run random value 1..2
 execute if data storage test: {loot:{rare:4}} store result score #loot test.substatus run random value 2..3

@@ -4,7 +4,7 @@ data modify storage test: asset.diamond_sword.components."minecraft:custom_data"
 
 data modify storage test: asset.diamond_sword.components."minecraft:custom_name" set value [{italic:0b,text:"Diamond Sword "},{color:gray,text:"Level"},{color:aqua,text:"0"}]
 
-data modify storage test: asset.diamond_sword.components."minecraft:lore" append value [{color:gray,italic:0b,text:"会心ダメージ:+"},{color:aqua,text:"16.0"},{color:gray,text:"%"}]
-data modify storage test: asset.diamond_sword.components."minecraft:lore" append value [{color:gray,italic:0b,text:"会心率:+"},{color:aqua,text:"8,0"},{color:gary,text:"%"}]
-data modify storage test: asset.diamond_sword.components."minecraft:lore" append value [{text:"   "},{color:gray,italic:0b,text:"サブステータス"}]
+data modify storage test: asset.diamond_sword.components."minecraft:lore" append value {color:gray,italic:0b,text:"会心ダメージ:+",extra:[{color:aqua,text:"16.0"},{color:gray,text:"%"}]}
+data modify storage test: asset.diamond_sword.components."minecraft:lore" append value {color:gray,italic:0b,text:"会心率:+",extra:[{color:aqua,text:"8,0"},{color:gary,text:"%"}]}
+data modify storage test: asset.diamond_sword.components."minecraft:lore" append value {text:"   ",extra:[{color:gray,italic:0b,text:"サブステータス"}]}
 
