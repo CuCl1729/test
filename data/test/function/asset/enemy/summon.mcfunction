@@ -1,7 +1,7 @@
 $summon $(id) ~ ~ ~ {Tags:[summoned]}
 
-data modify storage test: enemy.Tags append value "enemy"
 
+data modify entity @n[tag=summoned] Tags append from storage test: enemy.Tags[]
 data modify entity @n[tag=summoned] data set from storage test: enemy.data
 
 scoreboard players operation @n[tag=summoned] test.status.atk = #enemy test.status.atk
@@ -34,5 +34,4 @@ scoreboard players operation @n[tag=summoned] test.earth_damage_inc.bonus = #ene
 scoreboard players operation @n[tag=summoned] test.physics_damage_inc.bonus = #enemy test.physics_damage_inc.bonus
 
 tag @n[tag=summoned] add enemy
-
 tag @e[tag=summoned] remove summoned
