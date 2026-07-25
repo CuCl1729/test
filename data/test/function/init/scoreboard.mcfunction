@@ -86,6 +86,12 @@ scoreboard objectives add test.def.coefficient dummy
 
 scoreboard objectives add test.slotnumber dummy
 
+scoreboard objectives add test.battle.id dummy
+scoreboard objectives add test.battle.turn_order dummy
+scoreboard objectives add test.battle.current_turn dummy
+scoreboard objectives add test.battle.member_count dummy
+scoreboard objectives add test.battle.next_id dummy
+
 # ステータス用
  scoreboard objectives add test.status.level dummy
  scoreboard objectives add test.status.exp dummy

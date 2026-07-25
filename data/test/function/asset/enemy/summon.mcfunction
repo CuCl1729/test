@@ -1,5 +1,7 @@
 $summon $(id) ~ ~ ~ {Tags:[summoned]}
 
+data modify storage test: enemy.Tags append value "enemy"
+
 data modify entity @n[tag=summoned] Tags append from storage test: enemy.Tags[]
 data modify entity @n[tag=summoned] data set from storage test: enemy.data
 
