@@ -1,0 +1,1 @@
+$place template test:arena_default $(x) $(y) $(z)

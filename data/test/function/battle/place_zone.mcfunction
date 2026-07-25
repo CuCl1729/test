@@ -1,0 +1,1 @@
+$place template $(structure) $(x) $(y) $(z)

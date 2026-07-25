@@ -1,17 +1,11 @@
 #> test:battle/start
-#
-# @s = 戦闘のきっかけとなった側のエンティティ(マーカー設置位置の基準)
-# 事前に、もう一方の当事者へ"battle_opponent"タグを付けておくこと
+# @s = 戦闘のきっかけとなったエンティティ(ターン制マップ側)
 
 execute if score @s test.battle.id matches 1.. run return 0
 
 scoreboard players add #battle test.battle.next_id 1
 
-summon marker ~ ~ ~ {Tags:[battle_marker]}
-scoreboard players operation @e[tag=battle_marker,sort=nearest,limit=1] test.battle.id = #battle test.battle.next_id
-scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.current_turn 1
-scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.member_count 0
-
-function test:battle/join
-execute as @a[distance=..8] at @s unless score @s test.battle.id matches 1.. run function test:battle/join
-execute as @e[tag=enemy,distance=..8] at @s unless score @s test.battle.id matches 1.. run function test:battle/join
+execute if score #arena_1 test.arena.occupied matches 0 run function test:battle/setup {arena:1,x:0,y:100,z:0}
+execute unless score #arena_1 test.arena.occupied matches 0 if score #arena_2 test.arena.occupied matches 0 run function test:battle/setup {arena:2,x:500,y:100,z:0}
+execute unless score #arena_1 test.arena.occupied matches 0 unless score #arena_2 test.arena.occupied matches 0 if score #arena_3 test.arena.occupied matches 0 run function test:battle/setup {arena:3,x:1000,y:100,z:0}
+execute unless score #arena_1 test.arena.occupied matches 0 unless score #arena_2 test.arena.occupied matches 0 unless score #arena_3 test.arena.occupied matches 0 if score #arena_4 test.arena.occupied matches 0 run function test:battle/setup {arena:4,x:1500,y:100,z:0}

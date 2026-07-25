@@ -9,6 +9,7 @@ execute as @a run function test:cache/slot_check
 execute as @e[type=player] run function test:ui/status/
 execute as @e[tag=crafter] at @s if entity @e[type=player,distance=..6] run function test:magic/crafter/main
 execute as @e[tag=attract] at @s run function test:motion/player/attract/main
+execute in test:arena as @e[tag=battle_marker] run function test:battle/tick
 
 scoreboard players add @e[tag=time] test.time 1
 

@@ -1,12 +1,12 @@
 #> test:battle/join
-#
-# @s を、最も近くにある戦闘マーカーの戦闘に参加させる。
-# 乱入(マーカーを攻撃)の場合もこの関数をそのまま呼べば良い。
+# @s を、最も近くの入り口マーカーの戦闘へ参加させ、対応するエリアへ転送する
 
 execute if score @s test.battle.id matches 1.. run return 0
 
-scoreboard players operation @s test.battle.id = @e[tag=battle_marker,sort=nearest,limit=1] test.battle.id
-scoreboard players add @e[tag=battle_marker,sort=nearest,limit=1] test.battle.member_count 1
-scoreboard players operation @s test.battle.turn_order = @e[tag=battle_marker,sort=nearest,limit=1] test.battle.member_count
+scoreboard players operation @s test.battle.id = @e[tag=battle_entrance,sort=nearest,limit=1] test.battle.id
+scoreboard players operation @s test.battle.arena = @e[tag=battle_entrance,sort=nearest,limit=1] test.battle.arena
 
-tag @s add battle_member
+execute if score @s test.battle.arena matches 1 in test:arena run function test:battle/enter_arena {x:0,y:100,z:0}
+execute if score @s test.battle.arena matches 2 in test:arena run function test:battle/enter_arena {x:500,y:100,z:0}
+execute if score @s test.battle.arena matches 3 in test:arena run function test:battle/enter_arena {x:1000,y:100,z:0}
+execute if score @s test.battle.arena matches 4 in test:arena run function test:battle/enter_arena {x:1500,y:100,z:0}

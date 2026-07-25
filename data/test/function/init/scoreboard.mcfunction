@@ -86,12 +86,17 @@ scoreboard objectives add test.def.coefficient dummy
 
 scoreboard objectives add test.slotnumber dummy
 
-scoreboard objectives add test.battle.id dummy
-scoreboard objectives add test.battle.turn_order dummy
-scoreboard objectives add test.battle.current_turn dummy
-scoreboard objectives add test.battle.member_count dummy
-scoreboard objectives add test.battle.next_id dummy
+# ターン制用
+ scoreboard objectives add test.battle.id dummy
+ scoreboard objectives add test.battle.turn_order dummy
+ scoreboard objectives add test.battle.current_turn dummy
+ scoreboard objectives add test.battle.member_count dummy
+ scoreboard objectives add test.battle.next_id dummy
 
+ scoreboard objectives add test.battle.acting dummy
+ scoreboard objectives add test.settings.battle_ui dummy
+ scoreboard objectives add test.arena.occupied dummy
+ scoreboard objectives add test.battle.arena dummy
 # ステータス用
  scoreboard objectives add test.status.level dummy
  scoreboard objectives add test.status.exp dummy
