@@ -14,6 +14,4 @@ scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.me
 
 function test:battle/join
 execute as @a[distance=..8] at @s unless score @s test.battle.id matches 1.. run function test:battle/join
-execute as @e[tag=battle_opponent,distance=..8] at @s run function test:battle/join
-
-tag @e remove battle_opponent
+execute as @e[tag=enemy,distance=..8] at @s unless score @s test.battle.id matches 1.. run function test:battle/join
