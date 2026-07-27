@@ -1,6 +1,7 @@
 data remove storage test: enemy
 data modify storage test: enemy.Tags set value [dummy]
 data modify storage test: enemy.id set value armor_stand
+data modify storage test: enemy.data.loot_table set value "test:enemy/dummy"
 
 scoreboard players set #enemy test.status.atk 100
 scoreboard players set #enemy test.status.crit_damage 0

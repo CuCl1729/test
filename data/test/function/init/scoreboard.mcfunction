@@ -127,6 +127,8 @@ scoreboard objectives add test.slotnumber dummy
  scoreboard objectives add test.status.mp_regene dummy
  scoreboard objectives add test.status.hp_regene dummy
  
+ scoreboard objectives add test.status.downed_timer dummy
+ 
 # 基礎ステータス用
  scoreboard objectives add test.status.base.atk dummy
  

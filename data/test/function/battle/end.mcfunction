@@ -16,3 +16,6 @@ execute if score #battle_end test.battle.arena matches 4 run scoreboard players 
 kill @e[tag=battle_marker,distance=..64]
 # マーカーを掃除(入り口側。ターン制マップに残っている)
 execute in test:turn as @e[tag=battle_entrance] if score @s test.battle.id = #battle_end test.battle.id run kill @s
+
+execute as @e[tag=battle_member,distance=..64] if score @s test.battle.id = #battle_end test.battle.id unless score @s test.status.hp matches ..0 run function test:battle/return_member
+execute as @e[tag=battle_member,distance=..64] if score @s test.battle.id = #battle_end test.battle.id if score @s test.status.hp matches ..0 run function test:battle/return_member_defeated
