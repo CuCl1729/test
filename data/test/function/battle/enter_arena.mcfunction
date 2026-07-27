@@ -1,5 +1,8 @@
 #> test:battle/enter_arena
 # @s = 参加者。呼び出し元で in test:arena 済み。$(x)(y)(z) = エリア座標
+execute store result score @s test.battle.return_x run data get entity @s Pos[0] 1
+execute store result score @s test.battle.return_y run data get entity @s Pos[1] 1
+execute store result score @s test.battle.return_z run data get entity @s Pos[2] 1
 
 $teleport @s $(x) $(y) $(z)
 

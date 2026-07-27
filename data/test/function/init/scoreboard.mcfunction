@@ -97,6 +97,10 @@ scoreboard objectives add test.slotnumber dummy
  scoreboard objectives add test.settings.battle_ui dummy
  scoreboard objectives add test.arena.occupied dummy
  scoreboard objectives add test.battle.arena dummy
+
+ scoreboard objectives add test.battle.return_x dummy
+ scoreboard objectives add test.battle.return_y dummy
+ scoreboard objectives add test.battle.return_z dummy
 # ステータス用
  scoreboard objectives add test.status.level dummy
  scoreboard objectives add test.status.exp dummy
