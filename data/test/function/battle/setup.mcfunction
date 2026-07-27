@@ -1,6 +1,7 @@
 #> test:battle/setup
 # @s = 戦闘のきっかけとなったエンティティ(ターン制マップ側)
 # $(arena)=使用エリア番号 $(x)(y)(z)=そのエリアの座標
+function test:debug/log {msg:"battle setup"}
 
 $scoreboard players operation #arena_$(arena) test.arena.occupied = #battle test.battle.next_id
 

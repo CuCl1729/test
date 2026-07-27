@@ -1,6 +1,8 @@
 #> test:battle/start
 # @s = 戦闘のきっかけとなったエンティティ(ターン制マップ側)
 
+function test:debug/log {msg:"battle start"}
+
 execute if score @s test.battle.id matches 1.. run return 0
 
 scoreboard players add #battle test.battle.next_id 1
