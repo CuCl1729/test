@@ -8,7 +8,8 @@
         { "block": "minecraft:stone", "height": 4 },
         { "block": "minecraft:water", "height": 59 }
       ],
-      "biome": "minecraft:ocean"
+      "biome": "minecraft:ocean",
+      "structure_overrides": []
     }
   }
 }
