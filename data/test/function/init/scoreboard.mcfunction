@@ -142,4 +142,6 @@ scoreboard objectives add test.slotnumber dummy
  
  scoreboard objectives add test.status.base.mp_regene dummy
  scoreboard objectives add test.status.base.hp_regene dummy
- 
+# デバッグ用
+ scoreboard objectives add test.debug.enabled dummy
+ scoreboard objectives add test.debug.display dummy
