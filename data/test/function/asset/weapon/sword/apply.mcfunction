@@ -6,6 +6,8 @@ data remove storage test: loot.item
 $data modify storage test: loot.item.id set from storage test: asset.$(material).item
 $data modify storage test: loot.item.components set from storage test: asset.$(material).components
 
+execute unless data storage test: loot.item.components."minecraft:custom_data".substatus run data modify storage test: loot.item.components."minecraft:custom_data".substatus set value []
+
 execute if data storage test: {loot:{rare:3}} store result score #loot test.substatus run random value 1..2
 execute if data storage test: {loot:{rare:4}} store result score #loot test.substatus run random value 2..3
 execute if data storage test: {loot:{rare:5}} store result score #loot test.substatus run random value 3..4
