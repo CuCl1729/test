@@ -95,6 +95,7 @@ scoreboard objectives add test.slotnumber dummy
 
  scoreboard objectives add test.battle.acting dummy
  scoreboard objectives add test.settings.battle_ui dummy
+ scoreboard objectives add test.battle.chat_select trigger
  scoreboard objectives add test.arena.occupied dummy
  scoreboard objectives add test.battle.arena dummy
 
