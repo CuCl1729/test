@@ -25,5 +25,3 @@ execute if score #level test.temporary matches 0 run function test:item/weapon/l
 function test:item/weapon/level_up/set_name
 
 function test:item/weapon/level_up/set_lore
-
-function test:loot/level_up
