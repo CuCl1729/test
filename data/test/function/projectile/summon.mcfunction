@@ -25,8 +25,6 @@ scoreboard players operation @n[tag=summoned] test.earth_resist.pene = @s test.e
 
 scoreboard players operation @n[tag=summoned] test.def.pene = @s test.def.pene
 
-tellraw @a {type:"nbt",source:"entity",nbt:"data",entity:"@n[tag=summoned]"}
-
 tag @n[tag=summoned] remove summoned
 
 $execute if score @s test.repeat < @s test.multi_shot positioned ^$(out) ^ ^ run function test:projectile/summon with storage math:

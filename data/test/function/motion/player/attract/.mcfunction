@@ -16,10 +16,6 @@ scoreboard players operation #motion test.X0 /= #100 test.constant
 scoreboard players operation #motion test.Y0 /= #100 test.constant
 scoreboard players operation #motion test.Z0 /= #100 test.constant
 
-tellraw @a [{"text":"X0:"},{"score":{name:"#motion",objective:"test.X0"}}]
-tellraw @a [{"text":"Y0:"},{"score":{name:"#motion",objective:"test.Y0"}}]
-tellraw @a [{"text":"Z0:"},{"score":{name:"#motion",objective:"test.Z0"}}]
-
 function test:motion/player/pre
 
 item modify entity @s saddle test:move/add_impulse

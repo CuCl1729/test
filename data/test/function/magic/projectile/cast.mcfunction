@@ -1,5 +1,3 @@
-say cast
-
 data remove storage test: status
 
 data modify storage test: status.Tags set from storage test: magic.player.projectile.behavior

@@ -1,4 +1,3 @@
-say pre impulse z
 scoreboard players operation #motion test.temporary = #motion test.Z1
 
 scoreboard players set #-1 test.Z0 0

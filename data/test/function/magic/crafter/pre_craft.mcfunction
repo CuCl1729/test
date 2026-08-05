@@ -1,5 +1,3 @@
-say Crafting
-
 function test:asset/magic/reset
 
 function test:magic/crafter/type with block ~ ~ ~ Items[{Slot:9b}].components."minecraft:custom_data".test.magic

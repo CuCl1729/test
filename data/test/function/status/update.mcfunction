@@ -8,8 +8,6 @@ scoreboard players operation #mainhand test.calc.base += #mainhand test.calc.add
 $execute store result score #offhand test.calc.add run data get storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.equipment.offhand.components.minecraft:custom_data.base_status{type:$(status)_add}.value 100
 scoreboard players operation #mainhand test.calc.base += #offhand test.calc.add
 
-tellraw @a {score:{name:"#mainhand",objective:"test.calc.base"}}
-
 $execute store result score #mainhand test.calc.add run data get storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components.minecraft:custom_data.status_bonus{type:$(status)_add}.value 100
 scoreboard players operation #mainhand test.calc.base += #mainhand test.calc.add
 
@@ -59,8 +57,6 @@ scoreboard players add #mainhand test.multiplier 10000
 scoreboard players operation #mainhand test.calc.base *= #mainhand test.multiplier
 scoreboard players operation #mainhand test.calc.base /= #10000 test.constant
 
-tellraw @a {score:{name:"#mainhand",objective:"test.calc.base"}}
-
 # メインハンド
 scoreboard players set #mainhand test.calc.add 0
 $execute store result score #substatus test.calc.add run data get storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components.minecraft:custom_data.substatus[{type:$(status)_add}].value 100
@@ -97,7 +93,6 @@ scoreboard players operation #mainhand test.calc.add += #legs test.calc.add
 scoreboard players operation #mainhand test.calc.add += #feet test.calc.add
 scoreboard players operation #mainhand test.calc.add += #saddle test.calc.add
 
-tellraw @a {score:{name:"#mainhand",objective:"test.calc.add"}}
 scoreboard players operation #mainhand test.calc.base += #mainhand test.calc.add
 
 $scoreboard players operation @s test.status.$(status) = #mainhand test.calc.base

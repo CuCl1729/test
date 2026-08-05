@@ -34,11 +34,6 @@ scoreboard players operation #motion test.temporary /= #power test.multiplier
 
 execute if score #motion test.temporary matches -10..10 run tag @s remove attract
 
-tellraw @a [{"text":"X0:"},{"score":{name:"#motion",objective:"test.X0"}}]
-tellraw @a [{"text":"Y0:"},{"score":{name:"#motion",objective:"test.Y0"}}]
-tellraw @a [{"text":"Z0:"},{"score":{name:"#motion",objective:"test.Z0"}}]
-tellraw @a [{"text":"temporary:"},{"score":{name:"#motion",objective:"test.temporary"}}]
-
 function test:motion/player/pre
 
 item modify entity @s saddle test:move/add_impulse
