@@ -10,6 +10,7 @@ execute as @e[type=player] run function test:ui/status/
 execute as @e[tag=crafter] at @s if entity @e[type=player,distance=..6] run function test:magic/crafter/main
 execute as @e[tag=weapon_forge] at @s if entity @e[type=player,distance=..6] run function test:craft/weapon/forge/main
 execute as @e[tag=weapon_upgrade] at @s if entity @e[type=player,distance=..6] run function test:craft/weapon/upgrade/main
+execute as @e[tag=magic_research] at @s if entity @e[type=player,distance=..6] run function test:craft/magic/research/main
 execute as @e[tag=attract] at @s run function test:motion/player/attract/main
 execute in test:arena as @e[tag=battle_marker] run function test:battle/tick
 function test:debug/tick

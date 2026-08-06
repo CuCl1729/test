@@ -1,1 +1,1 @@
-$function test:asset/magic/effect/$(effect)
+$execute if score @p[distance=..6] test.magic.known.$(effect) matches 1 run function test:asset/magic/effect/$(effect)

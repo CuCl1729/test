@@ -1,1 +1,1 @@
-$function test:asset/magic/status/$(status)
+$execute if score @p[distance=..6] test.magic.known.$(status) matches 1 run function test:asset/magic/status/$(status)

@@ -105,7 +105,8 @@ scoreboard objectives add test.slotnumber dummy
 # ステータス用
  scoreboard objectives add test.status.level dummy
  scoreboard objectives add test.status.exp dummy
- 
+ scoreboard objectives add test.status.skill_point dummy
+
  scoreboard objectives add test.status.atk dummy
  
  scoreboard objectives add test.status.def dummy
@@ -149,6 +150,13 @@ scoreboard objectives add test.slotnumber dummy
  
  scoreboard objectives add test.status.base.mp_regene dummy
  scoreboard objectives add test.status.base.hp_regene dummy
+# 魔法要素の習得状況(研究ステーションで解放)
+ scoreboard objectives add test.magic.known.projectile dummy
+ scoreboard objectives add test.magic.known.self dummy
+ scoreboard objectives add test.magic.known.fire dummy
+ scoreboard objectives add test.magic.known.gravity dummy
+ scoreboard objectives add test.magic.known.heal dummy
+ scoreboard objectives add test.magic.known.atk dummy
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy
  scoreboard objectives add test.debug.display dummy

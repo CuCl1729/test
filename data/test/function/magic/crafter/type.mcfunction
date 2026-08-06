@@ -1,1 +1,1 @@
-$function test:asset/magic/type/$(type)
+$execute if score @p[distance=..6] test.magic.known.$(type) matches 1 run function test:asset/magic/type/$(type)

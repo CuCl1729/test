@@ -15,6 +15,7 @@ scoreboard players set #8 test.constant 8
 scoreboard players set #9 test.constant 9
 
 scoreboard players set #10 test.constant 10
+scoreboard players set #50 test.constant 50
 scoreboard players set #100 test.constant 100
 scoreboard players set #1000 test.constant 1000
 scoreboard players set #10000 test.constant 10000
