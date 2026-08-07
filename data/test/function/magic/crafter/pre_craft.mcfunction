@@ -36,5 +36,8 @@ function test:magic/crafter/type with block ~ ~ ~ Items[{Slot:17b}].components."
 function test:magic/crafter/effect with block ~ ~ ~ Items[{Slot:17b}].components."minecraft:custom_data".test.magic
 function test:magic/crafter/status with block ~ ~ ~ Items[{Slot:17b}].components."minecraft:custom_data".test.magic
 
+execute if data storage test: magic.loot.status.magic_type run function test:magic/crafter/success
+execute unless data storage test: magic.loot.status.magic_type run function test:magic/crafter/failure
+
 data modify storage test: loot.context set value "loot"
 execute positioned ~ ~1 ~ run function test:item/magic/give
