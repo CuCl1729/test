@@ -13,17 +13,7 @@ $scoreboard players set @e[tag=battle_entrance,sort=nearest,limit=1] test.battle
 # エリア側マーカー(実際のターン管理はこちら)
 $execute positioned $(x) $(y) $(z) in test:arena run function test:battle/setup_arena_marker
 
-function test:battle/join
-execute as @a[distance=..8] at @s unless score @s test.battle.id matches 1.. run function test:battle/join
-execute as @e[tag=enemy,distance=..8] at @s unless score @s test.battle.id matches 1.. run function test:battle/join
-
-scoreboard players set #battle_weather test.temporary 0
-execute if predicate test:weather/rain run scoreboard players set #battle_weather test.temporary 1
-execute if predicate test:weather/thunder run scoreboard players set #battle_weather test.temporary 2
-
-execute in test:arena run function test:battle/apply_weather
-
-# チャンク座標を算出
+# チャンク座標を算出(プレイヤーが実際に戦闘を起こした位置を使うため、参加処理でテレポートする前に行う)
 execute store result score #chunk_x test.temporary run data get entity @s Pos[0] 1
 execute store result score #chunk_z test.temporary run data get entity @s Pos[2] 1
 scoreboard players operation #chunk_x test.temporary /= #16 test.constant
@@ -33,8 +23,20 @@ $data modify storage test: battle.temporary.x set value $(x)
 $data modify storage test: battle.temporary.y set value $(y)
 $data modify storage test: battle.temporary.z set value $(z)
 
+# 構造物を先に配置してから参加者をテレポートする(順序が逆だと足場のない空間に転送されて落下してしまう)
 # まず汎用構造物を配置(必ず成功する)
 execute in test:arena run function test:battle/place_default with storage test: battle.temporary
 
 # 該当するゾーンがあれば専用構造物で上書き
 execute in test:arena run function #test:battle_zones
+
+function test:battle/join
+
+execute as @a[distance=..8] at @s unless score @s test.battle.id matches 1.. run function test:battle/join
+execute as @e[tag=enemy,distance=..8] at @s unless score @s test.battle.id matches 1.. run function test:battle/join
+
+scoreboard players set #battle_weather test.temporary 0
+execute if predicate test:weather/rain run scoreboard players set #battle_weather test.temporary 1
+execute if predicate test:weather/thunder run scoreboard players set #battle_weather test.temporary 2
+
+execute in test:arena run function test:battle/apply_weather

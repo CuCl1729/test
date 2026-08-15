@@ -9,8 +9,11 @@ scoreboard players set #enemy test.status.crit_rate 0
 scoreboard players set #enemy test.status.def 1000
 scoreboard players set #enemy test.status.divergence 0
 scoreboard players set #enemy test.status.effect_damage 0
-scoreboard players set #enemy test.status.hp 100000000
-scoreboard players set #enemy test.status.hp_max 100000000
+
+# 本来はtest.status.hpとtest.status.hp_maxには実数値を設定
+ scoreboard players operation #enemy test.status.hp = #dummy test.status.hp
+ scoreboard players operation #enemy test.status.hp_max = #dummy test.status.hp
+
 scoreboard players set #enemy test.status.exp 0
 scoreboard players set #enemy test.status.magic_efficiency 0
 scoreboard players set #enemy test.status.mp 0
@@ -31,3 +34,19 @@ scoreboard players set #enemy test.wood_damage_inc.bonus 100
 scoreboard players set #enemy test.metal_damage_inc.bonus 100
 scoreboard players set #enemy test.earth_damage_inc.bonus 100
 scoreboard players set #enemy test.physics_damage_inc.bonus 100
+
+scoreboard players set #enemy test.fire_damage.bonus 100
+scoreboard players set #enemy test.water_damage.bonus 100
+scoreboard players set #enemy test.wood_damage.bonus 100
+scoreboard players set #enemy test.metal_damage.bonus 100
+scoreboard players set #enemy test.earth_damage.bonus 100
+scoreboard players set #enemy test.physics_damage.bonus 100
+
+scoreboard players set #enemy test.fire_resist.pene 0
+scoreboard players set #enemy test.water_resist.pene 0
+scoreboard players set #enemy test.wood_resist.pene 0
+scoreboard players set #enemy test.metal_resist.pene 0
+scoreboard players set #enemy test.earth_resist.pene 0
+scoreboard players set #enemy test.physics_resist.pene 0
+
+scoreboard players set #enemy test.def.pene 0

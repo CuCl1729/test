@@ -5,7 +5,7 @@
 execute if entity @s[type=player] as @e[tag=battle_member,tag=enemy,distance=..64,scores={test.status.hp=1..},sort=nearest,limit=1] run tag @s add hit
 execute unless entity @s[type=player] as @a[tag=battle_member,distance=..64,scores={test.status.hp=1..},sort=nearest,limit=1] run tag @s add hit
 
-function test:status/update {status:"atk"}
+execute if entity @s[type=player] run function test:status/update {status:"atk"}
 
 scoreboard players set #damage test.fire_damage 0
 scoreboard players set #damage test.water_damage 0
@@ -21,6 +21,10 @@ scoreboard players set #damage test.def.pene 0
 scoreboard players operation #damage test.def.pene = @s test.def.pene
 scoreboard players set #damage test.physics_resist.pene 0
 scoreboard players operation #damage test.physics_resist.pene = @s test.physics_resist.pene
+
+scoreboard players operation #damage test.status.crit_rate = @s test.status.crit_rate
+scoreboard players operation #damage test.status.crit_damage = @s test.status.crit_damage
+scoreboard players operation #damage test.status.crit_damage /= #100 test.constant
 
 execute as @e[tag=hit] run function test:damage/
 tag @e remove hit

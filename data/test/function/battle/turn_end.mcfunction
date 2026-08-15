@@ -5,4 +5,4 @@ scoreboard players add @e[tag=battle_marker,sort=nearest,limit=1] test.battle.cu
 execute if score @e[tag=battle_marker,sort=nearest,limit=1] test.battle.current_turn > @e[tag=battle_marker,sort=nearest,limit=1] test.battle.member_count run scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.current_turn 1
 
 scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.acting 0
-function test:battle/check_end
+execute at @s run function test:battle/check_end
