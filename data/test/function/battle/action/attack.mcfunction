@@ -5,7 +5,10 @@
 execute if entity @s[type=player] as @e[tag=battle_member,tag=enemy,distance=..64,scores={test.status.hp=1..},sort=nearest,limit=1] run tag @s add hit
 execute unless entity @s[type=player] as @a[tag=battle_member,distance=..64,scores={test.status.hp=1..},sort=nearest,limit=1] run tag @s add hit
 
-execute if entity @s[type=player] run function test:status/update {status:"atk"}
+# アイテム式UIは行動アイテムを右クリックする都合上メインハンドが一時的に入れ替わるため、
+# ここで再計算するとメインハンド武器の補正が失われる。アイテム式は行動アイテムを配る前(test:battle/ui/item)に
+# 計算済みの値を使い、装備を動かさないチャット式のみここで再計算する。
+execute if entity @s[type=player] if score @s test.settings.battle_ui matches 1 run function test:status/update {status:"atk"}
 
 scoreboard players set #damage test.fire_damage 0
 scoreboard players set #damage test.water_damage 0
@@ -27,6 +30,18 @@ scoreboard players operation #damage test.status.crit_damage = @s test.status.cr
 scoreboard players operation #damage test.status.crit_damage /= #100 test.constant
 
 execute as @e[tag=hit] run function test:damage/
+
+# 与えたダメージ量を集計してチャットに表示する
+execute if entity @e[tag=hit] run scoreboard players set #total_damage test.temporary 0
+execute if entity @e[tag=hit] run scoreboard players operation #total_damage test.temporary += #victim test.fire_damage
+execute if entity @e[tag=hit] run scoreboard players operation #total_damage test.temporary += #victim test.water_damage
+execute if entity @e[tag=hit] run scoreboard players operation #total_damage test.temporary += #victim test.wood_damage
+execute if entity @e[tag=hit] run scoreboard players operation #total_damage test.temporary += #victim test.metal_damage
+execute if entity @e[tag=hit] run scoreboard players operation #total_damage test.temporary += #victim test.earth_damage
+execute if entity @e[tag=hit] run scoreboard players operation #total_damage test.temporary += #victim test.physics_damage
+
+execute if entity @e[tag=hit] run tellraw @a ["",{selector:"@s"},{text:" の攻撃！ ",color:gray},{selector:"@e[tag=hit,limit=1]"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]
+
 tag @e remove hit
 
 function test:battle/turn_end

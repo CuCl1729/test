@@ -1,5 +1,9 @@
 #> test:battle/ui/item
 
+# 行動アイテムを配る前に、実際に装備している武器(両手分)を反映したATKを計算しておく。
+# 配った後はメインハンドが行動アイテムに入れ替わってしまうため、ここで計算した値をそのまま使う。
+function test:status/update {status:"atk"}
+
 give @s minecraft:iron_sword[custom_data={test:{right_click:true,battle_action:"attack"}},custom_name={text:"攻撃",italic:false},consumable={consume_seconds:100000,animation:none}]
 give @s minecraft:blaze_powder[custom_data={test:{right_click:true,battle_action:"skill"}},custom_name={text:"スキル",italic:false},consumable={consume_seconds:100000,animation:none}]
 give @s minecraft:potion[custom_data={test:{right_click:true,battle_action:"item"}},custom_name={text:"アイテム",italic:false}]
