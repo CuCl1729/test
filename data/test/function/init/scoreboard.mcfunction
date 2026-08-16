@@ -99,6 +99,8 @@ scoreboard objectives add test.slotnumber dummy
  scoreboard objectives add test.settings.battle_ui dummy
  scoreboard objectives add test.battle.chat_select trigger
  scoreboard objectives add test.battle.skill_select trigger
+ scoreboard objectives add test.battle.skill_type dummy
+ scoreboard objectives add test.battle.skill_effect trigger
  scoreboard objectives add test.arena.occupied dummy
  scoreboard objectives add test.battle.arena dummy
 
@@ -160,6 +162,11 @@ scoreboard objectives add test.slotnumber dummy
  scoreboard objectives add test.magic.known.gravity dummy
  scoreboard objectives add test.magic.known.heal dummy
  scoreboard objectives add test.magic.known.atk dummy
+# 戦闘中に今回の詠唱で使うと選んだ効果(習得済みの中からタイミングごとに選択)
+ scoreboard objectives add test.magic.select.fire dummy
+ scoreboard objectives add test.magic.select.atk dummy
+ scoreboard objectives add test.magic.select.heal dummy
+ scoreboard objectives add test.magic.select.gravity dummy
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy
  scoreboard objectives add test.debug.display dummy

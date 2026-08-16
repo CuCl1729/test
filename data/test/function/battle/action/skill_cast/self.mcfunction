@@ -6,14 +6,14 @@ data modify storage test: magic.player.magic_type set value "self"
 
 scoreboard players set #skill_cost test.temporary 20
 
-execute if score @s test.magic.known.fire matches 1 run data modify storage test: magic.player.data.magic.fire.base set value 1000
-execute if score @s test.magic.known.fire matches 1 run scoreboard players add #skill_cost test.temporary 50
+execute if score @s test.magic.known.fire matches 1 if score @s test.magic.select.fire matches 1 run data modify storage test: magic.player.data.magic.fire.base set value 1000
+execute if score @s test.magic.known.fire matches 1 if score @s test.magic.select.fire matches 1 run scoreboard players add #skill_cost test.temporary 50
 
-execute if score @s test.magic.known.atk matches 1 run data modify storage test: magic.player.data.magic.fire.atk set value 1000
-execute if score @s test.magic.known.atk matches 1 run scoreboard players add #skill_cost test.temporary 100
+execute if score @s test.magic.known.atk matches 1 if score @s test.magic.select.atk matches 1 run data modify storage test: magic.player.data.magic.fire.atk set value 1000
+execute if score @s test.magic.known.atk matches 1 if score @s test.magic.select.atk matches 1 run scoreboard players add #skill_cost test.temporary 100
 
-execute if score @s test.magic.known.heal matches 1 run data modify storage test: magic.player.heal.power set value 3
-execute if score @s test.magic.known.heal matches 1 run scoreboard players add #skill_cost test.temporary 200
+execute if score @s test.magic.known.heal matches 1 if score @s test.magic.select.heal matches 1 run data modify storage test: magic.player.heal.power set value 3
+execute if score @s test.magic.known.heal matches 1 if score @s test.magic.select.heal matches 1 run scoreboard players add #skill_cost test.temporary 200
 
 execute store success score #skill_sufficient test.temporary if score @s test.status.mp >= #skill_cost test.temporary
 
