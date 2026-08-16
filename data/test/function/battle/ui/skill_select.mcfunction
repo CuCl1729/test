@@ -1,5 +1,5 @@
 #> test:battle/ui/skill_select
-# @s = 現在手番のプレイヤー。習得済みの魔法タイプ(自己/投射)から選ばせる
+# @s = 現在手番のプレイヤー(チャット式)。習得済みの魔法タイプ(自己/投射)から選ばせる
 
 scoreboard players set @s test.battle.skill_select 0
 scoreboard players enable @s test.battle.skill_select

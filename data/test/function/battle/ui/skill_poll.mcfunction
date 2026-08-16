@@ -1,5 +1,5 @@
 #> test:battle/ui/skill_poll
-# @s = 戦闘マーカー。現在手番のプレイヤーが魔法タイプを選択済みなら処理する
+# @s = 戦闘マーカー。現在手番のプレイヤーが魔法タイプを選択済みなら処理する(チャット式)
 
 scoreboard players operation #battle_turn test.battle.id = @s test.battle.id
 scoreboard players operation #battle_turn test.battle.current_turn = @s test.battle.current_turn

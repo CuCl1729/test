@@ -1,5 +1,5 @@
 #> test:battle/ui/skill_resolve
-# @s = 魔法タイプを選択したプレイヤー
+# @s = 魔法タイプを選択したプレイヤー(チャット式)
 
 scoreboard players operation #skill_select test.battle.skill_select = @s test.battle.skill_select
 scoreboard players set @s test.battle.skill_select 0
