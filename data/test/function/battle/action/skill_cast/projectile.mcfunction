@@ -58,6 +58,7 @@ execute if score #skill_sufficient test.temporary matches 1 run scoreboard playe
 execute if score #skill_sufficient test.temporary matches 1 run scoreboard players operation #total_damage test.temporary += #victim test.wood_damage
 execute if score #skill_sufficient test.temporary matches 1 run scoreboard players operation #total_damage test.temporary += #victim test.metal_damage
 execute if score #skill_sufficient test.temporary matches 1 run scoreboard players operation #total_damage test.temporary += #victim test.earth_damage
+execute if score #skill_sufficient test.temporary matches 1 run scoreboard players operation #total_damage test.temporary /= #100 test.constant
 
 execute if score #skill_sufficient test.temporary matches 1 run tellraw @a ["",{selector:"@s"},{text:" の魔法！ ",color:light_purple},{selector:"@e[tag=magic_target,limit=1]"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:light_purple},{text:"ダメージ！",color:gray}]
 

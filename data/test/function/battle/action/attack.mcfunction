@@ -39,6 +39,7 @@ execute if entity @e[tag=hit] run scoreboard players operation #total_damage tes
 execute if entity @e[tag=hit] run scoreboard players operation #total_damage test.temporary += #victim test.metal_damage
 execute if entity @e[tag=hit] run scoreboard players operation #total_damage test.temporary += #victim test.earth_damage
 execute if entity @e[tag=hit] run scoreboard players operation #total_damage test.temporary += #victim test.physics_damage
+execute if entity @e[tag=hit] run scoreboard players operation #total_damage test.temporary /= #100 test.constant
 
 execute if entity @e[tag=hit] run tellraw @a ["",{selector:"@s"},{text:" の攻撃！ ",color:gray},{selector:"@e[tag=hit,limit=1]"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]
 

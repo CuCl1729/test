@@ -5,6 +5,10 @@ function test:debug/log {msg:"battle setup"}
 
 $scoreboard players operation #arena_$(arena) test.arena.occupied = #battle test.battle.next_id
 
+# このアリーナ番号に紐づく古い入り口マーカーが掃除しきれず残っていることがあるため、
+# 新規セットアップの直前に必ず削除しておく(複数マーカーが混在してIDを取り違えるバグの対策)
+$execute in test:turn as @e[tag=battle_entrance] if score @s test.battle.arena matches $(arena) run kill @s
+
 # 入り口マーカー(ターン制マップに残る。乱入時はこれを攻撃する)
 summon marker ~ ~ ~ {Tags:[battle_entrance]}
 scoreboard players operation @e[tag=battle_entrance,sort=nearest,limit=1] test.battle.id = #battle test.battle.next_id
