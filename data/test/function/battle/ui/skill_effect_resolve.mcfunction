@@ -4,23 +4,22 @@
 scoreboard players operation #skill_effect test.battle.skill_effect = @s test.battle.skill_effect
 scoreboard players set @s test.battle.skill_effect 0
 
-# 元の値を先に控えてから判定する(1行目で0にした直後に2行目が「今0かどうか」を見てしまうと
-# 即座に1へ戻ってしまい、有効から無効に切り替わらなくなるため)
-scoreboard players operation #toggle_effect test.temporary = @s test.magic.select.fire
-execute if score #skill_effect test.battle.skill_effect matches 1 if score #toggle_effect test.temporary matches 1 run scoreboard players set @s test.magic.select.fire 0
-execute if score #skill_effect test.battle.skill_effect matches 1 if score #toggle_effect test.temporary matches 0 run scoreboard players set @s test.magic.select.fire 1
+# 加算してmaxで割った余りを取ることで循環させる(fire/heal/gravityは0↔1、威力上昇は0〜3)
+scoreboard players set #toggle_max test.temporary 2
+execute if score #skill_effect test.battle.skill_effect matches 1 run scoreboard players add @s test.magic.select.fire 1
+execute if score #skill_effect test.battle.skill_effect matches 1 run scoreboard players operation @s test.magic.select.fire %= #toggle_max test.temporary
 
-scoreboard players operation #toggle_effect test.temporary = @s test.magic.select.atk
-execute if score #skill_effect test.battle.skill_effect matches 2 if score #toggle_effect test.temporary matches 1 run scoreboard players set @s test.magic.select.atk 0
-execute if score #skill_effect test.battle.skill_effect matches 2 if score #toggle_effect test.temporary matches 0 run scoreboard players set @s test.magic.select.atk 1
+scoreboard players set #toggle_max test.temporary 4
+execute if score #skill_effect test.battle.skill_effect matches 2 run scoreboard players add @s test.magic.select.atk 1
+execute if score #skill_effect test.battle.skill_effect matches 2 run scoreboard players operation @s test.magic.select.atk %= #toggle_max test.temporary
 
-scoreboard players operation #toggle_effect test.temporary = @s test.magic.select.heal
-execute if score #skill_effect test.battle.skill_effect matches 3 if score #toggle_effect test.temporary matches 1 run scoreboard players set @s test.magic.select.heal 0
-execute if score #skill_effect test.battle.skill_effect matches 3 if score #toggle_effect test.temporary matches 0 run scoreboard players set @s test.magic.select.heal 1
+scoreboard players set #toggle_max test.temporary 2
+execute if score #skill_effect test.battle.skill_effect matches 3 run scoreboard players add @s test.magic.select.heal 1
+execute if score #skill_effect test.battle.skill_effect matches 3 run scoreboard players operation @s test.magic.select.heal %= #toggle_max test.temporary
 
-scoreboard players operation #toggle_effect test.temporary = @s test.magic.select.gravity
-execute if score #skill_effect test.battle.skill_effect matches 4 if score #toggle_effect test.temporary matches 1 run scoreboard players set @s test.magic.select.gravity 0
-execute if score #skill_effect test.battle.skill_effect matches 4 if score #toggle_effect test.temporary matches 0 run scoreboard players set @s test.magic.select.gravity 1
+scoreboard players set #toggle_max test.temporary 2
+execute if score #skill_effect test.battle.skill_effect matches 4 run scoreboard players add @s test.magic.select.gravity 1
+execute if score #skill_effect test.battle.skill_effect matches 4 run scoreboard players operation @s test.magic.select.gravity %= #toggle_max test.temporary
 
 # トリガーは一度使うと自動的に無効化されるため、決定以外は次のクリックのために再度enableする
 execute if score #skill_effect test.battle.skill_effect matches 1..4 run scoreboard players enable @s test.battle.skill_effect
