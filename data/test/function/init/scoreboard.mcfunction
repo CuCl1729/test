@@ -101,6 +101,11 @@ scoreboard objectives add test.slotnumber dummy
  scoreboard objectives add test.battle.skill_select trigger
  scoreboard objectives add test.battle.skill_type dummy
  scoreboard objectives add test.battle.skill_effect trigger
+ scoreboard objectives add test.battle.awaiting_target dummy
+ scoreboard objectives add test.battle.target_select trigger
+ scoreboard objectives add test.battle.pending_target_action dummy
+ scoreboard objectives add test.battle.target_max dummy
+ scoreboard objectives add test.battle.turn_start_retry dummy
  scoreboard objectives add test.arena.occupied dummy
  scoreboard objectives add test.battle.arena dummy
 
