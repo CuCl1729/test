@@ -23,11 +23,11 @@ execute if score #turn_retry_exceeded test.temporary matches 1 run return 0
 
 execute if score #turn_actor_found test.temporary matches 0 run scoreboard players add @s test.battle.current_turn 1
 execute if score #turn_actor_found test.temporary matches 0 if score @s test.battle.current_turn > @s test.battle.member_count run scoreboard players set @s test.battle.current_turn 1
-execute if score #turn_actor_found test.temporary matches 0 run function test:battle/turn_start
-# 再帰呼び出しが実行者を見つけて手番を開始させた後、ここに処理が戻ってくると
-# #turn_actor_foundが再帰側で1に上書きされているため、このまま下の行まで進むと
-# 呼び出し元でも同じ実行者へ二重にturn_start_actorを呼んでしまう。ここで確実に打ち切る
-execute if score #turn_actor_found test.temporary matches 0 run return 0
+# #turn_actor_found/#battle_turn は共有スコアなので、再帰呼び出し(function test:battle/turn_start)の中で
+# 値が上書きされる。呼び出し後に同じ共有スコアを条件にreturnするとその上書き後の値を見てしまい
+# 判定が効かず、呼び出し元でも同じ実行者へ二重にturn_start_actorを呼んでしまう。
+# 「return run function」で再帰呼び出しと同時に必ず打ち切ることで、この上書きの影響を受けないようにする
+execute if score #turn_actor_found test.temporary matches 0 run return run function test:battle/turn_start
 
 execute if score #turn_actor_found test.temporary matches 1 run scoreboard players set @s test.battle.turn_start_retry 0
 execute if score #turn_actor_found test.temporary matches 1 run scoreboard players set @s test.battle.acting 1
