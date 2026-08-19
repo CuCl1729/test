@@ -16,6 +16,7 @@ execute in test:arena as @e[tag=battle_marker] at @s run function test:battle/ti
 execute as @e[tag=skill_minecart,tag=!skill_effect_minecart,tag=!target_minecart] at @s run function test:battle/ui/skill_type_cart_tick
 execute as @e[tag=skill_effect_minecart] at @s run function test:battle/ui/skill_effect_cart_tick
 execute as @e[tag=target_minecart] at @s run function test:battle/ui/target_cart_tick
+execute as @e[tag=enemy] at @s run function test:status/hp_display_tick
 function test:debug/tick
 execute as @a[tag=downed] run function test:status/downed_tick
 
@@ -24,6 +25,10 @@ scoreboard players add @e[tag=time] test.time 1
 execute as @e[tag=executer] at @s rotated as @n[tag=Temp] run teleport @s ~ ~ ~ ~ ~
 
 tag @e[tag=executer] remove executer
+
+# 死亡するエンティティに騎乗しているtext_display(HP表示等)は道連れにしないと取り残されるため、
+# 同じタイミングでkillタグを付けてまとめて消す
+execute as @e[tag=kill] on passengers run tag @s add kill
 
 scoreboard players reset @e[tag=kill]
 kill @e[tag=kill]
