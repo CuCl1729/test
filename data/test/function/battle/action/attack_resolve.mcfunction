@@ -26,22 +26,17 @@ scoreboard players operation #damage test.status.crit_rate = @s test.status.crit
 scoreboard players operation #damage test.status.crit_damage = @s test.status.crit_damage
 scoreboard players operation #damage test.status.crit_damage /= #100 test.constant
 
-execute as @e[tag=battle_target] run function test:damage/
+# 範囲攻撃剣の場合、範囲攻撃専用倍率を追加で掛ける(通常攻撃はfire/water等が常に0のため無関係)
+execute if score @s test.battle.weapon_aoe matches 1 run scoreboard players operation #damage test.physics_damage *= @s test.battle.weapon_aoe_multiplier
+execute if score @s test.battle.weapon_aoe matches 1 run scoreboard players operation #damage test.physics_damage /= #100 test.constant
 
-# 与えたダメージ量を集計してチャットに表示する
-execute if entity @e[tag=battle_target] run scoreboard players set #total_damage test.temporary 0
-execute if entity @e[tag=battle_target] run scoreboard players operation #total_damage test.temporary += #victim test.fire_damage
-execute if entity @e[tag=battle_target] run scoreboard players operation #total_damage test.temporary += #victim test.water_damage
-execute if entity @e[tag=battle_target] run scoreboard players operation #total_damage test.temporary += #victim test.wood_damage
-execute if entity @e[tag=battle_target] run scoreboard players operation #total_damage test.temporary += #victim test.metal_damage
-execute if entity @e[tag=battle_target] run scoreboard players operation #total_damage test.temporary += #victim test.earth_damage
-execute if entity @e[tag=battle_target] run scoreboard players operation #total_damage test.temporary += #victim test.physics_damage
-execute if entity @e[tag=battle_target] run scoreboard players operation #total_damage test.temporary /= #100 test.constant
+# 対象が複数(範囲攻撃)いる場合でもそれぞれ個別にダメージ計算・メッセージ表示するため、
+# 攻撃者を一時タグで参照できるようにしてから対象ごとにループする
+tag @s add battle_attacker
 
-execute if entity @e[tag=battle_target] run tellraw @a ["",{selector:"@s"},{text:" の攻撃！ ",color:gray},{selector:"@e[tag=battle_target,limit=1]"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]
+execute as @e[tag=battle_target] run function test:battle/action/attack_hit
 
-execute if entity @e[tag=battle_target,tag=enemy,scores={test.status.hp=..0}] run tellraw @a ["",{selector:"@e[tag=battle_target,tag=enemy,limit=1]"},{text:"を倒した！",color:gold}]
-
+tag @e remove battle_attacker
 tag @e remove battle_target
 
 function test:battle/turn_end

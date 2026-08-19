@@ -106,6 +106,8 @@ scoreboard objectives add test.slotnumber dummy
  scoreboard objectives add test.battle.pending_target_action dummy
  scoreboard objectives add test.battle.target_max dummy
  scoreboard objectives add test.battle.turn_start_retry dummy
+ scoreboard objectives add test.battle.weapon_aoe dummy
+ scoreboard objectives add test.battle.weapon_aoe_multiplier dummy
  scoreboard objectives add test.arena.occupied dummy
  scoreboard objectives add test.battle.arena dummy
 
