@@ -51,7 +51,7 @@ scoreboard players operation @n[tag=summoned] test.physics_resist.pene = #enemy 
 tag @n[tag=summoned] add enemy
 
 # 頭上のHP表示をこの敵に騎乗させる(billboard:centerで向きの影響を受けず、translationで頭上へオフセット)
-execute at @n[tag=summoned] run summon text_display ~ ~ ~ {Tags:[hp_display,hp_display_new],billboard:"center",transformation:{translation:[0.0f,1.5f,0.0f],scale:[1.0f,1.0f,1.0f]},text:{text:""},background:0}
+execute at @n[tag=summoned] run summon text_display ~ ~ ~ {Tags:[hp_display,hp_display_new],billboard:"center",transformation:{translation:[0.0f,0.3f,0.0f],scale:[1.0f,1.0f,1.0f],left_rotation:[0.0f,0.0f,0.0f,1.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f]},text:{text:""},background:0}
 ride @n[tag=hp_display_new] mount @n[tag=summoned]
 tag @n[tag=hp_display_new] remove hp_display_new
 

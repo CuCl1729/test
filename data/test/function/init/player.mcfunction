@@ -17,3 +17,6 @@ function test:status/update {status:"hp_regene"}
 
 scoreboard players operation @s test.status.hp = @s test.status.hp_max
 scoreboard players operation @s test.status.mp = @s test.status.mp_max
+
+# 1=チャット表示 2=頭上ポップアップ 3=両方
+scoreboard players set @s test.settings.damage_display 3

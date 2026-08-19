@@ -17,6 +17,15 @@ execute as @e[tag=skill_minecart,tag=!skill_effect_minecart,tag=!target_minecart
 execute as @e[tag=skill_effect_minecart] at @s run function test:battle/ui/skill_effect_cart_tick
 execute as @e[tag=target_minecart] at @s run function test:battle/ui/target_cart_tick
 execute as @e[tag=enemy] at @s run function test:status/hp_display_tick
+
+# 召喚と同じtick内でtextを設定するとクライアントに反映されないことがあるため、次のtickで確定させる
+# (毎ticktpして浮き上がらせる案は、tpのたびにtextの描画が崩れることが判明したため不採用。静止表示のみ)
+execute as @e[tag=damage_pop_text_pending] run data modify entity @s text set value {text:"",extra:[{score:{name:"@s",objective:"test.damage_pop.value"},color:"red"}]}
+tag @e[tag=damage_pop_text_pending] remove damage_pop_text_pending
+
+execute as @e[tag=damage_pop] run scoreboard players remove @s test.damage_pop.life 1
+execute as @e[tag=damage_pop,scores={test.damage_pop.life=..0}] run tag @s add kill
+
 function test:debug/tick
 execute as @a[tag=downed] run function test:status/downed_tick
 

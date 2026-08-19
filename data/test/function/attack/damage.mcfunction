@@ -1,6 +1,11 @@
 # 通常のリアルタイムダメージ。既にターン制バトルに参加している相手(battle_member)には当てない。
 # ただし戦闘開始のきっかけになる一撃はこの時点ではまだbattle_memberではないため、先制攻撃として通る。
-execute as @e[tag=hit,tag=!battle_marker,tag=!battle_member] run function test:damage/
+# @s(攻撃者、常にプレイヤー)を一時タグで参照できるようにしてから対象ごとに処理する
+tag @s add real_attacker
+
+execute as @e[tag=hit,tag=!battle_marker,tag=!battle_member] run function test:attack/hit_apply
+
+tag @e remove real_attacker
 
 # 先制攻撃で撃破した場合はアリーナのセットアップを省略し、その場で勝利扱いにする
 execute if dimension test:turn if entity @e[tag=hit,tag=enemy,scores={test.status.hp=..0}] unless score @s test.battle.id matches 1.. run function test:battle/preemptive_kill

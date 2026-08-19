@@ -145,6 +145,10 @@ scoreboard objectives add test.slotnumber dummy
 
  scoreboard objectives add test.hp_display.cur dummy
  scoreboard objectives add test.hp_display.max dummy
+
+ scoreboard objectives add test.settings.damage_display dummy
+ scoreboard objectives add test.damage_pop.value dummy
+ scoreboard objectives add test.damage_pop.life dummy
  
 # 基礎ステータス用
  scoreboard objectives add test.status.base.atk dummy
