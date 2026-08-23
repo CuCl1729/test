@@ -10,9 +10,12 @@
 # role:             delivery=届け方(排他。2つ以上選ぶと不正) / modifier=修飾子(deliveryに重ねられる)
 # conflicts:        同時に選べないタイプidの一覧(相互に書いておく)
 # effect_categories: このタイプと組み合わせられる効果のcategory一覧(効果選択UIの出し分けに使う)
+# projectile_events: 投射体が起こすイベントのうち、このタイプが独自に処理するもの(省略可)
+#                    宣言したイベントは test:projectile/on/<event>/<id> が呼ばれる。
+#                    イベントは hit_entity(対象に触れた) / hit_block(壁・地面に阻まれた) / expire(射程切れ)
 
 data remove storage test: asset.magic.types
 
 data modify storage test: asset.magic.types append value {id:"self",label:"自己",color:"aqua",item:"glass_bottle",role:"delivery",conflicts:["aoe"],effect_categories:["support"]}
 data modify storage test: asset.magic.types append value {id:"projectile",label:"投射",color:"gold",item:"snowball",role:"delivery",conflicts:[],effect_categories:["attack"]}
-data modify storage test: asset.magic.types append value {id:"aoe",label:"範囲",color:"light_purple",item:"tnt",role:"modifier",conflicts:["self"],effect_categories:["attack","support","modifier"]}
+data modify storage test: asset.magic.types append value {id:"aoe",label:"範囲",color:"light_purple",item:"tnt",role:"modifier",conflicts:["self"],effect_categories:["attack","support","modifier"],projectile_events:{hit_entity:1b,hit_block:1b,expire:1b}}

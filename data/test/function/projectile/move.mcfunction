@@ -1,5 +1,3 @@
-execute if score @s test.time = @s test.range run function test:projectile/kill
-
 scoreboard players operation #damage test.fire_damage = @s test.fire_damage
 scoreboard players operation #damage test.water_damage = @s test.water_damage
 scoreboard players operation #damage test.wood_damage = @s test.wood_damage
@@ -10,6 +8,16 @@ scoreboard players operation #damage test.physics_damage = @s test.physics_damag
 scoreboard players operation #damage test.status.crit_rate = @s test.status.crit_rate
 scoreboard players operation #damage test.status.crit_damage = @s test.status.crit_damage
 scoreboard players operation #damage test.def.pene = @s test.def.pene
+
+# ダメージ表示で詠唱者を引けるよう、覚えておいたOhMyDatIDから詠唱者に一時タグを付ける。
+# 着弾イベントはこの後どこでも起きうるので、ダメージ量の設定と合わせて先に済ませておく
+scoreboard players operation #owner test.temporary = @s test.owner
+execute as @a if score @s OhMyDatID = #owner test.temporary run tag @s add damage_attacker
+
+# 射程が尽きた(expire)。既定では静かに消えるが、タイプ側で処理を差し込める
+execute if score @s test.time = @s test.range run function test:projectile/event {event:"expire"}
+execute if score @s test.time = @s test.range if score #event_result test.temporary matches 0 run function test:projectile/kill
+execute if score @s test.time = @s test.range if score #event_result test.temporary matches 2 run function test:projectile/kill
 
 execute store result score @s test.X0 run data get entity @s Pos[0] 100
 execute store result score @s test.Y0 run data get entity @s Pos[1] 100
@@ -39,7 +47,11 @@ scoreboard players operation @s test.X0 /= #100 test.constant
 scoreboard players operation @s test.Y0 /= #100 test.constant
 scoreboard players operation @s test.Z0 /= #100 test.constant
 
-execute if entity @s[tag=block] run function test:projectile/reflect
+# 壁・地面に阻まれた(hit_block)。既定では跳ね返るが、タイプ側で処理を差し込める。
+# 反射はこのタイミングでないと今tickの移動計算に反映されないため、判定位置はここから動かさない
+execute if entity @s[tag=block] run function test:projectile/event {event:"hit_block"}
+execute if entity @s[tag=block] if score #event_result test.temporary matches 0 run function test:projectile/reflect
+execute if entity @s[tag=block] if score #event_result test.temporary matches 2 run function test:projectile/kill
 
 execute at @s run summon area_effect_cloud ^ ^ ^1.0 {Tags:[mark],Radius:0,WaitTime:0}
 
@@ -92,19 +104,15 @@ kill @n[tag=mark]
 
 execute at @s run particle end_rod ~ ~ ~ 0 0 0 0 0
 
-# ダメージ表示で詠唱者を引けるよう、覚えておいたOhMyDatIDから詠唱者に一時タグを付ける
-scoreboard players operation #owner test.temporary = @s test.owner
-execute as @a if score @s OhMyDatID = #owner test.temporary run tag @s add damage_attacker
+# HPを持つ対象のヒットボックスに触れたか(hit_entity)。詠唱者を含むプレイヤーには反応しない
+# (プレイヤーを除外しないと、撃った直後に自分へ反応して暴発する)
+scoreboard players set #hit_entity test.temporary 0
+execute as @e[type=!player,tag=!projectile,scores={test.status.hp=1..},dx=-0.25,dy=-0.25,dz=-0.25] positioned ~-1 ~-1 ~-1 if entity @s[dx=0.25,dy=0.25,dz=0.25] run scoreboard players set #hit_entity test.temporary 1
 
-# 範囲タイプと組み合わせていない場合は従来通り、触れた対象へ直接効果を与える
-execute unless score @s test.aoe_radius matches 1.. as @e[tag=!projectile,dx=-0.25,dy=-0.25,dz=-0.25] positioned ~-1 ~-1 ~-1 if entity @s[dx=0.25,dy=0.25,dz=0.25] run function test:magic/hit
+execute if score #hit_entity test.temporary matches 1 run function test:projectile/event {event:"hit_entity"}
 
-# 範囲タイプと組み合わせている場合は、何かに触れた時点でその地点を中心に円状へ効果を出して消える。
-# 判定は単体命中と同じ二重AABB(ヒットボックスが触れたか)で行い、詠唱者を含むプレイヤーには反応しない
-# (1つの箱だけの粗い判定かつプレイヤー除外なしだと、撃った直後に自分へ反応して暴発する)
-# 1体でも触れていれば1回だけ起爆したいので、フラグを立ててから起爆する
-scoreboard players set #burst test.temporary 0
-execute if score @s test.aoe_radius matches 1.. as @e[type=!player,tag=!projectile,scores={test.status.hp=1..},dx=-0.25,dy=-0.25,dz=-0.25] positioned ~-1 ~-1 ~-1 if entity @s[dx=0.25,dy=0.25,dz=0.25] run scoreboard players set #burst test.temporary 1
-execute if score #burst test.temporary matches 1 run function test:projectile/burst
+# 既定では触れた対象へ直接効果を与える(タイプ側で処理した場合はそちらにまかせる)
+execute if score #hit_entity test.temporary matches 1 if score #event_result test.temporary matches 0 as @e[tag=!projectile,dx=-0.25,dy=-0.25,dz=-0.25] positioned ~-1 ~-1 ~-1 if entity @s[dx=0.25,dy=0.25,dz=0.25] run function test:magic/hit
+execute if score #hit_entity test.temporary matches 1 if score #event_result test.temporary matches 2 run function test:projectile/kill
 
 tag @a remove damage_attacker
