@@ -8,7 +8,7 @@ $execute unless data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.m
 # 取られたスロットからタイプidを引けるようにしておく
 $data modify storage test: battle.temporary.type_slot append value "$(id)"
 
-$execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.magic.select.type{$(id):1b} run data modify entity @n[tag=skill_minecart] Items append value {Slot:$(slot)b,id:"$(item)",count:1,components:{"minecraft:custom_name":{text:"[有効] $(label)",italic:false,color:"green"},"minecraft:custom_data":{test:{skill_choice:"$(id)"}}}}
-$execute unless data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.magic.select.type{$(id):1b} run data modify entity @n[tag=skill_minecart] Items append value {Slot:$(slot)b,id:"$(item)",count:1,components:{"minecraft:custom_name":{text:"[無効] $(label)",italic:false},"minecraft:custom_data":{test:{skill_choice:"$(id)"}}}}
+$execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.magic.select.type{$(id):1b} run data modify entity @n[tag=skill_minecart,tag=!target_minecart,tag=!skill_effect_minecart] Items append value {Slot:$(slot)b,id:"$(item)",count:1,components:{"minecraft:custom_name":{text:"[有効] $(label)",italic:false,color:"green"},"minecraft:custom_data":{test:{skill_choice:"$(id)"}}}}
+$execute unless data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.magic.select.type{$(id):1b} run data modify entity @n[tag=skill_minecart,tag=!target_minecart,tag=!skill_effect_minecart] Items append value {Slot:$(slot)b,id:"$(item)",count:1,components:{"minecraft:custom_name":{text:"[無効] $(label)",italic:false},"minecraft:custom_data":{test:{skill_choice:"$(id)"}}}}
 
 scoreboard players add #type_slot test.temporary 1

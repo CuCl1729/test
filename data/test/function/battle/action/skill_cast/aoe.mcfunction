@@ -15,15 +15,25 @@ scoreboard players operation @s test.status.mp -= #skill_cost test.temporary
 
 function test:battle/action/skill_cast/prepare_damage
 
-tellraw @a ["",{selector:"@s"},{text:" の範囲魔法！",color:light_purple}]
+# ダメージを与える魔法かどうかを見て表示を出し分ける。回復だけを選んだ場合に
+# 「〇〇に0ダメージ！」を敵の数だけ出さないようにするため
+scoreboard players set #has_damage test.temporary 0
+execute unless score #damage test.fire_damage matches 0 run scoreboard players set #has_damage test.temporary 1
+execute unless score #damage test.water_damage matches 0 run scoreboard players set #has_damage test.temporary 1
+execute unless score #damage test.wood_damage matches 0 run scoreboard players set #has_damage test.temporary 1
+execute unless score #damage test.metal_damage matches 0 run scoreboard players set #has_damage test.temporary 1
+execute unless score #damage test.earth_damage matches 0 run scoreboard players set #has_damage test.temporary 1
+execute unless score #damage test.physics_damage matches 0 run scoreboard players set #has_damage test.temporary 1
+
+execute if score #has_damage test.temporary matches 1 run tellraw @a ["",{selector:"@s"},{text:" の範囲魔法！",color:light_purple}]
+execute if score #has_damage test.temporary matches 0 run tellraw @a ["",{selector:"@s"},{text:" は味方全体に魔法を唱えた",color:light_purple}]
 
 # 攻撃効果は生存している敵全員へ(詠唱者は一時タグで参照する)
 tag @s add battle_caster
-execute at @s as @e[tag=battle_member,tag=enemy,distance=..64,scores={test.status.hp=1..}] run function test:battle/action/skill_cast/magic_hit
+execute if score #has_damage test.temporary matches 1 at @s as @e[tag=battle_member,tag=enemy,distance=..64,scores={test.status.hp=1..}] run function test:battle/action/skill_cast/magic_hit
 tag @e remove battle_caster
 
-# 回復効果は生存している味方全員へ(magic/effect/healは@sを回復する再帰関数なので対象ごとにリセットする)
-execute if data storage test: magic.player.heal at @s as @a[tag=battle_member,distance=..64,scores={test.status.hp=1..}] run scoreboard players reset @s test.repeat
-execute if data storage test: magic.player.heal at @s as @a[tag=battle_member,distance=..64,scores={test.status.hp=1..}] run function test:magic/effect/heal
+# 回復効果は生存している味方全員へ(対象ごとに回復量を表示する)
+execute if data storage test: magic.player.heal at @s as @a[tag=battle_member,distance=..64,scores={test.status.hp=1..}] run function test:battle/action/skill_cast/heal_target
 
 function test:battle/turn_end
