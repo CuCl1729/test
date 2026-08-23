@@ -4,6 +4,17 @@
 
 function test:attack/prepare
 
+# MPが足りない場合はここで打ち切る(store successはrunなしだと条件を無視してしまうため使わない)
+execute store result score #aoe_mp_cost test.temporary run data get storage test: attack.player.weapon[{type:"aoe_mp_cost"}].value
+
+scoreboard players set #aoe_mp_sufficient test.temporary 0
+execute if score @s test.status.mp >= #aoe_mp_cost test.temporary run scoreboard players set #aoe_mp_sufficient test.temporary 1
+
+execute if score #aoe_mp_sufficient test.temporary matches 0 run tellraw @s [{text:"MPが足りません",color:gray}]
+execute if score #aoe_mp_sufficient test.temporary matches 0 run return 0
+
+scoreboard players operation @s test.status.mp -= #aoe_mp_cost test.temporary
+
 execute store result score #aoe_multiplier test.temporary run data get storage test: attack.player.weapon[{type:"aoe_multiplier"}].value
 scoreboard players operation #damage test.fire_damage *= #aoe_multiplier test.temporary
 scoreboard players operation #damage test.fire_damage /= #100 test.constant

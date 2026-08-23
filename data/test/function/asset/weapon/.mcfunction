@@ -12,5 +12,6 @@ execute if data storage test: {loot:{aoe_core:1b}} run data modify storage test:
 execute if data storage test: {loot:{aoe_core:1b}} run data modify storage test: loot.item.components.minecraft:custom_data.weapon append value {type:"aoe_angle",value:90}
 execute if data storage test: {loot:{aoe_core:1b}} run data modify storage test: loot.item.components.minecraft:custom_data.weapon append value {type:"aoe_multiplier",value:0}
 execute if data storage test: {loot:{aoe_core:1b}} store result storage test: loot.item.components.minecraft:custom_data.weapon[-1].value int 1 run random value 50..150
+execute if data storage test: {loot:{aoe_core:1b}} run data modify storage test: loot.item.components.minecraft:custom_data.weapon append value {type:"aoe_mp_cost",value:20}
 
 function test:loot/give
