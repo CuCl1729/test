@@ -92,4 +92,19 @@ kill @n[tag=mark]
 
 execute at @s run particle end_rod ~ ~ ~ 0 0 0 0 0
 
-execute as @e[tag=!projectile,dx=-0.25,dy=-0.25,dz=-0.25] positioned ~-1 ~-1 ~-1 if entity @s[dx=0.25,dy=0.25,dz=0.25] run function test:magic/hit
+# ダメージ表示で詠唱者を引けるよう、覚えておいたOhMyDatIDから詠唱者に一時タグを付ける
+scoreboard players operation #owner test.temporary = @s test.owner
+execute as @a if score @s OhMyDatID = #owner test.temporary run tag @s add damage_attacker
+
+# 範囲タイプと組み合わせていない場合は従来通り、触れた対象へ直接効果を与える
+execute unless score @s test.aoe_radius matches 1.. as @e[tag=!projectile,dx=-0.25,dy=-0.25,dz=-0.25] positioned ~-1 ~-1 ~-1 if entity @s[dx=0.25,dy=0.25,dz=0.25] run function test:magic/hit
+
+# 範囲タイプと組み合わせている場合は、何かに触れた時点でその地点を中心に円状へ効果を出して消える。
+# 判定は単体命中と同じ二重AABB(ヒットボックスが触れたか)で行い、詠唱者を含むプレイヤーには反応しない
+# (1つの箱だけの粗い判定かつプレイヤー除外なしだと、撃った直後に自分へ反応して暴発する)
+# 1体でも触れていれば1回だけ起爆したいので、フラグを立ててから起爆する
+scoreboard players set #burst test.temporary 0
+execute if score @s test.aoe_radius matches 1.. as @e[type=!player,tag=!projectile,scores={test.status.hp=1..},dx=-0.25,dy=-0.25,dz=-0.25] positioned ~-1 ~-1 ~-1 if entity @s[dx=0.25,dy=0.25,dz=0.25] run scoreboard players set #burst test.temporary 1
+execute if score #burst test.temporary matches 1 run function test:projectile/burst
+
+tag @a remove damage_attacker

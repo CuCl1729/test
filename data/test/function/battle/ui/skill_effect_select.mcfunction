@@ -1,11 +1,9 @@
 #> test:battle/ui/skill_effect_select
-# @s = 現在手番のプレイヤー(チャット式)。test.battle.skill_type(1=自己/2=投射)に応じて
-# 習得済みの効果から今回の詠唱で使う組み合わせを選ばせる(複数選択可・トグル式)
+# @s = 現在手番のプレイヤー(チャット式)。選択済みのタイプに応じて、習得済みの効果から
+# 今回の詠唱で使う組み合わせを選ばせる(複数選択可・トグル式)
 
-scoreboard players set @s test.magic.select.fire 0
-scoreboard players set @s test.magic.select.atk 0
-scoreboard players set @s test.magic.select.heal 0
-scoreboard players set @s test.magic.select.gravity 0
+function #oh_my_dat:please
+data remove storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.magic.select.effect
 
 scoreboard players set @s test.battle.skill_effect 0
 scoreboard players enable @s test.battle.skill_effect

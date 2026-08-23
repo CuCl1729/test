@@ -1,4 +1,4 @@
-#> test:attack/hit_display_pop
+#> test:damage/display_pop
 # @s = ダメージを受けた対象。頭上に短命のtext_displayを生成し、ダメージ量を一定時間だけポップアップ表示する
 # (HP表示と同じ理由で、共有スコアを直接scoreコンポーネントで参照せず、生成したtext_display自身の
 # 専用スコアへ値をコピーしてから@s参照する)

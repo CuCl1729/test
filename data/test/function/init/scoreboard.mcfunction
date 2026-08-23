@@ -86,6 +86,13 @@ scoreboard objectives add test.def.coefficient dummy
 
 scoreboard objectives add test.slotnumber dummy
 
+# 範囲タイプと組み合わせた投射体が着弾時に円状へ効果を出すための半径
+scoreboard objectives add test.aoe_radius dummy
+
+# 投射体を撃った詠唱者のOhMyDatID。着弾は詠唱の数tick後になるため、
+# ダメージ表示で詠唱者を引けるようにここへ控えておく
+scoreboard objectives add test.owner dummy
+
 # ターン制用
  scoreboard objectives add test.battle.id dummy
  scoreboard objectives add test.battle.turn_order dummy
@@ -99,7 +106,6 @@ scoreboard objectives add test.slotnumber dummy
  scoreboard objectives add test.settings.battle_ui dummy
  scoreboard objectives add test.battle.chat_select trigger
  scoreboard objectives add test.battle.skill_select trigger
- scoreboard objectives add test.battle.skill_type dummy
  scoreboard objectives add test.battle.skill_effect trigger
  scoreboard objectives add test.battle.awaiting_target dummy
  scoreboard objectives add test.battle.target_select trigger
@@ -169,18 +175,9 @@ scoreboard objectives add test.slotnumber dummy
  
  scoreboard objectives add test.status.base.mp_regene dummy
  scoreboard objectives add test.status.base.hp_regene dummy
-# 魔法要素の習得状況(研究ステーションで解放)
- scoreboard objectives add test.magic.known.projectile dummy
- scoreboard objectives add test.magic.known.self dummy
- scoreboard objectives add test.magic.known.fire dummy
- scoreboard objectives add test.magic.known.gravity dummy
- scoreboard objectives add test.magic.known.heal dummy
- scoreboard objectives add test.magic.known.atk dummy
-# 戦闘中に今回の詠唱で使うと選んだ効果(習得済みの中からタイミングごとに選択)
- scoreboard objectives add test.magic.select.fire dummy
- scoreboard objectives add test.magic.select.atk dummy
- scoreboard objectives add test.magic.select.heal dummy
- scoreboard objectives add test.magic.select.gravity dummy
+# 魔法要素の習得状況と、戦闘中の詠唱で使うと選んだタイプ/効果は
+# oh_my_datの個別ストレージ(_[-4]×8.test.magic.known / .test.magic.select)に保持する。
+# タイプ・効果を増やすたびにobjectiveを足さずに済むようにするため(レジストリはtest:init/asset/magic/)
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy
  scoreboard objectives add test.debug.display dummy

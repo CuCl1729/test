@@ -2,6 +2,10 @@
 # @s = 詠唱者。対象を決定してからtest:battle/action/skill_cast/projectile_resolveへ進む
 # (アイテム式は効果選択トロッコの確定時に対象決定済みなのでここを経由しない。test:battle/ui/skill_effect_cast参照)
 
+# 範囲タイプと組み合わせている場合は対象を選ばず、範囲側の処理(敵全員)へ回す
+function #oh_my_dat:please
+execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.magic.select.type{aoe:1b} run return run function test:battle/action/skill_cast/aoe
+
 execute unless entity @s[type=player] as @a[tag=battle_member,distance=..64,scores={test.status.hp=1..},sort=nearest,limit=1] run tag @s add battle_target
 execute unless entity @s[type=player] run function test:battle/action/skill_cast/projectile_resolve
 

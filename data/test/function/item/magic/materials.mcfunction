@@ -4,4 +4,6 @@ give @s snowball[custom_data={test:{magic:{type:projectile}}},custom_name={text:
 give @s glass_bottle[custom_data={test:{magic:{type:self}}},custom_name={text:"魔法要素: 自己",italic:false}]
 give @s anvil[custom_data={test:{magic:{effect:gravity}}},custom_name={text:"魔法要素: 重力",italic:false}]
 give @s blaze_powder[custom_data={test:{magic:{status:atk}}},custom_name={text:"魔法要素: 威力上昇",italic:false}]
+give @s tnt[custom_data={test:{magic:{type:aoe}}},custom_name={text:"魔法要素: 範囲",italic:false}]
+give @s ender_pearl[custom_data={test:{magic:{status:range}}},custom_name={text:"魔法要素: 範囲拡大",italic:false}]
 

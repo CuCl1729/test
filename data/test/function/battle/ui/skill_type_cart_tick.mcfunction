@@ -1,8 +1,15 @@
 #> test:battle/ui/skill_type_cart_tick
 # @s = タイプ選択トロッコ本体(test:tickから毎tick呼ばれる)。自分のスロットが取られたか確認する
-# (取った瞬間に即決定。戦闘マーカー経由の手番判定は使わず、カートの近くにいるプレイヤー=所有者とする)
-# 1行目のresolveで効果選択用に変換された場合、tag skill_effect_minecartが付くため、
-# 2行目は変換後の空きスロットを誤検知しないようここで除外する
+# (戦闘マーカー経由の手番判定は使わず、カートの近くにいるプレイヤー=所有者とする)
+# スロット番号とタイプidの対応はpopulate時にbattle.temporary.type_slotへ控えてある
 
-execute unless entity @s[tag=skill_effect_minecart] unless entity @s[nbt={Items:[{Slot:0b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_minecart_resolve {type:1}
-execute unless entity @s[tag=skill_effect_minecart] unless entity @s[nbt={Items:[{Slot:1b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_minecart_resolve {type:2}
+execute if data storage test: battle.temporary.type_slot[0] unless entity @s[nbt={Items:[{Slot:0b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_type_minecart_toggle {index:0}
+execute if data storage test: battle.temporary.type_slot[1] unless entity @s[nbt={Items:[{Slot:1b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_type_minecart_toggle {index:1}
+execute if data storage test: battle.temporary.type_slot[2] unless entity @s[nbt={Items:[{Slot:2b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_type_minecart_toggle {index:2}
+execute if data storage test: battle.temporary.type_slot[3] unless entity @s[nbt={Items:[{Slot:3b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_type_minecart_toggle {index:3}
+execute if data storage test: battle.temporary.type_slot[4] unless entity @s[nbt={Items:[{Slot:4b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_type_minecart_toggle {index:4}
+execute if data storage test: battle.temporary.type_slot[5] unless entity @s[nbt={Items:[{Slot:5b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_type_minecart_toggle {index:5}
+execute if data storage test: battle.temporary.type_slot[6] unless entity @s[nbt={Items:[{Slot:6b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_type_minecart_toggle {index:6}
+execute if data storage test: battle.temporary.type_slot[7] unless entity @s[nbt={Items:[{Slot:7b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_type_minecart_toggle {index:7}
+
+execute unless entity @s[nbt={Items:[{Slot:8b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_minecart_resolve

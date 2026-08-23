@@ -5,8 +5,13 @@ data modify storage test: loot.item.components.minecraft:lore append value [{ita
 data modify entity @n[tag=text] text set value {color:aqua,type:"nbt",storage:"test:",nbt:"loot.item.components.minecraft:custom_data.test.cost"}
 data modify storage test: loot.item.components.minecraft:lore[-1] append from entity @n[tag=text] text
 
-execute if data storage test: loot.item.components.minecraft:custom_data.test{magic_type:"self"} run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:gray,text:"タイプ: 自己"}]
-execute if data storage test: loot.item.components.minecraft:custom_data.test{magic_type:"projectile"} run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:gray,text:"タイプ: 投射"}]
+# タイプ名のロアはレジストリを走査して出す(組み合わせた場合は使ったタイプぶん並ぶ)
+data modify storage test: registry_work.lore_type_queue set from storage test: asset.magic.types
+function test:item/magic/set_lore_type_loop
+
+execute if data storage test: loot.item.components.minecraft:custom_data.test.aoe.radius run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:gray,text:"効果半径:"}]
+execute if data storage test: loot.item.components.minecraft:custom_data.test.aoe.radius run data modify entity @n[tag=text] text set value {color:aqua,type:"nbt",storage:"test:",nbt:"loot.item.components.minecraft:custom_data.test.aoe.radius"}
+execute if data storage test: loot.item.components.minecraft:custom_data.test.aoe.radius run data modify storage test: loot.item.components.minecraft:lore[-1] append from entity @n[tag=text] text
 
 execute if data storage test: loot.item.components.minecraft:custom_data.test.projectile run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:gray,text:"射程:"}]
 execute if data storage test: loot.item.components.minecraft:custom_data.test.projectile run data modify entity @n[tag=text] text set value {color:aqua,type:"nbt",storage:"test:",nbt:"loot.item.components.minecraft:custom_data.test.projectile.range"}

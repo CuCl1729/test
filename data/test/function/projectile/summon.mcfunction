@@ -11,6 +11,14 @@ execute store result score @n[tag=summoned] test.range run data get storage test
 execute store result score @n[tag=summoned] test.gravity run data get storage test: status.gravity
 execute store result score @n[tag=summoned] test.speed run data get storage test: status.speed
 
+# 範囲タイプと組み合わせた投射体は、着弾時にこの半径で円状に効果を出す(0なら従来通り単体命中)
+scoreboard players set @n[tag=summoned] test.aoe_radius 0
+execute store result score @n[tag=summoned] test.aoe_radius run data get storage test: status.aoe_radius
+
+# ダメージ表示で詠唱者を引けるよう、詠唱者のOhMyDatIDを覚えさせる
+# (magic/.mcfunctionが詠唱の度に#oh_my_dat:pleaseを呼ぶため、この時点で必ず割り当て済み)
+scoreboard players operation @n[tag=summoned] test.owner = @s OhMyDatID
+
 scoreboard players operation @n[tag=summoned] test.fire_damage = @s test.fire_damage
 scoreboard players operation @n[tag=summoned] test.water_damage = @s test.water_damage
 scoreboard players operation @n[tag=summoned] test.wood_damage = @s test.wood_damage

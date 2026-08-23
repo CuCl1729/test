@@ -49,5 +49,5 @@ scoreboard players operation @s test.metal_damage /= #10000 test.constant
 scoreboard players operation @s test.earth_damage *= @s test.status.effect_damage
 scoreboard players operation @s test.earth_damage /= #10000 test.constant
 
-execute if data storage test: magic.player{magic_type:"projectile"} run function test:magic/projectile/cast
-execute if data storage test: magic.player{magic_type:"self"} run function test:magic/self/cast
+# タイプを増やしてもここを触らずに済むよう、magic/<id>/cast へマクロで委譲する
+function test:magic/dispatch with storage test: magic.player
