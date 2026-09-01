@@ -1,5 +1,9 @@
+#> test:magic/crafter/place
+# @s = 設置されたクラフター本体(バレルの位置)。初回描画を行う
 
 setblock ~ ~ ~ barrel
-data modify block ~ ~ ~ Items[{Slot:26}] merge value {id:"lime_stained_glass_pane",components:{custom_data:{test:{button:1b}}}}
+
+function test:magic/crafter/populate_top
+function test:magic/crafter/rebuild
 
 tag @s remove summoned

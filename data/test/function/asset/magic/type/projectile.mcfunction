@@ -1,5 +1,3 @@
-execute unless data storage test: magic.loot.name[{text:"Ball"}] run data modify storage test: magic.loot.name append value {italic:0b,text:"Ball"}
-
 data modify storage test: magic.loot.status.projectile merge value {behavior:[],speed:100,range:20}
 
 # デリバリタイプはmagic_typeを無条件に上書きする(修飾子タイプは未設定のときだけ書き込むため、

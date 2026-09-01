@@ -1,5 +1,3 @@
-execute unless data storage test: magic.loot.name[{text:"Self"}] run data modify storage test: magic.loot.name append value {italic:0b,color:white,text:"Self"}
-
 # デリバリタイプはmagic_typeを無条件に上書きする(修飾子タイプは未設定のときだけ書き込むため、
 # 素材を置くスロットの順番に関係なくデリバリ側が勝つ)
 data modify storage test: magic.loot.status.magic_type set value "self"
