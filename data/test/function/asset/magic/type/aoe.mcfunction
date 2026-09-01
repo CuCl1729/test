@@ -1,5 +1,3 @@
-execute unless data storage test: magic.loot.name[{text:"Nova"}] run data modify storage test: magic.loot.name append value {italic:0b,color:light_purple,text:"Nova"}
-
 data modify storage test: magic.loot.status.aoe merge value {radius:5}
 
 # 組み合わせ検証で「どのタイプが使われたか」を引けるようにフラグを立てる

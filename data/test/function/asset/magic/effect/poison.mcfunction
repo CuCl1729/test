@@ -5,7 +5,5 @@ execute unless score #poison_stack test.temporary matches 3.. run scoreboard pla
 execute if score #poison_apply test.temporary matches 1 run scoreboard players add #poison_stack test.temporary 1
 execute if score #poison_apply test.temporary matches 1 run scoreboard players add #cost test.temporary 90
 
-execute unless data storage test: magic.loot.name[{text:"Venom"}] run data modify storage test: magic.loot.name append value {italic:0b,color:dark_green,text:"Venom"}
-
 execute unless data storage test: magic.loot.status.buff[{id:"poison"}] run data modify storage test: magic.loot.status.buff append value {id:"poison",stacks:1}
 execute store result storage test: magic.loot.status.buff[{id:"poison"}].stacks int 1 run scoreboard players get #poison_stack test.temporary

@@ -1,7 +1,8 @@
-execute unless data storage test: magic.loot.name[{text:"Fire"}] run data modify storage test: magic.loot.name append value {italic:0b,color:red,text:"Fire"}
-
 data modify storage test: magic.loot.status.effect append value "fire"
 
-data modify storage test: magic.loot.status.data.magic.fire set value {base:1000}
+# setではなくmergeを使う。setだとdata.magic.fireコンパウンド全体を上書きしてしまい、
+# 威力上昇(asset/magic/status/atk)が先に書き込んだ.atkキーを消してしまうことがあった
+# (要素は追加した順とは逆順で組み立てられるため、火炎を先・威力上昇を後にクリックした場合に発生)
+data modify storage test: magic.loot.status.data.magic.fire merge value {base:1000}
 
 scoreboard players add #cost test.temporary 50
