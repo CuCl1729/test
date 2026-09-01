@@ -24,3 +24,8 @@ execute if score #hp_display_visible test.temporary matches 1 if score #hp_displ
 execute if score #hp_display_visible test.temporary matches 1 if score #hp_display_filled test.temporary matches 8 run data modify entity @s text set value {text:"",extra:[{text:"■■■■■■■■",color:"green"},{text:"■■",color:"dark_gray"},{text:" "},{score:{name:"@s",objective:"test.hp_display.cur"}},{text:"/"},{score:{name:"@s",objective:"test.hp_display.max"}}]}
 execute if score #hp_display_visible test.temporary matches 1 if score #hp_display_filled test.temporary matches 9 run data modify entity @s text set value {text:"",extra:[{text:"■■■■■■■■■",color:"green"},{text:"■",color:"dark_gray"},{text:" "},{score:{name:"@s",objective:"test.hp_display.cur"}},{text:"/"},{score:{name:"@s",objective:"test.hp_display.max"}}]}
 execute if score #hp_display_visible test.temporary matches 1 if score #hp_display_filled test.temporary matches 10.. run data modify entity @s text set value {text:"",extra:[{text:"■■■■■■■■■■",color:"green"},{text:"",color:"dark_gray"},{text:" "},{score:{name:"@s",objective:"test.hp_display.cur"}},{text:"/"},{score:{name:"@s",objective:"test.hp_display.max"}}]}
+
+# 掛かっているバフ/デバフのアイコンをHPバーの後ろに連結する。組み立て自体は毎tickではなく
+# バフが変化したときだけ行い(test:buff/refresh_icons)、結果をこのtext_display自身のNBTに
+# 置いてあるので、ここではリストをまとめて足すだけで済む
+execute if score #hp_display_visible test.temporary matches 1 if data entity @s data.buff_icons[0] run data modify entity @s text.extra append from entity @s data.buff_icons[]

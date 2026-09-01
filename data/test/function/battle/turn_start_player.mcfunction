@@ -16,5 +16,10 @@ scoreboard players set @s test.battle.weapon_aoe 0
 execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test{aoe_attack:1b} run scoreboard players set @s test.battle.weapon_aoe 1
 execute if score @s test.battle.weapon_aoe matches 1 store result score @s test.battle.weapon_aoe_multiplier run data get storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".weapon[{type:"aoe_multiplier"}].value
 
+# 武器の「命中時に付与するバフ」も同じ理由でここで控えておく。手番は常に1人ずつ進むので、
+# 共有のストレージに置いても他の参加者と混ざることはない
+data modify storage test: battle.actor_weapon set value {}
+data modify storage test: battle.actor_weapon.buff_on_hit set from storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test.buff_on_hit
+
 execute if score @s test.settings.battle_ui matches 1 run function test:battle/ui/chat
 execute if score @s test.settings.battle_ui matches 2 run function test:battle/ui/item

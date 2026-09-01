@@ -31,6 +31,11 @@ execute as @a[tag=downed] run function test:status/downed_tick
 
 scoreboard players add @e[tag=time] test.time 1
 
+# 全体共通の1秒クロック。バフ/デバフの継続時間は「秒」で持っているためここで進める
+scoreboard players add #clock test.time 1
+execute if score #clock test.time matches 20.. run scoreboard players set #clock test.time 0
+execute if score #clock test.time matches 0 run function test:buff/tick_second_all
+
 execute as @e[tag=executer] at @s rotated as @n[tag=Temp] run teleport @s ~ ~ ~ ~ ~
 
 tag @e[tag=executer] remove executer

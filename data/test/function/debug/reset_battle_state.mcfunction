@@ -8,6 +8,8 @@ tag @s remove battle_member
 
 execute if score @s test.status.hp matches ..0 run scoreboard players operation @s test.status.hp = @s test.status.hp_max
 
+function test:buff/clear {reason:"reset"}
+
 tag @s remove downed
 scoreboard players set @s test.status.downed_timer 0
 effect clear @s minecraft:blindness

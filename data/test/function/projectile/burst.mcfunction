@@ -6,6 +6,9 @@
 
 scoreboard players operation #aoe_radius test.temporary = @s test.aoe_radius
 
+# 投射体が運んできたバフ一覧を振り分けておく(配布はmagic/aoe/applyとmagic/hitが行う)
+function test:projectile/prepare_buff
+
 # 投射タイプは攻撃系の効果しか組み合わせられないため、着弾では回復を行わない
 scoreboard players set #aoe_heal test.temporary 0
 

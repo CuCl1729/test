@@ -6,3 +6,8 @@
 function test:damage/
 
 function test:damage/display {verb:" の魔法！ "}
+
+# 選んだデバフを対象へ付与する。振り分け済みの一覧は呼び出し元が用意している
+# (ダメージ表示が使う#total_damage等を壊さないよう、必ず表示を出したあとに行う)
+execute if data storage test: magic_buff.debuff[0] run data modify storage test: buff_work.pending set from storage test: magic_buff.debuff
+execute if data storage test: magic_buff.debuff[0] run function test:buff/apply_list

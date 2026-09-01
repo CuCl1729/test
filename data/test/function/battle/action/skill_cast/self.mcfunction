@@ -13,4 +13,8 @@ execute if score #skill_sufficient test.temporary matches 1 run scoreboard playe
 execute if score #skill_sufficient test.temporary matches 1 run tellraw @a ["",{selector:"@s"},{text:" は自分に魔法を唱えた！",color:light_purple}]
 execute if score #skill_sufficient test.temporary matches 1 if data storage test: magic.player.heal run function test:battle/action/skill_cast/heal_target
 
+# 選んだバフを自分に付与する。自己タイプは支援系の効果しか組み合わせられないため振り分けは不要
+execute if score #skill_sufficient test.temporary matches 1 if data storage test: magic.player.buff[0] run data modify storage test: buff_work.pending set from storage test: magic.player.buff
+execute if score #skill_sufficient test.temporary matches 1 if data storage test: magic.player.buff[0] run function test:buff/apply_list
+
 function test:battle/turn_end

@@ -6,6 +6,9 @@ data modify storage test: status.range set from storage test: magic.player.proje
 data modify storage test: status.gravity set from storage test: magic.player.projectile.gravity
 data modify storage test: status.data set from storage test: magic.player.data
 
+# 付与するバフの一覧も投射体に運ばせる(着弾時にmagic.playerが別の魔法で上書きされている可能性があるため)
+execute if data storage test: magic.player.buff[0] run data modify storage test: status.data.buff set from storage test: magic.player.buff
+
 # 範囲タイプと組み合わせた場合、着弾地点で円状に効果を出すため半径を投射体へ持たせる
 data modify storage test: status.aoe_radius set from storage test: magic.player.aoe.radius
 

@@ -3,6 +3,10 @@ data modify storage test: enemy.Tags set value [dummy]
 data modify storage test: enemy.id set value armor_stand
 data modify storage test: enemy.data.loot_table set value "test:enemy/dummy"
 
+# 攻撃を当てたときに確率で付与するバフ/デバフ(asset/enemy/summonがdataごとコピーする)。
+# 1件の形は魔法側と同じ {id,stacks} で、chanceを書くとその確率(%)でだけ付与される
+data modify storage test: enemy.data.buff_on_hit set value [{id:"poison",stacks:1,chance:50}]
+
 scoreboard players set #enemy test.status.atk 100
 scoreboard players set #enemy test.status.crit_damage 0
 scoreboard players set #enemy test.status.crit_rate 0

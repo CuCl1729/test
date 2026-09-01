@@ -6,3 +6,5 @@ function test:init/asset/wand/wooden_wand
 
 function test:init/asset/magic/types
 function test:init/asset/magic/effects
+
+function test:init/asset/buff/buffs

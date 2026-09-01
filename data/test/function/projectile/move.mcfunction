@@ -112,6 +112,8 @@ execute as @e[type=!player,tag=!projectile,scores={test.status.hp=1..},dx=-0.25,
 execute if score #hit_entity test.temporary matches 1 run function test:projectile/event {event:"hit_entity"}
 
 # 既定では触れた対象へ直接効果を与える(タイプ側で処理した場合はそちらにまかせる)
+# バフの振り分けは@sがまだ投射体のうちに済ませておく(magic/hitの中では@sが対象に変わっているため)
+execute if score #hit_entity test.temporary matches 1 if score #event_result test.temporary matches 0 run function test:projectile/prepare_buff
 execute if score #hit_entity test.temporary matches 1 if score #event_result test.temporary matches 0 as @e[tag=!projectile,dx=-0.25,dy=-0.25,dz=-0.25] positioned ~-1 ~-1 ~-1 if entity @s[dx=0.25,dy=0.25,dz=0.25] run function test:magic/hit
 execute if score #hit_entity test.temporary matches 1 if score #event_result test.temporary matches 2 run function test:projectile/kill
 

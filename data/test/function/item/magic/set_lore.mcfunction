@@ -9,6 +9,11 @@ data modify storage test: loot.item.components.minecraft:lore[-1] append from en
 data modify storage test: registry_work.lore_type_queue set from storage test: asset.magic.types
 function test:item/magic/set_lore_type_loop
 
+# 付与するバフ/デバフの一覧
+data remove storage test: registry_work.lore_buff_queue
+execute if data storage test: loot.item.components.minecraft:custom_data.test.buff[0] run data modify storage test: registry_work.lore_buff_queue set from storage test: loot.item.components.minecraft:custom_data.test.buff
+function test:item/magic/set_lore_buff_loop
+
 execute if data storage test: loot.item.components.minecraft:custom_data.test.aoe.radius run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:gray,text:"効果半径:"}]
 execute if data storage test: loot.item.components.minecraft:custom_data.test.aoe.radius run data modify entity @n[tag=text] text set value {color:aqua,type:"nbt",storage:"test:",nbt:"loot.item.components.minecraft:custom_data.test.aoe.radius"}
 execute if data storage test: loot.item.components.minecraft:custom_data.test.aoe.radius run data modify storage test: loot.item.components.minecraft:lore[-1] append from entity @n[tag=text] text

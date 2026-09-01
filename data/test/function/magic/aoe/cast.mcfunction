@@ -29,6 +29,11 @@ execute if data storage test: magic.player.heal run scoreboard players set #aoe_
 # ダメージ表示(test:damage/display)が詠唱者を引けるよう一時タグを付けておく
 tag @s add damage_attacker
 
+# 選んだバフ/デバフを敵向け・味方向けに振り分けておく(実際の配布はmagic/aoe/apply)
+data modify storage test: magic_buff.src set value []
+execute if data storage test: magic.player.buff[0] run data modify storage test: magic_buff.src set from storage test: magic.player.buff
+function test:magic/buff/prepare
+
 execute at @s run function test:magic/aoe/scan
 execute at @s run function test:magic/aoe/apply
 

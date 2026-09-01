@@ -13,6 +13,12 @@ scoreboard players operation #total_damage test.temporary += #victim test.wood_d
 scoreboard players operation #total_damage test.temporary += #victim test.metal_damage
 scoreboard players operation #total_damage test.temporary += #victim test.earth_damage
 scoreboard players operation #total_damage test.temporary += #victim test.physics_damage
+
+# ダメージを伴わない魔法(バフ/デバフや回復だけを選んだ範囲魔法など)でも命中判定はここを通るため、
+# 実際に1も削れていなければ「0ダメージ！」を出さずに黙って終わる。
+# 100で割る前に判定するのは、表示上0になるだけの小ダメージまで消してしまわないようにするため
+execute if score #total_damage test.temporary matches ..0 run return 0
+
 scoreboard players operation #total_damage test.temporary /= #100 test.constant
 
 $execute if score @e[tag=damage_attacker,limit=1] test.settings.damage_display matches 1 run tellraw @a ["",{selector:"@e[tag=damage_attacker,limit=1]"},{text:"$(verb)",color:gray},{selector:"@s"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]

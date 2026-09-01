@@ -96,3 +96,8 @@ scoreboard players operation #mainhand test.calc.add += #saddle test.calc.add
 scoreboard players operation #mainhand test.calc.base += #mainhand test.calc.add
 
 $scoreboard players operation @s test.status.$(status) = #mainhand test.calc.base
+
+# バフ/デバフによる増減を最後に足す。この関数は装備からステータスを毎回組み立て直すため、
+# バフが test.status.<名前> を直接書いても消えてしまう。そこで蓄積用の test.buff.<名前> を
+# 経由させ、組み立ての最後にここで合流させる(test:buff/stat/add 参照)
+$scoreboard players operation @s test.status.$(status) += @s test.buff.$(status)

@@ -102,6 +102,21 @@ scoreboard objectives remove test.def.coefficient
  scoreboard objectives remove test.status.mp_regene
  scoreboard objectives remove test.status.hp_regene
  
+# バフ/デバフ用
+ scoreboard objectives remove test.buff.atk
+ scoreboard objectives remove test.buff.def
+ scoreboard objectives remove test.buff.hp_max
+ scoreboard objectives remove test.buff.mp_max
+ scoreboard objectives remove test.buff.crit_rate
+ scoreboard objectives remove test.buff.crit_damage
+ scoreboard objectives remove test.buff.effect_damage
+ scoreboard objectives remove test.buff.magic_efficiency
+ scoreboard objectives remove test.buff.divergence
+ scoreboard objectives remove test.buff.hp_regene
+ scoreboard objectives remove test.buff.mp_regene
+
+ scoreboard objectives remove test.buff.work
+
 # 基礎ステータス用
  scoreboard objectives remove test.status.base.atk
  

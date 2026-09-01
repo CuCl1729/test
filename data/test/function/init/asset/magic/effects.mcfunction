@@ -18,3 +18,7 @@ data modify storage test: asset.magic.effects append value {id:"atk",label:"威�
 data modify storage test: asset.magic.effects append value {id:"gravity",label:"重力",color:"gray",item:"feather",max:2,category:"attack",requires_type:"projectile",folder:"effect"}
 data modify storage test: asset.magic.effects append value {id:"heal",label:"回復",color:"white",item:"ghast_tear",max:2,category:"support",folder:"effect"}
 data modify storage test: asset.magic.effects append value {id:"range",label:"範囲拡大",color:"light_purple",item:"ender_pearl",max:4,category:"modifier",folder:"status"}
+
+# バフ/デバフを付与する効果。付与されるもの自体の内容はバフ側のレジストリ(test:init/asset/buff/buffs)にある
+data modify storage test: asset.magic.effects append value {id:"atk_up",label:"攻撃力上昇",color:"gold",item:"blaze_rod",max:4,category:"support",folder:"effect"}
+data modify storage test: asset.magic.effects append value {id:"poison",label:"毒",color:"dark_green",item:"spider_eye",max:4,category:"attack",folder:"effect"}

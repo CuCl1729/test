@@ -16,3 +16,6 @@ scoreboard players operation #total_damage test.temporary /= #100 test.constant
 tellraw @a ["",{selector:"@e[tag=battle_attacker,limit=1]"},{text:" の攻撃！ ",color:gray},{selector:"@s"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]
 
 execute if entity @s[tag=enemy,scores={test.status.hp=..0}] run tellraw @a ["",{selector:"@s"},{text:"を倒した！",color:gold}]
+
+# 攻撃者が「命中時に付与するバフ」を持っていれば対象へ付与する
+function test:battle/action/attack_hit_buff

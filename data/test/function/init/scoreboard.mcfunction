@@ -175,6 +175,26 @@ scoreboard objectives add test.owner dummy
  
  scoreboard objectives add test.status.base.mp_regene dummy
  scoreboard objectives add test.status.base.hp_regene dummy
+# バフ/デバフ用
+# test.buff.<ステータス名> は「バフ由来の増減の蓄積値」。test.status.<名前>を直接書くと
+# status/updateが装備から組み立て直すときに消えてしまうため、必ずこちらを経由する
+# (実効値への反映は test:status/recalc)。レジストリは test:init/asset/buff/buffs
+ scoreboard objectives add test.buff.atk dummy
+ scoreboard objectives add test.buff.def dummy
+ scoreboard objectives add test.buff.hp_max dummy
+ scoreboard objectives add test.buff.mp_max dummy
+ scoreboard objectives add test.buff.crit_rate dummy
+ scoreboard objectives add test.buff.crit_damage dummy
+ scoreboard objectives add test.buff.effect_damage dummy
+ scoreboard objectives add test.buff.magic_efficiency dummy
+ scoreboard objectives add test.buff.divergence dummy
+ scoreboard objectives add test.buff.hp_regene dummy
+ scoreboard objectives add test.buff.mp_regene dummy
+
+# バフ処理のループ用。イベント関数が test.temporary を自由に使えるよう、
+# 進行状態は専用のobjectiveに持つ(共有スコアが入れ子呼び出しで壊れるのを避けるため)
+ scoreboard objectives add test.buff.work dummy
+
 # 魔法要素の習得状況と、戦闘中の詠唱で使うと選んだタイプ/効果は
 # oh_my_datの個別ストレージ(_[-4]×8.test.magic.known / .test.magic.select)に保持する。
 # タイプ・効果を増やすたびにobjectiveを足さずに済むようにするため(レジストリはtest:init/asset/magic/)

@@ -20,6 +20,18 @@ scoreboard players operation @n[tag=summoned] test.def.debuff = #enemy test.def.
 scoreboard players operation @n[tag=summoned] test.def.coefficient = #enemy test.def.coefficient
 scoreboard players operation @n[tag=summoned] test.def.pene = #enemy test.def.pene
 
+# 敵は装備からステータスを組み立て直す status/update を通らないため、
+# バフ/デバフを乗せ降ろしする土台として基礎値をそのまま控えておく(test:status/recalc が使う)
+scoreboard players operation @n[tag=summoned] test.status.base.atk = #enemy test.status.atk
+scoreboard players operation @n[tag=summoned] test.status.base.def = #enemy test.status.def
+scoreboard players operation @n[tag=summoned] test.status.base.hp_max = #enemy test.status.hp_max
+scoreboard players operation @n[tag=summoned] test.status.base.mp_max = #enemy test.status.mp_max
+scoreboard players operation @n[tag=summoned] test.status.base.crit_rate = #enemy test.status.crit_rate
+scoreboard players operation @n[tag=summoned] test.status.base.crit_damage = #enemy test.status.crit_damage
+scoreboard players operation @n[tag=summoned] test.status.base.effect_damage = #enemy test.status.effect_damage
+scoreboard players operation @n[tag=summoned] test.status.base.magic_efficiency = #enemy test.status.magic_efficiency
+scoreboard players operation @n[tag=summoned] test.status.base.divergence = #enemy test.status.divergence
+
 scoreboard players operation @n[tag=summoned] test.fire_resist = #enemy test.fire_resist
 scoreboard players operation @n[tag=summoned] test.water_resist = #enemy test.water_resist
 scoreboard players operation @n[tag=summoned] test.wood_resist = #enemy test.wood_resist
