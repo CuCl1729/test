@@ -8,16 +8,40 @@ scoreboard players operation #victim test.physics_damage = #damage test.physics_
 execute if predicate test:damage/crit run function test:damage/crit
 
 # 防御係数計算
- scoreboard players operation #victim test.status.def = @s test.status.def
- scoreboard players operation #victim test.temporary = @s test.status.def
- scoreboard players set #damage test.temporary 100
- scoreboard players operation #damage test.temporary -= #damage test.def.pene
- scoreboard players operation #damage test.temporary -= @s test.def.debuff
- scoreboard players operation #victim test.temporary *= #damage test.temporary
- scoreboard players operation #victim test.temporary /= #100 test.constant
- scoreboard players operation #victim test.temporary += @s test.def.coefficient
+# ①合計貫通値    = 攻撃側def.pene + 防御側def.debuff
+# ②有効貫通率(%) = 合計貫通値 × 100 ÷ (100 + 防御側def.coefficient)
+#                  coefficientが高いほど、同じ貫通値でも有効貫通率は小さくなる(=貫通耐性)
+# ③残存防御      = 生DEF × max(0, 100−有効貫通率) ÷ 100(貫通されるほど防御が目減りする。
+#                  目減りの度合いはcoefficientで抑えられる)
+# ④通過倍率      = coefficient × 100 ÷ (残存防御 + coefficient)
+#                  生DEFが大きいほど下がる(=ダメージが減る)。有効貫通率が上がるほど
+#                  残存防御が縮み、通過倍率はK/(a-bx)の形で加速度的に増える
+#                  (=貫通・デバフは重ねるほど1%あたりの効果が大きくなる、他のバフと逆の性質)。
+#                  coefficientは貫通値が0なら②が0になるため通過倍率に影響しない=
+#                  「相手の貫通・デバフにどれだけ強いか」だけを表す
+ scoreboard players set #pene_total test.temporary 0
+ scoreboard players operation #pene_total test.temporary = #damage test.def.pene
+ scoreboard players operation #pene_total test.temporary += @s test.def.debuff
+
+ scoreboard players operation #victim test.def.coefficient = @s test.def.coefficient
+
+ scoreboard players operation #effective_pene test.temporary = #pene_total test.temporary
+ scoreboard players operation #effective_pene test.temporary *= #100 test.constant
+ scoreboard players operation #victim test.temporary = #victim test.def.coefficient
+ scoreboard players operation #victim test.temporary += #100 test.constant
+ scoreboard players operation #effective_pene test.temporary /= #victim test.temporary
+ execute if score #effective_pene test.temporary matches 100.. run scoreboard players set #effective_pene test.temporary 100
+
+ scoreboard players operation #remaining_def test.temporary = @s test.status.def
+ scoreboard players set #victim test.temporary 100
+ scoreboard players operation #victim test.temporary -= #effective_pene test.temporary
+ scoreboard players operation #remaining_def test.temporary *= #victim test.temporary
+ scoreboard players operation #remaining_def test.temporary /= #100 test.constant
+
+ scoreboard players operation #remaining_def test.temporary += #victim test.def.coefficient
+ scoreboard players operation #victim test.status.def = #victim test.def.coefficient
  scoreboard players operation #victim test.status.def *= #100 test.constant
- scoreboard players operation #victim test.status.def /= #victim test.temporary
+ scoreboard players operation #victim test.status.def /= #remaining_def test.temporary
 
 # 属性ごとのダメージ処理
 function test:damage/apply_type {type:"fire"}

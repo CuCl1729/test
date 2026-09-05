@@ -17,6 +17,7 @@ execute as @e[tag=skill_minecart,tag=!skill_effect_minecart,tag=!target_minecart
 execute as @e[tag=skill_effect_minecart] at @s run function test:battle/ui/skill_effect_cart_tick
 execute as @e[tag=target_minecart] at @s run function test:battle/ui/target_cart_tick
 execute as @e[tag=enemy] at @s run function test:status/hp_display_tick
+execute in test:turn as @e[tag=enemy,tag=!battle_member,scores={test.status.hp=1..}] at @s if data entity @s data.ai_field_enabled run function test:battle/field_ai/tick
 
 # 召喚と同じtick内でtextを設定するとクライアントに反映されないことがあるため、次のtickで確定させる
 # (毎ticktpして浮き上がらせる案は、tpのたびにtextの描画が崩れることが判明したため不採用。静止表示のみ)

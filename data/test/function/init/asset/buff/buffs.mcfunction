@@ -25,3 +25,7 @@ data remove storage test: asset.buff.types
 
 data modify storage test: asset.buff.types append value {id:"atk_up",label:"攻撃力上昇",color:"gold",icon:{text:" ▲",color:"gold"},kind:"buff",duration:30,max_stacks:3,refresh:"stack",events:{apply:1b,expire:1b}}
 data modify storage test: asset.buff.types append value {id:"poison",label:"毒",color:"dark_green",icon:{text:" ☠",color:"dark_green"},kind:"debuff",duration:30,max_stacks:3,refresh:"stack",interval:5,events:{interval:1b}}
+
+# 「防御」行動を選んだときに自分へ付与する。継続時間30秒(≒手番2回ぶん)は目安の数値で、
+# バランス調整で変えてよい
+data modify storage test: asset.buff.types append value {id:"guard",label:"防御",color:"aqua",icon:{text:" 防",color:"aqua"},kind:"buff",duration:30,max_stacks:1,refresh:"refresh",events:{apply:1b,expire:1b}}

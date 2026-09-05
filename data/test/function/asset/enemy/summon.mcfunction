@@ -4,6 +4,11 @@ $summon $(id) ~ ~ ~ {Tags:[summoned],Invulnerable:1b}
 data modify entity @n[tag=summoned] Tags append from storage test: enemy.Tags[]
 data modify entity @n[tag=summoned] data set from storage test: enemy.data
 
+# 名前(テキストコンポーネントのコンパウンド。アイテムのcustom_nameコンポーネントと同じ形式)を
+# 宣言していれば表示名として設定する(省略可。dummyは無名のまま)
+execute if data storage test: enemy.name run data modify entity @n[tag=summoned] CustomName set from storage test: enemy.name
+execute if data storage test: enemy.name run data modify entity @n[tag=summoned] CustomNameVisible set value 1b
+
 scoreboard players operation @n[tag=summoned] test.status.atk = #enemy test.status.atk
 scoreboard players operation @n[tag=summoned] test.status.crit_damage = #enemy test.status.crit_damage
 scoreboard players operation @n[tag=summoned] test.status.crit_rate = #enemy test.status.crit_rate
