@@ -107,6 +107,8 @@ scoreboard objectives add test.owner dummy
  scoreboard objectives add test.battle.chat_select trigger
  scoreboard objectives add test.battle.skill_select trigger
  scoreboard objectives add test.battle.skill_effect trigger
+ scoreboard objectives add test.battle.skill_category trigger
+ scoreboard objectives add test.battle.active_skill_select trigger
  scoreboard objectives add test.battle.awaiting_target dummy
  scoreboard objectives add test.battle.target_select trigger
  scoreboard objectives add test.battle.pending_target_action dummy
@@ -198,6 +200,26 @@ scoreboard objectives add test.owner dummy
 # 魔法要素の習得状況と、戦闘中の詠唱で使うと選んだタイプ/効果は
 # oh_my_datの個別ストレージ(_[-4]×8.test.magic.known / .test.magic.select)に保持する。
 # タイプ・効果を増やすたびにobjectiveを足さずに済むようにするため(レジストリはtest:init/asset/magic/)
+
+# 職業(job)用。職業ごとのレベル/EXP/スキルポイント/解放済みスキルはoh_my_datの個別ストレージ
+# (_[-4]×8.test.job.unlocked.<job_id> / .test.job.data.<job_id> / .test.job.skill_order)に保持する
+# (「習得済み魔法」と同じ理由。職業を増やしてもobjectiveを足さずに済む。レジストリはtest:init/asset/job/)
+ scoreboard objectives add test.job_bonus.atk dummy
+ scoreboard objectives add test.job_bonus.def dummy
+ scoreboard objectives add test.job_bonus.hp_max dummy
+ scoreboard objectives add test.job_bonus.mp_max dummy
+ scoreboard objectives add test.job_bonus.crit_rate dummy
+ scoreboard objectives add test.job_bonus.crit_damage dummy
+ scoreboard objectives add test.job_bonus.effect_damage dummy
+ scoreboard objectives add test.job_bonus.magic_efficiency dummy
+ scoreboard objectives add test.job_bonus.divergence dummy
+ scoreboard objectives add test.job_bonus.hp_regene dummy
+ scoreboard objectives add test.job_bonus.mp_regene dummy
+
+# 職業関連のループ処理・一時判定用(test.buff.workと同じ理由で専用のobjectiveに分ける。
+# 職業の判定処理からbuff/apply_list等の別系統の関数を呼ぶことがあるため、共有スコアの衝突を避ける)
+ scoreboard objectives add test.job.work dummy
+
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy
  scoreboard objectives add test.debug.display dummy

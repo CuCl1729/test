@@ -3,6 +3,10 @@
 
 function test:init/asset/status/vanilla
 
+# 解放済み職業のレベルボーナスを、装備からの組み立て(status/update)より先に用意しておく
+function #oh_my_dat:please
+function test:job/recalc_bonus
+
 function test:status/update {status:"atk"}
 function test:status/update {status:"def"}
 function test:status/update {status:"hp_max"}

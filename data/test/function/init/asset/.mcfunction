@@ -8,3 +8,5 @@ function test:init/asset/magic/types
 function test:init/asset/magic/effects
 
 function test:init/asset/buff/buffs
+
+function test:init/asset/job/

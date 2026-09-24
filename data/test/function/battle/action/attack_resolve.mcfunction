@@ -26,10 +26,6 @@ scoreboard players operation #damage test.status.crit_rate = @s test.status.crit
 scoreboard players operation #damage test.status.crit_damage = @s test.status.crit_damage
 scoreboard players operation #damage test.status.crit_damage /= #100 test.constant
 
-# 範囲攻撃剣の場合、範囲攻撃専用倍率を追加で掛ける(通常攻撃はfire/water等が常に0のため無関係)
-execute if score @s test.battle.weapon_aoe matches 1 run scoreboard players operation #damage test.physics_damage *= @s test.battle.weapon_aoe_multiplier
-execute if score @s test.battle.weapon_aoe matches 1 run scoreboard players operation #damage test.physics_damage /= #100 test.constant
-
 # 対象が複数(範囲攻撃)いる場合でもそれぞれ個別にダメージ計算・メッセージ表示するため、
 # 攻撃者を一時タグで参照できるようにしてから対象ごとにループする
 tag @s add battle_attacker

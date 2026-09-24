@@ -2,16 +2,16 @@
 # skillだけは右クリックで処理しない。メインハンドに持っているだけでtest:battle/ui/skill_hover_tick
 # (毎tick実行)がトロッコを出す。右クリックも処理してしまうと、トロッコを開く操作と
 # アイテム本体の右クリックが競合してしまうため
-# attackも、敵が2体以上いてかつ範囲攻撃剣でない場合は同様に右クリックでは処理しない。事前召喚済みの
-# 対象選択トロッコ(test:battle/ui/attack_hover_show)側で選ばせるため。敵が1体以下、または
-# 範囲攻撃剣(test.battle.weapon_aoe)を装備している場合は対象選択が不要なので右クリックで即座に確定する
+# attackも、敵が2体以上いる場合は同様に右クリックでは処理しない。事前召喚済みの
+# 対象選択トロッコ(test:battle/ui/attack_hover_show)側で選ばせるため。敵が1体以下なら
+# 対象選択が不要なので右クリックで即座に確定する(範囲攻撃剣の自動全体攻撃は撤去し、
+# アクティブスキル一覧から選ぶ形に変更したため、attackの挙動は武器に関わらず常に同じ)
 
 scoreboard players set #enemy_count test.temporary 0
 execute as @e[tag=battle_member,tag=enemy,distance=..64,scores={test.status.hp=1..}] run scoreboard players add #enemy_count test.temporary 1
 
 scoreboard players set #attack_ready test.temporary 0
 execute if score #enemy_count test.temporary matches ..1 run scoreboard players set #attack_ready test.temporary 1
-execute if score @s test.battle.weapon_aoe matches 1 run scoreboard players set #attack_ready test.temporary 1
 
 execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test{battle_action:"attack"} if score #attack_ready test.temporary matches 1 run function test:battle/ui/item_select {action:"attack"}
 execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test{battle_action:"item"} run function test:battle/ui/item_select {action:"item"}

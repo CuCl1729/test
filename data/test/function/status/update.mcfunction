@@ -101,3 +101,7 @@ $scoreboard players operation @s test.status.$(status) = #mainhand test.calc.bas
 # バフが test.status.<名前> を直接書いても消えてしまう。そこで蓄積用の test.buff.<名前> を
 # 経由させ、組み立ての最後にここで合流させる(test:buff/stat/add 参照)
 $scoreboard players operation @s test.status.$(status) += @s test.buff.$(status)
+
+# 解放済み職業のレベルによるボーナスも同じ理由でここで合流させる(test:job/recalc_bonus参照。
+# レベルアップ時にしか変わらないため、バフのような差分更新の仕組みは無く単純な加算のみ)
+$scoreboard players operation @s test.status.$(status) += @s test.job_bonus.$(status)

@@ -1,20 +1,15 @@
 #> test:battle/action/skill
-# @s = 行動を選んだ詠唱者(チャット式)。研究ステーションで習得済みの魔法タイプを使って魔法を唱える
-# (アイテム式はここを経由しない。スキルアイテムを手に持つだけでtest:battle/ui/skill_hover_tickが
-#  トロッコを自動表示するため)
-# 習得済みのタイプ数をレジストリ走査で数えるので、タイプを増やしてもここは無改修
+# @s = 行動を選んだ詠唱者(チャット式)。使える魔法タイプと職業/剣のアクティブスキル、
+# 両方の有無を見て振り分ける。魔法しか使えない場合はtest:battle/action/skill_magic_onlyへ渡し、
+# 従来と完全に同じ挙動を維持する(回帰防止)
 
-function #oh_my_dat:please
+function test:battle/action/skill_category_count
 
-scoreboard players set #known_type_count test.temporary 0
-data remove storage test: registry_work.only_type
-function test:magic/registry/queue_types
-function test:battle/action/skill_known_loop
+execute if score #has_magic test.temporary matches 0 if score #has_active_skill test.temporary matches 0 run tellraw @s [{text:"使えるスキルがありません",color:gray}]
+execute if score #has_magic test.temporary matches 0 if score #has_active_skill test.temporary matches 0 run return run function test:battle/turn_end
 
-execute if score #known_type_count test.temporary matches 0 run tellraw @s [{text:"使える魔法がありません",color:gray}]
-execute if score #known_type_count test.temporary matches 0 run return run function test:battle/turn_end
+execute if score #has_magic test.temporary matches 1 if score #has_active_skill test.temporary matches 0 run return run function test:battle/action/skill_magic_only
 
-# 1つしか習得していない場合はタイプ選択を飛ばし、そのタイプを選択済みにして効果選択へ
-execute if score #known_type_count test.temporary matches 1 run return run function test:battle/action/skill_single_type with storage test: registry_work.only_type
+execute if score #has_magic test.temporary matches 0 if score #has_active_skill test.temporary matches 1 run return run function test:battle/action/active_skill_select
 
-function test:battle/ui/skill_type_select
+function test:battle/ui/skill_category_select
