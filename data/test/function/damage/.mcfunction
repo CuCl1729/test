@@ -5,7 +5,12 @@ scoreboard players operation #victim test.metal_damage = #damage test.metal_dama
 scoreboard players operation #victim test.earth_damage = #damage test.earth_damage
 scoreboard players operation #victim test.physics_damage = #damage test.physics_damage
 
-execute if predicate test:damage/crit run function test:damage/crit
+# クリティカル判定。26.3でfloat providerの内部フィールド名がどうしても実機で確定できず
+# (mul/from_intの引数名を2回試して2回ともパース失敗した)、predicateでの表現をやめて
+# 同じ確率(crit_rateは1万分率)をrandom valueとの比較で直接判定する形にした
+scoreboard players set #crit_roll test.temporary 0
+execute store result score #crit_roll test.temporary run random value 1..10000
+execute if score #crit_roll test.temporary <= #damage test.status.crit_rate run function test:damage/crit
 
 # 防御係数計算
 # ①合計貫通値    = 攻撃側def.pene + 防御側def.debuff
