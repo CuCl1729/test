@@ -35,4 +35,4 @@ scoreboard players operation @n[tag=summoned] test.def.pene = @s test.def.pene
 
 tag @n[tag=summoned] remove summoned
 
-$execute if score @s test.repeat < @s test.multi_shot positioned ^$(out) ^ ^ run function test:projectile/summon with storage math:
+$execute if score @s test.repeat < @s test.multi_shot positioned ^$(out) ^ ^ run function test:projectile/summon with storage test:

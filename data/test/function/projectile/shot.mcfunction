@@ -7,11 +7,10 @@ scoreboard players operation #angle test.temporary /= @s test.temporary
 
 scoreboard players reset @s test.repeat
 
-execute store result storage math: in int 0.01 run scoreboard players get #angle test.temporary
-
-function #math:tan
-
-execute store result score #dummy test.temporary run data get storage math: out 100
+# tan(#angle)をcomputeで求める(定義はcontext_float_provider/projectile/spread_tan)。
+# #dummyはtan×100、storage test: outはtest:projectile/summonが$(out)として使うtanの値
+execute store result score #dummy test.temporary run compute default float test:projectile/spread_tan 100
+execute store result storage test: out double 0.0001 run compute default float test:projectile/spread_tan 10000
 
 scoreboard players remove @s test.temporary 2
 scoreboard players operation @s test.temporary *= #5 test.constant

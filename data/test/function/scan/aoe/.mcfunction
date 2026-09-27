@@ -8,9 +8,8 @@ scoreboard players remove @s test.repeat 1
 scoreboard players operation #aoe_dist test.temporary = #aoe_reach test.temporary
 scoreboard players operation #aoe_dist test.temporary -= @s test.repeat
 
-execute store result storage math: in int 1 run scoreboard players get #aoe_half_angle test.temporary
-function #math:tan
-execute store result score #aoe_width test.temporary run data get storage math: out 100
+# tan(半角)×100をcomputeで求める(定義はcontext_float_provider/scan/aoe_tan)
+execute store result score #aoe_width test.temporary run compute default float test:scan/aoe_tan 100
 scoreboard players operation #aoe_width test.temporary *= #aoe_dist test.temporary
 
 execute store result storage test: scan.aoe.width double 0.01 run scoreboard players get #aoe_width test.temporary

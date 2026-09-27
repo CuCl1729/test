@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:div",
+  "left": {
+    "type": "minecraft:sin",
+    "input": "test:scan/aoe_half_angle_rad"
+  },
+  "right": {
+    "type": "minecraft:cos",
+    "input": "test:scan/aoe_half_angle_rad"
+  }
+}

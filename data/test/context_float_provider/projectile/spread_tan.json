@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:div",
+  "left": {
+    "type": "minecraft:sin",
+    "input": "test:projectile/spread_angle_rad"
+  },
+  "right": {
+    "type": "minecraft:cos",
+    "input": "test:projectile/spread_angle_rad"
+  }
+}

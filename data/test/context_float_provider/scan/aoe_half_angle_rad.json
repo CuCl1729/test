@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:from_int",
+      "input": {
+        "type": "minecraft:score",
+        "target": {
+          "type": "minecraft:fixed",
+          "name": "#aoe_half_angle"
+        },
+        "score": "test.temporary"
+      }
+    },
+    0.017453293
+  ]
+}
