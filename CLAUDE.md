@@ -8,16 +8,21 @@ A Minecraft Java Edition data pack (namespace `test`) implementing a turn-based/
 system (stats, buffs/debuffs, magic crafting, weapons, enemy AI) entirely in `.mcfunction` + JSON. There
 is no compiler, linter, or test runner — every `.mcfunction` file is loaded verbatim by the game.
 
-**The folder path says `1.20.5` but the actual game version in use is 26.2** (`pack.mcmeta` is
-`pack_format: 94`). Do not assume 1.20.5-era syntax/mechanics; when unsure, check how an existing,
-working file in this pack already does something rather than relying on general Minecraft knowledge.
-`MIGRATION-26.3.md` tracks known upcoming breaking changes for the *next* version (number providers,
-`value_check` split, etc.) — it's a research note for future work, not something to act on now; it
-lives outside `data/` so the game ignores it.
+**The folder path says `1.20.5` but the actual game version in use is 26.3** (`pack.mcmeta` is
+format 121, written as bare integers in `min_format`/`max_format`). Do not assume 1.20.5-era
+syntax/mechanics; when unsure, check how an existing, working file in this pack already does something
+rather than relying on general Minecraft knowledge. For vanilla schemas, the authoritative source is the
+installed client jar (`.minecraft/versions/<version>/<version>.jar`): read its bundled
+`data/minecraft/...` JSON, or the class files' strings for codec field names — web/wiki summaries were
+wrong or contradictory several times during the 26.3 migration. `MIGRATION-26.3.md` records what
+actually changed in 26.3 and how this pack followed; it lives outside `data/` so the game ignores it.
 
-Third-party libraries are bundled under other namespaces and should not be edited: `data/math`
-(AiMath, MIT-licensed, used only for `#math:tan`) and `data/oh_my_dat` (per-player/per-entity storage
-library, loaded via `test:load` → `oh_my_dat:sys/load`).
+A third-party library is bundled under another namespace and should not be edited: `data/oh_my_dat`
+(per-player/per-entity storage library, loaded via `test:load` → `oh_my_dat:sys/load`). Trig and
+other float math is done with the vanilla `compute` command against providers registered under
+`data/test/context_float_provider/` (syntax: `compute <context> float <provider-id> <scale>` returns
+floor(value × scale); `sin`/`cos`/`from_int` take `input`, `mul`/`add` take `inputs`, `div` takes
+`left`/`right`, and a provider can reference another registered one by its id string).
 
 ## "Build / lint / test"
 
@@ -38,6 +43,10 @@ There isn't any — verification is manual, in-game:
   that path, not the top-level one, when asked to read what happened in-game.
 - There's no automated equivalent of unit tests; when a fix is non-obvious, prefer adding temporary
   debug output and asking for the actual in-game/log result over guessing twice.
+- A malformed registry JSON (predicate, loot table, enchantment, advancement, item_modifier, provider)
+  stops the world from loading at all; `latest.log` names the exact file and key under
+  `Registry loading errors`. A `.mcfunction` parse error doesn't block loading but shows up as
+  `Failed to load function` on `/reload`.
 
 ## Entry points and per-tick flow
 
@@ -113,8 +122,26 @@ stacking attacker `def.pene` / defender `def.debuff` gives *accelerating* (not d
 point, with `def.coefficient` acting purely as the defender's resistance to that pene/debuff (and having
 no effect at all when pene/debuff is zero).
 
+## JSON schemas in this game version (26.3)
+
+- Predicates/loot conditions use **`"type"`** as their dispatch key, not `"condition"` — for predicate
+  files, enchantment `requirements`, `all_of`/`any_of` `terms`, and advancement conditions alike. The
+  field that *holds* a predicate (e.g. `requirements`, a loot pool's `condition`) keeps its own name.
+- Loot functions also use `"type"`, and an entry's function list is **`"modifier"`** (singular name,
+  list value), not `"functions"`. An `item_modifier` file must be a single object, not an array.
+- Advancement `conditions.player` / `conditions.item` are single objects, not one-element arrays.
+- Inline number providers must state their `type` (e.g. `rolls: {type:"minecraft:uniform",…}`); the
+  `score` provider is int-only and has no `scale` (lift with `from_int`, multiply with `mul`).
+- `value_check` became `int_value_check`/`float_value_check`, with the range under `test`.
+
 ## UI conventions specific to this game version
 
+- **Player NBT can be read with `/data get` but never written with `/data modify`/`data remove`.**
+  To change a player's items, build the item in the overworld shulker box at `0 -64 0` and either
+  `loot spawn` it and let the player pick it up (`test:loot/give`, `test:job/bundle/deliver`) or
+  `item replace entity @s <slot> from block 0 -64 0 container.0`; remove items with `clear`. Items on
+  the cursor aren't in the player NBT at all — copy them to the shulker box with
+  `item replace block 0 -64 0 container.0 from entity @s player.cursor` to read them.
 - **Text/name fields are raw NBT compounds, not JSON strings.** `custom_name`/`CustomName` and similar
   take `{text:"...",color:"..."}` (or a list of such compounds) directly — never a quoted
   `'{"text":"..."}'` string. Wrapping a text component in a string produces literal, unparsed text
