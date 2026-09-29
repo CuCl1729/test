@@ -4,6 +4,9 @@
 execute unless block ~ ~ ~ barrel run function test:craft/magic/research/place
 execute unless block ~ ~ ~ barrel run return 0
 
+# 飾り(名前・目印・GUIタイトル)が付いていないステーションに付ける(設置済みのものにも効くよう毎tick確認)
+execute unless entity @s[tag=station_decorated] run function test:craft/magic/research/decorate
+
 # 上段の矢印(0=先頭ページでは非表示 / 8=続きが無ければ非表示)
 execute unless entity @s[nbt={data:{research_ui:{page:0}}}] unless data block ~ ~ ~ Items[{Slot:0b}] run function test:craft/magic/research/click_arrow {dir:-1}
 execute if entity @s[nbt={data:{research_ui:{has_next:1b}}}] unless data block ~ ~ ~ Items[{Slot:8b}] run function test:craft/magic/research/click_arrow {dir:1}
