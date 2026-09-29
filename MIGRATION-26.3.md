@@ -70,6 +70,7 @@
   `crit_rate` を直接比べる形にした(今ならpredicateでも書けるが、動いているのでそのまま)
 - `#math:tan`(AiMath)の2か所を `compute` に置き換え、`data/math` を削除した。
   tanの定義は `data/test/context_float_provider/{projectile,scan}/`
+  (範囲攻撃の扇はその後判定方式を作り直し、`scan/` 側はtanの代わりに扇の中の点の座標をsin/cosで作るものに置き換えた)
 
 ---
 

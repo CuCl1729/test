@@ -39,6 +39,5 @@ scoreboard players operation #damage test.status.crit_damage /= #100 test.consta
 $scoreboard players set #aoe_half_angle test.temporary $(angle)
 scoreboard players operation #aoe_half_angle test.temporary /= #2 test.constant
 $scoreboard players set #aoe_reach test.temporary $(reach)
-scoreboard players operation @s test.repeat = #aoe_reach test.temporary
 
-execute anchored eyes positioned ^ ^ ^0.5 run function test:scan/aoe/
+function test:scan/aoe/

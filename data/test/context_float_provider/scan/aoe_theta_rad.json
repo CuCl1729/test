@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:from_int",
+      "input": {
+        "type": "minecraft:score",
+        "target": {
+          "type": "minecraft:fixed",
+          "name": "#aoe_theta"
+        },
+        "score": "test.temporary"
+      }
+    },
+    0.0017453293
+  ]
+}

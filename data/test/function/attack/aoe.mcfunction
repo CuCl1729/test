@@ -29,9 +29,9 @@ scoreboard players operation #damage test.earth_damage /= #100 test.constant
 scoreboard players operation #damage test.physics_damage *= #aoe_multiplier test.temporary
 scoreboard players operation #damage test.physics_damage /= #100 test.constant
 
-# コーンの半角と、扇の奥行き(=歩数、既にtest.repeatにreachとして入っている)を保持しておく
+# 扇の半角と半径(test:attack/prepareがreachをtest.repeatに入れている)を渡す
 execute store result score #aoe_half_angle test.temporary run data get storage test: attack.player.weapon[{type:"aoe_angle"}].value
 scoreboard players operation #aoe_half_angle test.temporary /= #2 test.constant
 scoreboard players operation #aoe_reach test.temporary = @s test.repeat
 
-execute anchored eyes positioned ^ ^ ^0.5 run function test:scan/aoe/
+function test:scan/aoe/

@@ -1,24 +1,17 @@
 #> test:scan/aoe/
-# @s = 攻撃者(実行位置は毎回positioned ^ ^ ^1で1歩ずつ前進済み)。ray_cast/と同じ「歩きながらヒットボックスに
-# 触れたら`hit`」方式だが、判定ボックスの左右幅(dx/dz)を距離×tan(半角)で広げていくことで扇形にする。
-# #aoe_half_angle/#aoe_reach(いずれもtest.temporary)は呼び出し元(attack/aoe)で設定済み
+# @s = 攻撃者(プレイヤー)。目の位置を要に、視線方向を中心とした半角#aoe_half_angle・半径#aoe_reachの扇を
+# 半径1, 2, …, reachの同心円の弧に分け、弧の上にほぼ1ブロック間隔で置いたサンプル点で
+# ヒットボックスの接触判定(scan/aoe/probe)を行う。弧ごとに角度の刻みを変えるので、射程を伸ばしても隙間ができない。
+# 扇の面は視線方向とプレイヤーの左右方向で張る平面なので、見上げる/見下ろすとその向きに傾く。
+# サンプル点ごとにパーティクルも出すので、表示される扇と判定範囲は一致する。
+# #aoe_half_angle/#aoe_reach(いずれもtest.temporary)は呼び出し元(attack/aoe、job/skill/handler/damage_cone)で設定済み
 
-scoreboard players remove @s test.repeat 1
+# 角度は0.1°単位で扱う(外側の弧では1°より細かい刻みが要るため)
+scoreboard players operation #aoe_half_tenths test.temporary = #aoe_half_angle test.temporary
+scoreboard players operation #aoe_half_tenths test.temporary *= #10 test.constant
+scoreboard players set #aoe_ring test.temporary 1
 
-scoreboard players operation #aoe_dist test.temporary = #aoe_reach test.temporary
-scoreboard players operation #aoe_dist test.temporary -= @s test.repeat
+# at @sで上下の角度も含めた向きを引き継ぐ(positionedで基準点は足元に戻るので、以降の^ ^ ^はずれない)
+execute at @s anchored eyes positioned ^ ^ ^ run function test:scan/aoe/ring
 
-# tan(半角)×100をcomputeで求める(定義はcontext_float_provider/scan/aoe_tan)
-execute store result score #aoe_width test.temporary run compute default float test:scan/aoe_tan 100
-scoreboard players operation #aoe_width test.temporary *= #aoe_dist test.temporary
-
-execute store result storage test: scan.aoe.width double 0.01 run scoreboard players get #aoe_width test.temporary
-# ray_cast由来の固定値0.5を下限にクランプし、近距離での取りこぼしを防ぐ
-execute if score #aoe_width test.temporary matches ..49 run data modify storage test: scan.aoe.width set value 0.5d
-
-function test:scan/aoe/check with storage test: scan.aoe
-
-particle end_rod ~ ~ ~ 0 0 0 0 0
-
-execute if score @s test.repeat matches 0.. positioned ^ ^ ^1 run function test:scan/aoe/
-execute if score @s test.repeat matches ..0 positioned as @s run function test:attack/damage
+function test:attack/damage

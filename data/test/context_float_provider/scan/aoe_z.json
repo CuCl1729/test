@@ -2,16 +2,19 @@
   "type": "minecraft:mul",
   "inputs": [
     {
+      "type": "minecraft:cos",
+      "input": "test:scan/aoe_theta_rad"
+    },
+    {
       "type": "minecraft:from_int",
       "input": {
         "type": "minecraft:score",
         "target": {
           "type": "minecraft:fixed",
-          "name": "#aoe_half_angle"
+          "name": "#aoe_ring"
         },
         "score": "test.temporary"
       }
-    },
-    0.017453293
+    }
   ]
 }
