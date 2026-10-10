@@ -1,4 +1,6 @@
 execute unless score @s test.status.hp_max matches 1.. run function test:init/player
+# 防御側の初期値が追加される前に作られたプレイヤー向け(未設定のときだけ一度入れる)
+execute unless score @s test.def.coefficient matches 1.. run function test:init/asset/status/defense
 
 function test:status/level_up
 

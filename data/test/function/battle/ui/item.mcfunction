@@ -13,6 +13,7 @@ clear @s minecraft:iron_sword[custom_data~{test:{battle_action:"attack"}}]
 clear @s minecraft:blaze_powder[custom_data~{test:{battle_action:"skill"}}]
 clear @s minecraft:potion[custom_data~{test:{battle_action:"item"}}]
 clear @s minecraft:shield[custom_data~{test:{battle_action:"defend"}}]
+clear @s *[custom_data~{test:{active_skill:1b}}]
 kill @e[tag=skill_minecart,distance=..8]
 
 give @s minecraft:iron_sword[custom_data={test:{right_click:true,battle_action:"attack"}},custom_name={text:"攻撃",italic:false},consumable={consume_seconds:100000,animation:none}]

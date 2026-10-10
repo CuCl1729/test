@@ -64,6 +64,8 @@
   `rolls` に `type: minecraft:uniform` を明示
 - `item_modifier/move/add_impulse.json`: 配列を外して単一オブジェクトに。
   呼び出し元の無かった `item_modifier/loot/{set_lore,set_name}.json` は削除
+- 関数の中で`item modify`にその場で書いたアイテム修飾子(`motion/player/impulse/post_{x,y,z}`)は移行時に
+  見落としており、後から`type`の単一オブジェクトに直した(`/reload`で`Failed to load function`が出ていた)
 - 進捗の `conditions.player` を単一オブジェクトに
 - クリティカル判定: 当時は float provider のフィールド名を特定できなかったため、
   `predicate/damage/crit.json` をやめて `damage/.mcfunction` 内で `random value 1..10000` と

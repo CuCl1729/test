@@ -15,6 +15,8 @@ scoreboard players set @s test.physics_resist.pene 0
 
 scoreboard players set @s test.def.pene 0
 
+function test:init/asset/status/defense
+
 scoreboard players set @s test.multi_shot 1
 
 scoreboard players set @s test.status.base.atk 500
