@@ -37,10 +37,13 @@ function test:battle/enemy_ai/sum_gimmick_weights_loop
 execute if score #total_weight test.buff.work matches ..0 run scoreboard players set #total_weight test.buff.work 1
 
 # 1〜合計重みの範囲で抽選し、攻撃→防御→ギミックの順に重みぶんずつ引いていって選ばれた行動を実行する
+# (範囲を合計重みに合わせて直接引くので、デバッグメニューで最小=攻撃・最大=最後のギミックに固定できる)
+data modify storage test: rng_args set value {key:"enemy_action",min:1}
+execute store result storage test: rng_args.max int 1 run scoreboard players get #total_weight test.buff.work
 scoreboard players set #roll test.buff.work 0
-execute store result score #roll test.buff.work run random value 1..2147483647
-scoreboard players operation #roll test.buff.work %= #total_weight test.buff.work
-scoreboard players add #roll test.buff.work 1
+execute store result score #roll test.buff.work run function test:rng/roll with storage test: rng_args
+
+execute if score #log_battle test.debug.enabled matches 1 run function test:debug/trace/battle/enemy_action
 
 execute if score #roll test.buff.work <= #attack_weight test.buff.work run return run function test:battle/action/attack
 scoreboard players operation #roll test.buff.work -= #attack_weight test.buff.work

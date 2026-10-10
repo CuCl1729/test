@@ -11,6 +11,7 @@ scoreboard players operation @s test.battle.arena = @e[tag=battle_entrance,sort=
 # battle_memberタグは次元をまたぐテレポート(enter_arena内)の前に付与する。
 # テレポート後に付けると、プレイヤー以外のエンティティではタグが反映されないことがある。
 tag @s add battle_member
+execute if score #log_battle test.debug.enabled matches 1 run function test:debug/trace/battle/join
 
 # y座標は構造物の原点(y:100、test:battle/start参照)より1高い位置に着地させる(床が原点の1つ上に生成されるため)
 execute if score @s test.battle.arena matches 1 in test:arena run function test:battle/enter_arena {x:0,y:101,z:0}

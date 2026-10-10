@@ -19,7 +19,7 @@ execute store result storage test: loot.item.components."minecraft:custom_data".
 scoreboard players operation #level test.temporary = #level test.status.level
 scoreboard players operation #level test.temporary %= #10 test.constant
 
-execute if score #level test.temporary matches 0 store result storage test: loot.temporary.substatus int 1 run random value -4..-1
+execute if score #level test.temporary matches 0 store result storage test: loot.temporary.substatus int 1 run function test:rng/roll {key:"substatus_grow",min:-4,max:-1}
 execute if score #level test.temporary matches 0 run function test:item/weapon/level_up/substatus with storage test: loot.temporary
 
 function test:item/weapon/level_up/set_name

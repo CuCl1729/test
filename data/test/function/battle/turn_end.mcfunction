@@ -1,6 +1,8 @@
 #> test:battle/turn_end
 # @s = 行動を終えたエンティティ
 
+execute if score #log_battle test.debug.enabled matches 1 run function test:debug/trace/battle/turn_end
+
 # ターン制ではバフ/デバフの継続時間を時間経過で減らさず、保持者の手番が終わるたびに10秒ぶん進める
 # (バフは常に「秒」で持っているので、これだけで「継続時間(秒)/10 ターン」になる)。
 # HPが0の実行者でturn_endが呼ばれる経路(turn_start_actor)があるため、そこでは進めない

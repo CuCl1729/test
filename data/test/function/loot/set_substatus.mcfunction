@@ -2,7 +2,7 @@ $data modify storage test: loot.temporary set from storage test: loot.table.subs
 
 function test:loot/check_substatus with storage test: loot.temporary
 
-execute store result storage test: loot.substatus int 1 run random value 0..9
+execute store result storage test: loot.substatus int 1 run function test:rng/roll {key:"substatus_type",min:0,max:9}
 
 execute if score #loot test.boolean matches 0 run return run function test:loot/set_substatus with storage test: loot
 

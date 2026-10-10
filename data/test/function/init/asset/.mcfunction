@@ -10,3 +10,5 @@ function test:init/asset/magic/effects
 function test:init/asset/buff/buffs
 
 function test:init/asset/job/
+
+function test:init/asset/debug/rng

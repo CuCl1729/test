@@ -1,9 +1,9 @@
 #> test:battle/setup
 # @s = 戦闘のきっかけとなったエンティティ(ターン制マップ側)
 # $(arena)=使用エリア番号 $(x)(y)(z)=そのエリアの座標
-function test:debug/log {msg:"battle setup"}
 
 $scoreboard players operation #arena_$(arena) test.arena.occupied = #battle test.battle.next_id
+$execute if score #log_battle test.debug.enabled matches 1 run function test:debug/trace/battle/setup {arena:$(arena)}
 
 # このアリーナ番号に紐づく古い入り口マーカーが掃除しきれず残っていることがあるため、
 # 新規セットアップの直前に必ず削除しておく(複数マーカーが混在してIDを取り違えるバグの対策)

@@ -9,7 +9,7 @@ scoreboard players set #chance test.buff.work 100
 execute if data storage test: buff_work.queue_entry.chance store result score #chance test.buff.work run data get storage test: buff_work.queue_entry.chance
 
 scoreboard players set #roll test.buff.work 0
-execute store result score #roll test.buff.work run random value 1..100
+execute store result score #roll test.buff.work run function test:rng/roll {key:"buff_chance",min:1,max:100}
 execute if score #roll test.buff.work > #chance test.buff.work run return 0
 
 $function test:buff/apply {id:"$(id)",stacks:$(stacks)}

@@ -32,17 +32,31 @@ There isn't any — verification is manual, in-game:
 - `/function test:debug/spawn_enemy` or `test:debug/spawn_goblin` (see `data/test/function/debug/`)
   to summon test enemies; `test:debug/goto_turn` / `goto_action` / `goto_arena_<n>` to jump between
   the pack's dimensions.
-- `test:debug/on` / `test:debug/off` toggle `#debug test.debug.enabled`; code calls
-  `function test:debug/log {msg:"..."}` to print a `[DEBUG]` tellraw only while that's on. For ad-hoc
-  tracing of scoreboard/storage values during a bug hunt, temporary `tellraw` lines with
-  `{"score":{...}}` / `{"nbt":"...","storage":"test:"}` components are the established pattern —
-  remove them once the root cause is found.
+- `/function test:debug/menu` opens a clickable chat menu for all debug tooling:
+  - sidebar on/off (`test:debug/on`/`off`, `#debug test.debug.enabled`)
+  - built-in logs that can be switched on: damage calculation (`#log_damage`) and battle flow
+    (`#log_battle`), both on `test.debug.enabled`; the output lives in `debug/trace/`
+  - fixing or replaying each random roll
+  - showing the full state of yourself or the nearest entity (`debug/inspect/`)
+  - watching arbitrary scores in the sidebar (`debug/watch/`)
+- When hunting a bug, reach for these before writing temporary `tellraw` lines. If a value isn't covered,
+  prefer adding a permanent, switchable log under `debug/trace/<category>/` (gated at the call site by
+  `execute if score #log_<category> test.debug.enabled matches 1 run function ...`) over a throwaway one.
+  `function test:debug/log {msg:"..."}` still prints a plain `[DEBUG]` line while `#debug` is on.
+- **All randomness goes through `test:rng/roll {key, min, max}`**, never a bare `random value`.
+  - It returns the roll as the function result, so call it as
+    `execute store result <target> run function test:rng/roll {...}`.
+  - It honors per-key overrides in `storage test: debug.rng.<key>` (`mode`: `min`/`max`/`value`).
+  - Otherwise it draws from the named sequence `test:<key>`, so `random reset test:<key> <seed>` replays it.
+  - Every key must be declared in `init/asset/debug/rng.mcfunction` (the menu lists rolls from there).
+    Mark it `fixable:0b` if a fixed result could loop forever (e.g. re-roll-on-duplicate loops).
 - Game chat/log output for this specific instance is **not** in the top-level `.minecraft/logs/` —
   this launcher setup keeps a separate log dir per version at
   `.minecraft/versions/1.20.5/logs/latest.log` (and `.../saves/<world>/...` for world data). Check
   that path, not the top-level one, when asked to read what happened in-game.
-- There's no automated equivalent of unit tests; when a fix is non-obvious, prefer adding temporary
-  debug output and asking for the actual in-game/log result over guessing twice.
+- There's no automated equivalent of unit tests; when a fix is non-obvious, ask for the actual
+  in-game/log result rather than guessing twice. Have the user turn on the relevant debug log or watch,
+  or fix/replay the roll involved; add debug output only when those don't cover it.
 - A malformed registry JSON (predicate, loot table, enchantment, advancement, item_modifier, provider)
   stops the world from loading at all; `latest.log` names the exact file and key under
   `Registry loading errors`. A `.mcfunction` parse error doesn't block loading but shows up as
