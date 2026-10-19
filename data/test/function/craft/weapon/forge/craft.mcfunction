@@ -1,7 +1,9 @@
 #> test:craft/weapon/forge/craft
 # @s = 鍛冶場マーカー。スロット9の素材(kind)で武器の種類、スロット10の触媒(kind)でティアを決める。スロット9の個数はサブステータスのレアリティに影響する
-# スロット11に「範囲攻撃の核」(kind:aoe_core)があれば、生成される武器に右クリック範囲攻撃を付与する
-# スロット12に「毒の牙」(kind:poison_fang)があれば、攻撃を当てたときに確率で毒を付与する
+# 特殊素材は、素材・触媒以外の空きスロットのどこに置いても効く(以前はスロット11/12に固定していたが、
+# GUIに割り当てが書かれておらず、置き場所を間違えると何も付かなかったため)
+# 「範囲攻撃の核」(kind:aoe_core)があれば、生成される武器に右クリック範囲攻撃を付与する
+# 「毒の牙」(kind:poison_fang)があれば、攻撃を当てたときに確率で毒を付与する
 
 data remove storage test: loot.item
 data remove storage test: loot.rare
@@ -22,12 +24,12 @@ data modify storage test: loot.base_kind set from block ~ ~ ~ Items[{Slot:9b}].c
 data modify storage test: loot.catalyst_kind set value "none"
 execute if data block ~ ~ ~ Items[{Slot:10b}].components."minecraft:custom_data".test.material.kind run data modify storage test: loot.catalyst_kind set from block ~ ~ ~ Items[{Slot:10b}].components."minecraft:custom_data".test.material.kind
 
-execute if data block ~ ~ ~ Items[{Slot:11b}].components."minecraft:custom_data".test{material:{kind:"aoe_core"}} run data modify storage test: loot.aoe_core set value 1b
-execute if data block ~ ~ ~ Items[{Slot:12b}].components."minecraft:custom_data".test{material:{kind:"poison_fang"}} run data modify storage test: loot.poison_fang set value 1b
+execute if data block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{material:{kind:"aoe_core"}}}}}] run data modify storage test: loot.aoe_core set value 1b
+execute if data block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{material:{kind:"poison_fang"}}}}}] run data modify storage test: loot.poison_fang set value 1b
 
 function test:craft/weapon/forge/recipe with storage test: loot
 
 data remove block ~ ~ ~ Items[{Slot:9b}]
 data remove block ~ ~ ~ Items[{Slot:10b}]
-data remove block ~ ~ ~ Items[{Slot:11b}]
-data remove block ~ ~ ~ Items[{Slot:12b}]
+data remove block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{material:{kind:"aoe_core"}}}}}]
+data remove block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{material:{kind:"poison_fang"}}}}}]
