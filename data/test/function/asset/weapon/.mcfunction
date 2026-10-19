@@ -18,4 +18,7 @@ execute if data storage test: {loot:{aoe_core:1b}} run data modify storage test:
 # 1件の形は魔法・敵と共通の {id,stacks,chance}(付与処理はtest:buff/apply_list)
 execute if data storage test: {loot:{poison_fang:1b}} run data modify storage test: loot.item.components.minecraft:custom_data.test.buff_on_hit set value [{id:"poison",stacks:1,chance:30}]
 
+# 性能・特殊効果まで書き終えたcustom_dataから説明文を作る
+function test:item/weapon/lore/render
+
 function test:loot/give

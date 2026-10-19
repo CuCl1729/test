@@ -10,9 +10,7 @@ scoreboard players remove #loot test.substatus 1
 
 data modify storage test: loot.item.components."minecraft:custom_data".substatus append from storage test: loot.temporary
 data modify storage test: loot.item.components."minecraft:custom_data".substatus[-1].grow set value 0
-
-data modify storage test: loot.item.components."minecraft:lore" append value {text:"       "}
-$data modify storage test: loot.item.components."minecraft:lore"[-1].extra set from storage test: loot.table.substatusName[$(substatus)]
+# 説明文はtest:item/weapon/lore/renderがcustom_dataから作り直すので、ここでは書かない
 
 execute if score #loot test.substatus matches 1.. run function test:loot/set_substatus with storage test: loot
 
