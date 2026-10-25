@@ -1,0 +1,8 @@
+# 自動生成: tools/datasheet/generate.ps1。直接編集しない(スプレッドシートを直して再生成する)
+#> test:init/asset/generated/weapons
+# 武器の宣言(スプレッドシートの「武器」タブ)。asset.<id> に置き、test:asset/weapon/sword/apply {material:<id>} が読む
+
+data modify storage test: asset.wooden_sword set value {item:"wooden_sword",components:{"minecraft:custom_name":[{italic:0b,text:"Wooden Sword "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:custom_data":{status_bonus:{type:"atk_m",value:10},base_status:{type:"atk_add",value:30},level:0,max_level:60,tier:4,weapon:[{type:"reach",value:5}],damage:{physics:{atk:100,base:100}}}}}
+data modify storage test: asset.iron_sword set value {item:"iron_sword",components:{"minecraft:custom_name":[{italic:0b,text:"Iron Sword "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:custom_data":{status_bonus:{type:"crit_rate_add",value:8},base_status:{type:"atk_add",value:30},level:0,max_level:60,tier:5,weapon:[{type:"reach",value:5}],damage:{physics:{atk:200,base:200}}}}}
+data modify storage test: asset.diamond_sword set value {item:"diamond_sword",components:{"minecraft:custom_name":[{italic:0b,text:"Diamond Sword "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:custom_data":{status_bonus:{type:"crit_rate_add",value:8},base_status:{type:"crit_damage_add",value:16},level:0,max_level:60,tier:6,weapon:[{type:"reach",value:5}],damage:{physics:{atk:300,base:300}}}}}
+data modify storage test: asset.wooden_wand set value {item:"stick",components:{"minecraft:custom_name":[{italic:0b,text:"Wooden Wand "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:custom_data":{status_bonus:{type:"atk_m",value:10},base_status:{type:"atk_add",value:30},level:0,max_level:60,magic_damage_bonus:30}}}

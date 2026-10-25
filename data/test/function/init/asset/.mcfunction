@@ -1,8 +1,5 @@
-function test:init/asset/sword/wooden_sword
-function test:init/asset/sword/iron_sword
-function test:init/asset/sword/diamond_sword
-
-function test:init/asset/wand/wooden_wand
+# 武器の宣言はスプレッドシートから生成している(tools/datasheet/generate.ps1)
+function test:init/asset/generated/weapons
 
 function test:init/asset/magic/types
 function test:init/asset/magic/effects

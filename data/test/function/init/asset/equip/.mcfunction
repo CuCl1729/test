@@ -12,7 +12,6 @@ data modify storage test: asset.equip set value {items:{},sets:[]}
 # アクセサリーはインベントリに入れておくだけで効く。効くのは先頭からこの個数まで
 data modify storage test: asset.equip.accessory_limit set value 2
 
-function test:init/asset/equip/goblin
-function test:init/asset/equip/mage
-function test:init/asset/equip/accessory
-function test:init/asset/equip/sets
+# 各品とシリーズの宣言はスプレッドシートから生成している(tools/datasheet/generate.ps1。生成先はgenerated/)
+function test:init/asset/equip/generated/items
+function test:init/asset/equip/generated/sets

@@ -1,0 +1,5 @@
+﻿id,元アイテム,名前,基礎ステ,基礎ステ値,ボーナス,ボーナス値,最大レベル,ティア,射程,魔法ダメージ%,物理,火,水,木,金,土
+wooden_sword,wooden_sword,Wooden Sword,atk_add,30,atk_m,10,60,4,5,,"atk=100, base=100",,,,,
+iron_sword,iron_sword,Iron Sword,atk_add,30,crit_rate_add,8,60,5,5,,"atk=200, base=200",,,,,
+diamond_sword,diamond_sword,Diamond Sword,crit_damage_add,16,crit_rate_add,8,60,6,5,,"atk=300, base=300",,,,,
+wooden_wand,stick,Wooden Wand,atk_add,30,atk_m,10,60,,,30,,,,,,

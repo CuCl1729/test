@@ -1,8 +1,0 @@
-#> test:init/asset/equip/goblin
-# ゴブリンシリーズ(革防具を緑に染めたもの。素材: ゴブリンの革)。
-# attribute_modifiersを空にしてバニラの防具点を消す(防御はこのパックのステータスで扱うため)
-
-data modify storage test: asset.equip.items.goblin_helmet set value {item:"leather_helmet",components:{"minecraft:custom_name":[{italic:0b,text:"Goblin Helmet "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:dyed_color":5143086,"minecraft:attribute_modifiers":[],"minecraft:custom_data":{equip:{slot:"head",set:"goblin"},status_bonus:{type:"hp_max_m",value:5.0},level:0,max_level:60}}}
-data modify storage test: asset.equip.items.goblin_chestplate set value {item:"leather_chestplate",components:{"minecraft:custom_name":[{italic:0b,text:"Goblin Chestplate "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:dyed_color":5143086,"minecraft:attribute_modifiers":[],"minecraft:custom_data":{equip:{slot:"chest",set:"goblin"},status_bonus:{type:"def_add",value:40.0},level:0,max_level:60}}}
-data modify storage test: asset.equip.items.goblin_leggings set value {item:"leather_leggings",components:{"minecraft:custom_name":[{italic:0b,text:"Goblin Leggings "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:dyed_color":5143086,"minecraft:attribute_modifiers":[],"minecraft:custom_data":{equip:{slot:"legs",set:"goblin"},status_bonus:{type:"physics_resist_add",value:5.0},level:0,max_level:60}}}
-data modify storage test: asset.equip.items.goblin_boots set value {item:"leather_boots",components:{"minecraft:custom_name":[{italic:0b,text:"Goblin Boots "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:dyed_color":5143086,"minecraft:attribute_modifiers":[],"minecraft:custom_data":{equip:{slot:"feet",set:"goblin"},status_bonus:{type:"def_m",value:5.0},level:0,max_level:60}}}

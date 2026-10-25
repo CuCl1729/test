@@ -136,25 +136,44 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     resistances), chosen via `storage test: loot.substatus_max` and `test:loot/roll_substatus_type`.
   - Item lore is never edited line by line: `test:item/weapon/lore/render` rebuilds the whole lore from
     `custom_data` on creation and on every level-up. Add lore by extending that renderer.
+- **Weapon/equipment definitions are generated from a Google Sheet** by `tools/datasheet/generate.ps1`
+  (PowerShell 5.1; run `generate.cmd`, or `generate.cmd -Offline` to use `tools/datasheet/data/*.csv`).
+  - It covers weapons, forge recipes, armor/accessories, series, 4-piece effects, and workshop recipes.
+  - Generated files start with a `# 自動生成: tools/datasheet/generate.ps1…` header. **Never edit them by
+    hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
+  - Generated files: `init/asset/generated/weapons`, `init/asset/equip/generated/{items,sets}`,
+    `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`. Stale generated files in those
+    folders are deleted.
+  - The script validates everything before writing anything:
+    - stat types against `loot.table.grow` in `init/set_table`
+    - effect `kind`s against the files in `equip/effect/`, and required `params` against that file's
+      `$(…)` names
+    - cross-references (series, recipe ids)
+
+    So adding a stat type or an effect kind needs no script change. Columns are documented in
+    `tools/datasheet/README.md`; `tools/` is outside `data/`, so the game ignores it.
+  - Weapons are declared at `asset.<id>` and built by `test:asset/weapon/sword/apply {material:<id>}`
+    (used for wands too).
 - **Equipment (armor/accessories)**:
-  - Items are declared in `init/asset/equip/<series>.mcfunction` as `asset.equip.items.<id>` and generated
-    by `test:asset/equip/apply {id}` (rarity from `storage test: loot.rare`). They are crafted at the
-    `craft/equip/` workshop: slot 9 material, slot 10 reusable pattern, one `recipe/<material>` file that
-    maps parts to ids. Enemies can also drop them via `data.equip_drops:[{id, chance}]` (`equip/drop/`).
+  - Items live at `asset.equip.items.<id>` (generated, see above) and are built by
+    `test:asset/equip/apply {id}` (rarity from `storage test: loot.rare`). They are crafted at the
+    `craft/equip/` workshop: slot 9 material, slot 10 reusable pattern. The generated
+    `recipe/<material>` maps `loot.equip_part` to an id. Enemies can also drop them via
+    `data.equip_drops:[{id, chance}]` (`equip/drop/`).
   - Stats are **aggregated, not read at use time**. `test:equip/recalc` runs from `cache/update` on every
     inventory change. It sums the 4 armor slots, up to `asset.equip.accessory_limit` accessories anywhere
     in the inventory, and 2-piece set bonuses into `test.equip.<type>` (×100). `status/update` just adds
     those, and resistances are written straight into `test.<element>_resist`. A new stat type needs its
     `test.equip.<type>` objective (and a reset line in `equip/reset`).
-  - 4-piece set effects are declared per series in `init/asset/equip/sets.mcfunction` as
-    `{event, kind, params, desc}`. `test:equip/event {event}` is fired at fixed hook points:
+  - 4-piece set effects are declared per series as `{event, kind, params, desc}`. They are generated into
+    `init/asset/equip/generated/sets` from the sheet's 4部位効果 tab. `test:equip/event {event}` is fired at fixed hook points:
     - `magic_cast`: in `magic/` and turn-based `skill_cast/prepare_damage`
     - `attack_hit`: in `attack/hit_buff` and `battle/action/attack_hit_buff`; the target is tagged
       `equip_event_target`
     - `damaged`: at the end of `damage/`
 
     It dispatches matching effects to `equip/effect/<kind>` with `params` as macro args. Add a behavior
-    by writing one effect file and declaring it. Add a new trigger by firing `equip/event` from that hook
+    by writing one effect file and adding a sheet row. Add a new trigger by firing `equip/event` from that hook
     point; it is gated by `test.equip.has_effects` so it costs nothing for players without a 4-piece set.
 
 ## Battle/combat pipeline

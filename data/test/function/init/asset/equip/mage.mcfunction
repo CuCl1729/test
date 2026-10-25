@@ -1,8 +1,0 @@
-#> test:init/asset/equip/mage
-# 見習い魔導士シリーズ(革防具を紫に染めたもの。素材: 魔力の欠片)。
-# 4部位のセット効果(magic_cast)の動作確認用。素材は今のところ test:debug/give_equip_materials でしか手に入らない
-
-data modify storage test: asset.equip.items.mage_hat set value {item:"leather_helmet",components:{"minecraft:custom_name":[{italic:0b,text:"Apprentice Hat "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:dyed_color":6962586,"minecraft:attribute_modifiers":[],"minecraft:custom_data":{equip:{slot:"head",set:"mage"},status_bonus:{type:"magic_efficiency_add",value:5.0},level:0,max_level:60}}}
-data modify storage test: asset.equip.items.mage_robe set value {item:"leather_chestplate",components:{"minecraft:custom_name":[{italic:0b,text:"Apprentice Robe "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:dyed_color":6962586,"minecraft:attribute_modifiers":[],"minecraft:custom_data":{equip:{slot:"chest",set:"mage"},status_bonus:{type:"mp_max_m",value:5.0},level:0,max_level:60}}}
-data modify storage test: asset.equip.items.mage_leggings set value {item:"leather_leggings",components:{"minecraft:custom_name":[{italic:0b,text:"Apprentice Leggings "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:dyed_color":6962586,"minecraft:attribute_modifiers":[],"minecraft:custom_data":{equip:{slot:"legs",set:"mage"},status_bonus:{type:"effect_damage_add",value:10.0},level:0,max_level:60}}}
-data modify storage test: asset.equip.items.mage_boots set value {item:"leather_boots",components:{"minecraft:custom_name":[{italic:0b,text:"Apprentice Boots "},{color:gray,text:"Level"},{color:aqua,text:"0"}],"minecraft:dyed_color":6962586,"minecraft:attribute_modifiers":[],"minecraft:custom_data":{equip:{slot:"feet",set:"mage"},status_bonus:{type:"mp_max_add",value:40.0},level:0,max_level:60}}}

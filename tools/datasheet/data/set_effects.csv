@@ -1,0 +1,3 @@
+﻿シリーズ,event,kind,params,説明
+goblin,attack_hit,apply_buff,id=poison; stacks=1; chance=20,攻撃が当たると 20% で 毒 x1 を付与
+mage,magic_cast,magic_damage_up,type=projectile; percent=20,投射タイプの魔法のダメージ +20%
