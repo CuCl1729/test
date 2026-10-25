@@ -123,6 +123,39 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   targets a compound another effect also writes to, use `merge value`, not `set value` — `set`
   silently destroys sibling keys other effects already wrote (this was a real bug: an atk-boost effect
   overwriting a fire effect's sibling key in the same compound).
+- **Weapons / armor / accessories share one item data shape** in `custom_data`:
+  - Keys: `status_bonus` (main stat), `substatus[]` (`{type, value, grow}`), `level`/`max_level`, and
+    `{type, value}` entries whose `type` is `<stat>_add` / `<stat>_m` or `<element>_resist_add`.
+  - Weapons additionally carry `base_status`, `weapon[]`, `damage`, and `test.*` flags.
+  - Armor/accessories carry `equip:{slot, set?}` and deliberately have **no `base_status`**.
+  - Stat type names must match the `test.status.<stat>` names (`hp_max_*`, not `max_hp_*`), because
+    `status/update` builds `$(status)_add`/`_m` from them. A mismatch silently never applies; this happened
+    with HP substats.
+  - `init/set_table` holds the substat roll table, per-level `grow`, and lore `stat_display`. The roll table
+    is indexed by roll value, so only append to its end. Weapons roll 0..9 and armor rolls 0..15 (adds
+    resistances), chosen via `storage test: loot.substatus_max` and `test:loot/roll_substatus_type`.
+  - Item lore is never edited line by line: `test:item/weapon/lore/render` rebuilds the whole lore from
+    `custom_data` on creation and on every level-up. Add lore by extending that renderer.
+- **Equipment (armor/accessories)**:
+  - Items are declared in `init/asset/equip/<series>.mcfunction` as `asset.equip.items.<id>` and generated
+    by `test:asset/equip/apply {id}` (rarity from `storage test: loot.rare`). They are crafted at the
+    `craft/equip/` workshop: slot 9 material, slot 10 reusable pattern, one `recipe/<material>` file that
+    maps parts to ids. Enemies can also drop them via `data.equip_drops:[{id, chance}]` (`equip/drop/`).
+  - Stats are **aggregated, not read at use time**. `test:equip/recalc` runs from `cache/update` on every
+    inventory change. It sums the 4 armor slots, up to `asset.equip.accessory_limit` accessories anywhere
+    in the inventory, and 2-piece set bonuses into `test.equip.<type>` (×100). `status/update` just adds
+    those, and resistances are written straight into `test.<element>_resist`. A new stat type needs its
+    `test.equip.<type>` objective (and a reset line in `equip/reset`).
+  - 4-piece set effects are declared per series in `init/asset/equip/sets.mcfunction` as
+    `{event, kind, params, desc}`. `test:equip/event {event}` is fired at fixed hook points:
+    - `magic_cast`: in `magic/` and turn-based `skill_cast/prepare_damage`
+    - `attack_hit`: in `attack/hit_buff` and `battle/action/attack_hit_buff`; the target is tagged
+      `equip_event_target`
+    - `damaged`: at the end of `damage/`
+
+    It dispatches matching effects to `equip/effect/<kind>` with `params` as macro args. Add a behavior
+    by writing one effect file and declaring it. Add a new trigger by firing `equip/event` from that hook
+    point; it is gated by `test.equip.has_effects` so it costs nothing for players without a 4-piece set.
 
 ## Battle/combat pipeline
 

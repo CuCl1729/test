@@ -19,3 +19,8 @@ execute if entity @e[tag=battle_attacker,limit=1,type=!player] run data modify s
 execute if entity @e[tag=battle_attacker,limit=1,type=player] run data modify storage test: buff_work.pending set from storage test: battle.actor_weapon.buff_on_hit
 
 execute if data storage test: buff_work.pending[0] run function test:buff/apply_list
+
+# 攻撃したのがプレイヤーなら、その防具のセット効果(attack_hit)
+tag @s add equip_event_target
+execute as @a[tag=battle_attacker,limit=1] run function test:equip/event {event:"attack_hit"}
+tag @s remove equip_event_target

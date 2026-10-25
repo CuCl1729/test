@@ -49,5 +49,8 @@ scoreboard players operation @s test.metal_damage /= #10000 test.constant
 scoreboard players operation @s test.earth_damage *= @s test.status.effect_damage
 scoreboard players operation @s test.earth_damage /= #10000 test.constant
 
+# 防具のセット効果(magic_cast)。ダメージが決まった後、届け方へ渡す前に詠唱者の属性ダメージをいじれる
+function test:equip/event {event:"magic_cast"}
+
 # タイプを増やしてもここを触らずに済むよう、magic/<id>/cast へマクロで委譲する
 function test:magic/dispatch with storage test: magic.player

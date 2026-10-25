@@ -5,5 +5,7 @@ tellraw @a ["",{text:"先制攻撃で撃破した！",color:green}]
 
 execute store result score #reward test.temporary run scoreboard players get @e[tag=hit,tag=enemy,limit=1] test.status.exp
 data modify storage test: battle.temporary.loot_table set from entity @e[tag=hit,tag=enemy,limit=1] data.loot_table
+data modify storage test: battle.temporary.equip_drops set value []
+data modify storage test: battle.temporary.equip_drops set from entity @e[tag=hit,tag=enemy,limit=1] data.equip_drops
 
 function test:battle/grant_reward_to_player with storage test: battle.temporary

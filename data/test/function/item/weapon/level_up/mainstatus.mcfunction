@@ -1,9 +1,7 @@
-$execute store result score #status test.temporary run data get storage test: loot.table.grow[{type:$(status_bonus)}].value 100
+#> test:item/weapon/level_up/mainstatus
+# storage test: loot.item のメインステータス(status_bonus、あればbase_status)をレベルアップ1回ぶん伸ばす。
+# 防具・アクセサリーはbase_statusを持たないので、あるものだけを伸ばす
+# (以前は両方をまとめてマクロに渡しており、片方が無いと展開に失敗して成長がすべて止まっていた)
 
-scoreboard players operation #status_bonus test.temporary += #status test.temporary
-execute store result storage test: loot.item.components."minecraft:custom_data".status_bonus.value double 0.01 run scoreboard players get #status_bonus test.temporary
-
-$execute store result score #status test.temporary run data get storage test: loot.table.grow[{type:$(base_status)}].value 100
-
-scoreboard players operation #base_status test.temporary += #status test.temporary
-execute store result storage test: loot.item.components."minecraft:custom_data".base_status.value double 0.01 run scoreboard players get #base_status test.temporary
+execute if data storage test: loot.item.components."minecraft:custom_data".status_bonus run function test:item/weapon/level_up/grow_main {key:"status_bonus"}
+execute if data storage test: loot.item.components."minecraft:custom_data".base_status run function test:item/weapon/level_up/grow_main {key:"base_status"}

@@ -10,6 +10,9 @@ data modify storage test: enemy.id set value armor_stand
 data modify storage test: enemy.name set value {text:"ゴブリン",color:"dark_green"}
 data modify storage test: enemy.data.loot_table set value "test:enemy/goblin"
 
+# 倒したときに確率(%)で落とす完成品の装備(test:equip/drop/roll_all。素材の革はloot_tableが落とす)
+data modify storage test: enemy.data.equip_drops set value [{id:"goblin_helmet",chance:5},{id:"goblin_chestplate",chance:5},{id:"goblin_leggings",chance:5},{id:"goblin_boots",chance:5}]
+
 data modify storage test: enemy.data.buff_on_hit set value [{id:"poison",stacks:1,chance:50}]
 
 # フィールドで巡回・追跡し、プレイヤーに接触すると自分からバトルを仕掛ける

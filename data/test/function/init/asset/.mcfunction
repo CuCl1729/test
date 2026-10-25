@@ -11,4 +11,6 @@ function test:init/asset/buff/buffs
 
 function test:init/asset/job/
 
+function test:init/asset/equip/
+
 function test:init/asset/debug/rng

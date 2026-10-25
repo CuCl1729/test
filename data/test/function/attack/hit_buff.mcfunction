@@ -13,3 +13,8 @@ data modify storage test: buff_work.pending set value []
 execute if data storage test: attack.player.test.buff_on_hit[0] run data modify storage test: buff_work.pending set from storage test: attack.player.test.buff_on_hit
 
 execute if data storage test: buff_work.pending[0] run function test:buff/apply_list
+
+# 攻撃したプレイヤーの防具のセット効果(attack_hit)。攻撃者はtest:attack/damageがdamage_attackerタグで示している
+tag @s add equip_event_target
+execute as @a[tag=damage_attacker,limit=1] run function test:equip/event {event:"attack_hit"}
+tag @s remove equip_event_target

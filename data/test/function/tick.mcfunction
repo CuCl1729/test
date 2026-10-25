@@ -14,6 +14,7 @@ execute as @e[tag=weapon_forge] at @s if entity @e[type=player,distance=..6] run
 execute as @e[tag=weapon_upgrade] at @s if entity @e[type=player,distance=..6] run function test:craft/weapon/upgrade/main
 execute as @e[tag=magic_research] at @s if entity @e[type=player,distance=..6] run function test:craft/magic/research/main
 execute as @e[tag=job_station] at @s if entity @e[type=player,distance=..6] run function test:job/station/main
+execute as @e[tag=equip_workshop] at @s if entity @e[type=player,distance=..6] run function test:craft/equip/main
 execute as @e[tag=attract] at @s run function test:motion/player/attract/main
 execute in test:arena as @e[tag=battle_marker] at @s run function test:battle/tick
 execute as @e[tag=skill_minecart,tag=!skill_effect_minecart,tag=!target_minecart,tag=!skill_category_minecart,tag=!active_skill_minecart] at @s run function test:battle/ui/skill_type_cart_tick

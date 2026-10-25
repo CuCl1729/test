@@ -32,3 +32,9 @@ scoreboard players set #lore_has_special test.temporary 0
 execute if data storage test: lore_work.data.test{aoe_attack:1b} run scoreboard players set #lore_has_special test.temporary 1
 execute if data storage test: lore_work.data.test.buff_on_hit[0] run scoreboard players set #lore_has_special test.temporary 1
 execute if score #lore_has_special test.temporary matches 1 run function test:item/weapon/lore/section_special
+
+# 防具のシリーズ(セット効果)。宣言はasset.equip.sets
+execute if data storage test: lore_work.data.equip.set run function test:item/weapon/lore/section_set with storage test: lore_work.data.equip
+
+# アクセサリーは着けるのではなく、インベントリに入れておくと効く(名前からは分からないので書いておく)
+execute if data storage test: lore_work.data.equip{slot:"accessory"} run function test:item/weapon/lore/accessory_note

@@ -27,6 +27,38 @@
           ]
         }
       ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:rabbit_hide",
+          "modifier": [
+            {
+              "type": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "test": {
+                    "material": {
+                      "source": "goblin",
+                      "kind": "goblin_hide"
+                    }
+                  }
+                },
+                "minecraft:custom_name": {
+                  "text": "ゴブリンの革",
+                  "italic": false
+                }
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

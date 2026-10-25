@@ -4,6 +4,9 @@
 
 function test:damage/pre_magic
 
+# 防具のセット効果(magic_cast)。#damageへ写す前に詠唱者の属性ダメージをいじれる(リアルタイムのmagic/と同じ)
+execute if entity @s[type=player] run function test:equip/event {event:"magic_cast"}
+
 scoreboard players set #damage test.physics_damage 0
 scoreboard players operation #damage test.fire_damage = @s test.fire_damage
 scoreboard players operation #damage test.water_damage = @s test.water_damage

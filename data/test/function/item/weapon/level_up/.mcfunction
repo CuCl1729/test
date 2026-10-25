@@ -6,13 +6,11 @@ execute if score #level test.status.level >= #max test.status.level run return f
 
 scoreboard players add #level test.status.level 1
 
-execute store result score #status_bonus test.temporary run data get storage test: loot.item.components."minecraft:custom_data".status_bonus.value 100
-execute store result score #base_status test.temporary run data get storage test: loot.item.components."minecraft:custom_data".base_status.value 100
+# 防具・アクセサリー(custom_data.equipあり)は、サブステータスを耐性込みの0..15から引く
+data modify storage test: loot.substatus_max set value 9
+execute if data storage test: loot.item.components."minecraft:custom_data".equip run data modify storage test: loot.substatus_max set value 15
 
-data modify storage test: loot.temporary.status_bonus set from storage test: loot.item.components."minecraft:custom_data".status_bonus.type
-data modify storage test: loot.temporary.base_status set from storage test: loot.item.components."minecraft:custom_data".base_status.type
-
-function test:item/weapon/level_up/mainstatus with storage test: loot.temporary
+function test:item/weapon/level_up/mainstatus
 
 execute store result storage test: loot.item.components."minecraft:custom_data".level int 1 run scoreboard players get #level test.status.level
 

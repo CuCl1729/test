@@ -220,6 +220,41 @@ scoreboard objectives add test.owner dummy
 # 職業の判定処理からbuff/apply_list等の別系統の関数を呼ぶことがあるため、共有スコアの衝突を避ける)
  scoreboard objectives add test.job.work dummy
 
+# 防具・アクセサリー(test:equip/recalc)が集計した装備の合計。値は×100(status/updateの内部の倍率と同じ)。
+# status/updateが $(status)_add / $(status)_m を読むので、ステータスごとに両方を必ず用意しておくこと
+ scoreboard objectives add test.equip.atk_add dummy
+ scoreboard objectives add test.equip.atk_m dummy
+ scoreboard objectives add test.equip.def_add dummy
+ scoreboard objectives add test.equip.def_m dummy
+ scoreboard objectives add test.equip.hp_max_add dummy
+ scoreboard objectives add test.equip.hp_max_m dummy
+ scoreboard objectives add test.equip.mp_max_add dummy
+ scoreboard objectives add test.equip.mp_max_m dummy
+ scoreboard objectives add test.equip.crit_rate_add dummy
+ scoreboard objectives add test.equip.crit_rate_m dummy
+ scoreboard objectives add test.equip.crit_damage_add dummy
+ scoreboard objectives add test.equip.crit_damage_m dummy
+ scoreboard objectives add test.equip.effect_damage_add dummy
+ scoreboard objectives add test.equip.effect_damage_m dummy
+ scoreboard objectives add test.equip.magic_efficiency_add dummy
+ scoreboard objectives add test.equip.magic_efficiency_m dummy
+ scoreboard objectives add test.equip.divergence_add dummy
+ scoreboard objectives add test.equip.divergence_m dummy
+ scoreboard objectives add test.equip.hp_regene_add dummy
+ scoreboard objectives add test.equip.hp_regene_m dummy
+ scoreboard objectives add test.equip.mp_regene_add dummy
+ scoreboard objectives add test.equip.mp_regene_m dummy
+# 属性耐性(%)。test:equip/recalcが ÷100 して test.<属性>_resist に入れる
+ scoreboard objectives add test.equip.fire_resist_add dummy
+ scoreboard objectives add test.equip.water_resist_add dummy
+ scoreboard objectives add test.equip.wood_resist_add dummy
+ scoreboard objectives add test.equip.metal_resist_add dummy
+ scoreboard objectives add test.equip.earth_resist_add dummy
+ scoreboard objectives add test.equip.physics_resist_add dummy
+# 4部位のセット効果(特殊効果)を1つ以上持っていれば1。test:equip/eventが、持っていない人のために
+# #oh_my_dat:please(個別ストレージの切り替え)を呼ばずに済ませる判定に使う
+ scoreboard objectives add test.equip.has_effects dummy
+
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy
  scoreboard objectives add test.debug.display dummy

@@ -60,4 +60,7 @@ function test:damage/apply_type {type:"physics"}
 
 execute if score #log_damage test.debug.enabled matches 1 run function test:debug/trace/damage/result
 
+# ダメージを受けたプレイヤーの防具のセット効果(damaged)。倒れた場合は動かさない
+execute if entity @s[type=player,scores={test.status.hp=1..}] run function test:equip/event {event:"damaged"}
+
 execute if score @s test.status.hp matches ..0 run function test:damage/kill

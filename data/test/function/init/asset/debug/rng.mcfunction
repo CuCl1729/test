@@ -11,6 +11,9 @@ data modify storage test: asset.debug.rng append value {key:"buff_chance",label:
 data modify storage test: asset.debug.rng append value {key:"wander_yaw",label:"巡回の向き",range:"-180..180",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"wander_interval",label:"巡回の向き替え間隔",range:"40..100 (tick)",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"substatus_count",label:"サブステータスの数",range:"レア度3:1..2 / 4:2..3 / 5:3..4",fixable:1b}
-data modify storage test: asset.debug.rng append value {key:"substatus_type",label:"サブステータスの種類",range:"0..9 (重複は引き直し)",fixable:0b}
+data modify storage test: asset.debug.rng append value {key:"substatus_type",label:"サブステータスの種類",range:"武器0..9 / 防具・アクセサリー0..15 (重複は引き直し)",fixable:0b}
 data modify storage test: asset.debug.rng append value {key:"substatus_grow",label:"レベルアップで伸びるサブステータス",range:"-4..-1 (末尾から数えた位置)",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"aoe_multiplier",label:"範囲攻撃の倍率",range:"50..150 (%)",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"equip_drop",label:"装備のドロップ",range:"1..100 (値≦確率で落ちる)",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"equip_drop_rare",label:"落ちた装備のレア度",range:"3..4",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"equip_effect",label:"セット効果の発動",range:"1..100 (値≦確率で発動)",fixable:1b}
