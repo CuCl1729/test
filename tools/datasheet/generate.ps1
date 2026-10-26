@@ -30,7 +30,12 @@ $Tabs = [ordered]@{
 # ---------------------------------------------------------------- 取得
 
 if (-not $Offline) {
-  $config = Get-Content (Join-Path $toolDir 'config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+  $configPath = Join-Path $toolDir 'config.json'
+  if (-not (Test-Path $configPath)) {
+    Write-Host 'config.json がありません。config.example.json をコピーして config.json を作り、sheet_id と各タブの gid を書いてください(config.json はgitの管理外です)。' -ForegroundColor Red
+    exit 1
+  }
+  $config = Get-Content $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
   if (-not $config.sheet_id) {
     Write-Host 'config.json の sheet_id が空です。スプレッドシートを用意して設定するか、-Offline を付けて data/*.csv から生成してください。' -ForegroundColor Red
     exit 1

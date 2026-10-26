@@ -1,0 +1,2 @@
+# スプレッドシートのIDとタブのgid(人ごとの設定。ひな形は tools/datasheet/config.example.json)
+tools/datasheet/config.json
