@@ -11,5 +11,6 @@ scoreboard players operation @s test.status.hp -= #poison test.buff.work
 execute at @s run particle happy_villager ~ ~1 ~ 0.3 0.5 0.3 0 8 force @a
 execute at @s run playsound minecraft:entity.generic.hurt master @a ~ ~ ~ 1 0.6
 
-execute if score @s test.status.hp matches ..0 if entity @s[tag=enemy] run tellraw @a ["",{selector:"@s"},{text:"は毒で倒れた",color:gold}]
+execute if score @s test.status.hp matches ..0 if entity @s[tag=enemy] at @s if dimension test:arena run tellraw @a[distance=..64] ["",{selector:"@s"},{text:"は毒で倒れた",color:gold}]
+execute if score @s test.status.hp matches ..0 if entity @s[tag=enemy] at @s unless dimension test:arena run tellraw @a[distance=..32] ["",{selector:"@s"},{text:"は毒で倒れた",color:gold}]
 execute if score @s test.status.hp matches ..0 run function test:damage/kill

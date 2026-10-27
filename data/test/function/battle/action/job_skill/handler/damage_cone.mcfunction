@@ -35,7 +35,7 @@ scoreboard players operation #damage test.status.crit_rate = @s test.status.crit
 scoreboard players operation #damage test.status.crit_damage = @s test.status.crit_damage
 scoreboard players operation #damage test.status.crit_damage /= #100 test.constant
 
-tellraw @a ["",{selector:"@s"},{text:" のスキル！",color:gold}]
+tellraw @a[distance=..64] ["",{selector:"@s"},{text:" のスキル！",color:gold}]
 
 tag @s add damage_attacker
 execute as @e[tag=battle_member,tag=enemy,distance=..64,scores={test.status.hp=1..}] run function test:battle/action/job_skill/hit_one

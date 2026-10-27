@@ -3,6 +3,6 @@
 # (battle/setupは戦闘開始位置の8マス以内にいる敵・プレイヤーを自動的に巻き込むので、
 #  ここでは戦闘のきっかけになるだけでよい)
 
-tellraw @a ["",{selector:"@s"},{text:" に襲われた！",color:red}]
+tellraw @a[distance=..32] ["",{selector:"@s"},{text:" に襲われた！",color:red}]
 
 function test:battle/start

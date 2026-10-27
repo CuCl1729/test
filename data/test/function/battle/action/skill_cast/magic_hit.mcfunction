@@ -12,6 +12,6 @@ scoreboard players operation #total_damage test.temporary += #victim test.metal_
 scoreboard players operation #total_damage test.temporary += #victim test.earth_damage
 scoreboard players operation #total_damage test.temporary /= #100 test.constant
 
-tellraw @a ["",{selector:"@e[tag=battle_caster,limit=1]"},{text:" の魔法！ ",color:light_purple},{selector:"@s"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:light_purple},{text:"ダメージ！",color:gray}]
+tellraw @a[distance=..64] ["",{selector:"@e[tag=battle_caster,limit=1]"},{text:" の魔法！ ",color:light_purple},{selector:"@s"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:light_purple},{text:"ダメージ！",color:gray}]
 
-execute if entity @s[tag=enemy,scores={test.status.hp=..0}] run tellraw @a ["",{selector:"@s"},{text:"を倒した！",color:gold}]
+execute if entity @s[tag=enemy,scores={test.status.hp=..0}] run tellraw @a[distance=..64] ["",{selector:"@s"},{text:"を倒した！",color:gold}]

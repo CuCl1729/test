@@ -21,8 +21,10 @@ execute if score #total_damage test.temporary matches ..0 run return 0
 
 scoreboard players operation #total_damage test.temporary /= #100 test.constant
 
-$execute if score @e[tag=damage_attacker,limit=1] test.settings.damage_display matches 1 run tellraw @a ["",{selector:"@e[tag=damage_attacker,limit=1]"},{text:"$(verb)",color:gray},{selector:"@s"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]
-$execute if score @e[tag=damage_attacker,limit=1] test.settings.damage_display matches 3 run tellraw @a ["",{selector:"@e[tag=damage_attacker,limit=1]"},{text:"$(verb)",color:gray},{selector:"@s"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]
+$execute if score @e[tag=damage_attacker,limit=1] test.settings.damage_display matches 1 at @s if dimension test:arena run tellraw @a[distance=..64] ["",{selector:"@e[tag=damage_attacker,limit=1]"},{text:"$(verb)",color:gray},{selector:"@s"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]
+$execute if score @e[tag=damage_attacker,limit=1] test.settings.damage_display matches 1 at @s unless dimension test:arena run tellraw @a[distance=..32] ["",{selector:"@e[tag=damage_attacker,limit=1]"},{text:"$(verb)",color:gray},{selector:"@s"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]
+$execute if score @e[tag=damage_attacker,limit=1] test.settings.damage_display matches 3 at @s if dimension test:arena run tellraw @a[distance=..64] ["",{selector:"@e[tag=damage_attacker,limit=1]"},{text:"$(verb)",color:gray},{selector:"@s"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]
+$execute if score @e[tag=damage_attacker,limit=1] test.settings.damage_display matches 3 at @s unless dimension test:arena run tellraw @a[distance=..32] ["",{selector:"@e[tag=damage_attacker,limit=1]"},{text:"$(verb)",color:gray},{selector:"@s"},{text:" に",color:gray},{score:{name:"#total_damage",objective:"test.temporary"},color:red},{text:"ダメージ！",color:gray}]
 
 execute if score @e[tag=damage_attacker,limit=1] test.settings.damage_display matches 2 at @s run function test:damage/display_pop
 execute if score @e[tag=damage_attacker,limit=1] test.settings.damage_display matches 3 at @s run function test:damage/display_pop

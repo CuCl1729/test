@@ -36,8 +36,8 @@ scoreboard players set #offensive test.temporary 0
 execute if score #has_damage test.temporary matches 1 run scoreboard players set #offensive test.temporary 1
 execute if data storage test: magic_buff.debuff[0] run scoreboard players set #offensive test.temporary 1
 
-execute if score #offensive test.temporary matches 1 run tellraw @a ["",{selector:"@s"},{text:" の範囲魔法！",color:light_purple}]
-execute if score #offensive test.temporary matches 0 run tellraw @a ["",{selector:"@s"},{text:" は味方全体に魔法を唱えた",color:light_purple}]
+execute if score #offensive test.temporary matches 1 run tellraw @a[distance=..64] ["",{selector:"@s"},{text:" の範囲魔法！",color:light_purple}]
+execute if score #offensive test.temporary matches 0 run tellraw @a[distance=..64] ["",{selector:"@s"},{text:" は味方全体に魔法を唱えた",color:light_purple}]
 
 # 攻撃効果は生存している敵全員へ(詠唱者は一時タグで参照する)
 tag @s add battle_caster
