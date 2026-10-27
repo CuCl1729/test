@@ -7,4 +7,4 @@ $execute store result score #rune_built test.temporary run function test:item/ru
 
 execute if score #rune_built test.temporary matches 1 run function test:loot/give
 $execute if score #rune_built test.temporary matches 0 run tellraw @a[distance=..6] {text:"外したルーン「$(id)」は定義が見つからないため返せませんでした",color:"red"}
-$execute if score #rune_built test.temporary matches 0 run function test:debug/log {msg:"付与台: 定義の無いルーンは返せません: $(id)"}
+$execute if score #rune_built test.temporary matches 0 run function test:debug/log {msg:"強化台(付与): 定義の無いルーンは返せません: $(id)"}

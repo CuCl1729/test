@@ -1,11 +1,5 @@
 #> test:job/station/main
-# @s = Jobステーション本体(バレルの位置、test:tickから毎tick呼ばれる)
-
-execute unless block ~ ~ ~ barrel run function test:job/station/place
-execute unless block ~ ~ ~ barrel run return 0
-
-# 飾り(名前・目印・GUIタイトル)が付いていないステーションに付ける(設置済みのものにも効くよう毎tick確認)
-execute unless entity @s[tag=station_decorated] run function test:job/station/decorate
+# @s = Jobステーションのマーカー(バレルの位置、test:station/tickから毎tick呼ばれる)
 
 execute if entity @s[nbt={data:{job_ui:{view:"list"}}}] run function test:job/station/main_list
 execute if entity @s[nbt={data:{job_ui:{view:"tree"}}}] run function test:job/station/main_tree

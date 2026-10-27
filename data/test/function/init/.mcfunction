@@ -34,4 +34,7 @@ function test:init/asset/
 
 function test:init/set_table
 
+# 統合する前の種類ごとのステーションを、共通のステーションに直す
+function test:station/migrate
+
 data modify storage test: installed set value 1b

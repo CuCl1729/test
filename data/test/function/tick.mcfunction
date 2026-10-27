@@ -9,13 +9,8 @@ execute as @a run function test:cache/slot_check
 execute as @a run function test:job/skill/bundle_check_inventory
 execute as @e[type=item,nbt={Item:{components:{"minecraft:custom_data":{test:{skill_marker:1b}}}}}] run function test:job/skill/bundle_check_dropped
 execute as @e[type=player] run function test:ui/status/
-execute as @e[tag=crafter] at @s if entity @e[type=player,distance=..6] run function test:magic/crafter/main
-execute as @e[tag=weapon_forge] at @s if entity @e[type=player,distance=..6] run function test:craft/weapon/forge/main
-execute as @e[tag=weapon_upgrade] at @s if entity @e[type=player,distance=..6] run function test:craft/weapon/upgrade/main
-execute as @e[tag=magic_research] at @s if entity @e[type=player,distance=..6] run function test:craft/magic/research/main
-execute as @e[tag=job_station] at @s if entity @e[type=player,distance=..6] run function test:job/station/main
-execute as @e[tag=equip_workshop] at @s if entity @e[type=player,distance=..6] run function test:craft/equip/main
-execute as @e[tag=equip_magic_station] at @s if entity @e[type=player,distance=..6] run function test:craft/equip_magic/main
+# ステーション(工房・強化台・魔法台・Jobステーション)。種類ごとの違いは init/asset/station のレジストリにある
+execute as @e[tag=station] at @s if entity @e[type=player,distance=..6] run function test:station/tick
 execute as @e[tag=attract] at @s run function test:motion/player/attract/main
 # ログインし直したプレイヤー(戦闘中にログアウトしていたら、戦闘の続きに戻すか元の場所へ帰す)
 execute as @a[scores={test.leave_game=1..}] at @s run function test:battle/rejoin

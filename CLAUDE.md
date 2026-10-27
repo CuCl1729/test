@@ -161,8 +161,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     (used for wands too).
 - **Equipment (armor/accessories)**:
   - Items live at `asset.equip.items.<id>` (generated, see above) and are built by
-    `test:asset/equip/apply {id}` (rarity from `storage test: loot.rare`). They are crafted at the
-    `craft/equip/` workshop: slot 9 material, slot 10 reusable pattern. The generated
+    `test:asset/equip/apply {id}` (rarity from `storage test: loot.rare`). They are crafted in the 工房
+    station's 防具 mode (`craft/equip/craft`): slot 9 material, slot 10 reusable pattern. The generated
     `recipe/<material>` maps `loot.equip_part` to an id. Enemies can also drop them via
     `data.equip_drops:[{id, chance}]` (`equip/drop/`).
   - Stats are **aggregated, not read at use time**. `test:equip/recalc` runs from `cache/update` on every
@@ -183,7 +183,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
 - **Equipment slots (自動発動の枠)**: armor and accessories get 1/2/3 slots at rarity 3/4/5
   (`asset/equip/apply` → `proc_roll_loop`). Each slot's `event` is rolled from `asset.equip.proc_events`
   (rng key `equip_proc_event`) and is kept even when the content changes. A slot holds exactly one of three
-  kinds, set at the 付与台 station (`craft/equip_magic/`: slot 9 the equipment, slots 10–12 → slots 1–3):
+  kinds, set in the 強化台 station's 付与 mode (`craft/equip_magic/craft`: slot 9 the equipment, slots 10–12
+  → slots 1–3):
   ```
   equip.procs: [
     {event},                                          // empty
@@ -220,6 +221,28 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     checked every tick by `equip/proc/hp_low_check` for players with `test.equip.has_hp_low` (set by
     `recalc` when an hp_low slot has content). The tag `equip_hp_low` blocks repeats until HP is back at
     or above the line. A new event needs a line in `proc_events` and a tag-removal line in `proc/run`.
+- **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
+  `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
+  craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:
+  | station | modes |
+  |---|---|
+  | `smithy` 工房 | 武器 `craft/weapon/forge/craft` / 防具 `craft/equip/craft` |
+  | `enhance` 強化台 | 強化 `craft/weapon/upgrade/craft` / 付与 `craft/equip_magic/craft` |
+  | `magic` 魔法台 (breakable) | 作成 `magic/crafter/{main,enter}` / 研究 `craft/magic/research/{main,enter}` |
+  | `job` Jobステーション | one mode, `job/station/{main,enter}` |
+  - Markers are tagged `station` with `data.station = {id, mode, main|craft}`; `tick` has one line for all of
+    them → `station/tick`: re-place a missing barrel (or, if `breakable`, return a spawn egg via
+    `station/give_egg` and remove itself), decorate (`station/decorate`), enter the mode
+    (`station/enter_mode` clears UI items, copies the mode's function, sets the title `name [label]`, puts the
+    mode button in slot 20 and, for `craft` modes, the lime button in slot 26, then runs `enter`), then
+    run the mode: a `craft` mode is called when the slot-26 button is taken; a `main` mode runs every tick.
+  - Taking the slot-20 button cycles modes (`station/next_mode`), refused while the barrel holds anything
+    but UI items. UI items must carry one of the markers `station_ui` / `button` / `crafter_ui` / `job_ui`:
+    those are what `enter_mode` clears, what `next_mode` doesn't count, and what `no_barrel` deletes from
+    the drops of a broken barrel.
+  - A new station or mode is a registry line plus its `craft` (or `main`/`enter`) function. Place one with
+    `test:debug/spawn_station {id:<id>}` (also listed in the debug menu). `station/migrate` (run from
+    `init/`) converts markers placed before stations were merged (old per-station tags).
 
 ## Battle/combat pipeline
 
@@ -257,7 +280,8 @@ no effect at all when pene/debuff is zero).
   take `{text:"...",color:"..."}` (or a list of such compounds) directly — never a quoted
   `'{"text":"..."}'` string. Wrapping a text component in a string produces literal, unparsed text
   in-game; this bit both an item name and an entity `CustomName` in this pack already.
-- **Barrel-based GUIs** (`magic/crafter/`, `craft/magic/research/`, and the minecart-based battle menus
+- **Barrel-based GUIs** (the stations' `main` modes such as `magic/crafter/`, `craft/magic/research/`,
+  `job/station/`, and the minecart-based battle menus
   under `battle/ui/`) detect clicks with `execute unless data block ~ ~ ~ Items[{Slot:Nb}] ...` — the
   `data` keyword is mandatory; omitting it parses as an unrelated block-predicate form and fails
   silently. Shift-click vs. normal-click is told apart with

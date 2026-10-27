@@ -1,13 +1,6 @@
 #> test:magic/crafter/main
-# @s = クラフター本体(barrelの位置、test:tickから毎tick呼ばれる)。各行のスロットが取られていないか
+# @s = 魔法台のマーカー(作成モード。barrelの位置、test:station/tickから毎tick呼ばれる)。各行のスロットが取られていないか
 # 確認して処理する(test:battle/ui/skill_effect_cart_tick と同じ「消えていたら処理」方式)
-
-execute unless block ~ ~ ~ barrel run kill @n[type=item,nbt={Item:{id:"minecraft:barrel"}}]
-execute unless block ~ ~ ~ barrel run function test:asset/machine/magic/crafter
-execute unless block ~ ~ ~ barrel run return run tag @s add kill
-
-# 飾り(名前・目印・GUIタイトル)が付いていないステーションに付ける(設置済みのものにも効くよう毎tick確認)
-execute unless entity @s[tag=station_decorated] run function test:magic/crafter/decorate
 
 # 上段の矢印(0=先頭ページでは非表示 / 8=続きが無ければ非表示。表示していないぶんは検知しない)
 execute unless entity @s[nbt={data:{crafter_ui:{page:0}}}] unless data block ~ ~ ~ Items[{Slot:0b}] run function test:magic/crafter/click_arrow {dir:-1}

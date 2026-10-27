@@ -10,7 +10,7 @@ function test:item/weapon/lore/consumable_effect with storage test: consumable_w
 
 data modify storage test: loot.item.components."minecraft:lore" append value [{text:""}]
 function test:item/weapon/lore/line_begin
-data modify storage test: lore_work.line append value {text:"付与台で装備の枠に設定すると、イベント",color:"gray"}
+data modify storage test: lore_work.line append value {text:"強化台(付与)で装備の枠に設定すると、イベント",color:"gray"}
 $data modify storage test: lore_work.n set from storage test: asset.consumable.$(consumable).every
 function test:item/weapon/lore/num
 data modify storage test: lore_work.line append value {text:"回ごとに1個自動で使う",color:"gray"}
