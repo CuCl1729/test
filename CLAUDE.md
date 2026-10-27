@@ -138,19 +138,24 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     `custom_data` on creation and on every level-up. Add lore by extending that renderer.
 - **Weapon/equipment definitions are generated from a Google Sheet** by `tools/datasheet/generate.ps1`
   (PowerShell 5.1; run `generate.cmd`, or `generate.cmd -Offline` to use `tools/datasheet/data/*.csv`).
-  - It covers weapons, forge recipes, armor/accessories, series, 4-piece effects, and workshop recipes.
+  - It covers weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop recipes, runes,
+    and consumables.
   - Generated files start with a `# 自動生成: tools/datasheet/generate.ps1…` header. **Never edit them by
     hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
   - Generated files: `init/asset/generated/weapons`, `init/asset/equip/generated/{items,sets}`,
-    `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`. Stale generated files in those
-    folders are deleted.
+    `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
+    `init/asset/rune/generated/runes`, `init/asset/consumable/generated/consumables`. Stale generated files
+    in those folders are deleted.
   - The script validates everything before writing anything:
-    - stat types against `loot.table.grow` in `init/set_table`
-    - effect `kind`s against the files in `equip/effect/`, and required `params` against that file's
-      `$(…)` names
+    - stat types against `loot.table.grow` in `init/set_table` (also rune stats)
+    - effect `kind`s against the files in `equip/effect/` (4-piece) and `consumable/effect/` (consumables,
+      which also need `consumable/lore/<kind>`), and required `params` against that file's `$(…)` names
     - cross-references (series, recipe ids)
+    - consumables: `every` ≥ 1; `heal_hp`/`heal_mp` take `percent`/`flat` as non-negative integers (a
+      missing one is filled with 0), at least one of them ≥ 1
 
-    So adding a stat type or an effect kind needs no script change. Columns are documented in
+    So adding a stat type or an effect kind needs no script change. Each tab needs its gid in the
+    gitignored `tools/datasheet/config.json` for online runs. Columns are documented in
     `tools/datasheet/README.md`; `tools/` is outside `data/`, so the game ignores it.
   - Weapons are declared at `asset.<id>` and built by `test:asset/weapon/sword/apply {material:<id>}`
     (used for wands too).
@@ -175,6 +180,46 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     It dispatches matching effects to `equip/effect/<kind>` with `params` as macro args. Add a behavior
     by writing one effect file and adding a sheet row. Add a new trigger by firing `equip/event` from that hook
     point; it is gated by `test.equip.has_effects` so it costs nothing for players without a 4-piece set.
+- **Equipment slots (自動発動の枠)**: armor and accessories get 1/2/3 slots at rarity 3/4/5
+  (`asset/equip/apply` → `proc_roll_loop`). Each slot's `event` is rolled from `asset.equip.proc_events`
+  (rng key `equip_proc_event`) and is kept even when the content changes. A slot holds exactly one of three
+  kinds, set at the 付与台 station (`craft/equip_magic/`: slot 9 the equipment, slots 10–12 → slots 1–3):
+  ```
+  equip.procs: [
+    {event},                                          // empty
+    {event, kind:"magic", magic:{…}, name:[…]},       // casts on the event, pays MP like a normal cast
+    {event, kind:"item",  item:"<consumable id>", name:[…]},  // uses 1 consumable every `every` events
+    {event, kind:"rune",  rune:"<rune id>", name:[…], status:[{type,value}…]}  // always-on stats
+  ]
+  ```
+  - A slot with no `kind` but a `magic` is a magic slot (items made before `kind` existed).
+  - Inserting rebuilds the slot as `{event, kind}` first (`slot_reset`), so leftovers never mix. Magic
+    and runes are consumed; consumables stay in the station (the slot only names which one to use).
+    An overwritten rune is rebuilt from the current `asset.rune.<id>` and returned **after** the
+    equipment is given (`return_loop`), because `loot/give` reuses `loot.item`.
+  - Runes: `asset.rune.<id> = {item, name, status}`, item marked `custom_data.test.rune`, built by
+    `item/rune/build {id}`. The status is copied into the slot at insert time (later definition changes
+    don't alter existing gear) and summed in `equip/add_item` through the substatus `entry_queue`.
+  - Consumables: `asset.consumable.<id> = {item, name, every, effect:{kind, params}}`, item marked
+    `custom_data.test.consumable`, built by `item/consumable/build {id}`. `test:consumable/use {id}`
+    (@s = user) runs `consumable/effect/<kind>` with `params` and is independent of slots, so a future
+    turn-based item action can call it. All strengths live in `params`, never in the effect function.
+    HP/MP healing goes through `consumable/heal {stat, percent, flat}` (max × percent ÷ 100 + flat × 100;
+    `flat` uses the lore's units, the scores are ×100), clamped to the max.
+  - Magic and item slots are collected by `equip/add_item` → `equip/proc/collect_loop` into
+    `test.equip.procs` (oh_my_dat), each tagged with a `key` `"<part>_<index>"` (`head_0`, `acc1_2`, …).
+    Rune and empty slots are not collected. `test.equip.has_procs` gates `equip/event`.
+  - Events only **queue** (tags `equip_proc.<event>` + `equip_proc_queued` via `equip/proc/queue`), never
+    act mid-damage; `tick` runs `equip/proc/run` once per tick, which dispatches by kind in `run_entry`
+    (`cast` / `use_item`). So an AoE hitting many targets counts once. Casts from a slot don't re-queue
+    `magic_cast` (`equip_proc_casting` tag). Nothing fires in `test:arena`.
+  - Item slots count executed queues per slot in `test.equip.proc_count.<key>` (oh_my_dat, outside the
+    list that `recalc` rebuilds, so picking up/using items doesn't reset it). At `every` the count resets
+    and `use_item` runs `clear … 1` first; only a successful clear runs the effect.
+  - `hp_low` fires once when HP drops below `asset.equip.hp_low_percent` % of max (HP×100 vs max×percent),
+    checked every tick by `equip/proc/hp_low_check` for players with `test.equip.has_hp_low` (set by
+    `recalc` when an hp_low slot has content). The tag `equip_hp_low` blocks repeats until HP is back at
+    or above the line. A new event needs a line in `proc_events` and a tag-removal line in `proc/run`.
 
 ## Battle/combat pipeline
 
