@@ -5,5 +5,6 @@
 function test:item/weapon/lore/proc_name {color:"white"}
 
 data modify storage test: lore_work.line append value {text:"  消費MP ",color:"gray"}
+data modify storage test: lore_work.n set value 0
 data modify storage test: lore_work.n set from storage test: lore_work.proc_cur.magic.cost
 function test:item/weapon/lore/num

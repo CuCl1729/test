@@ -34,20 +34,27 @@ scoreboard players operation @s test.physics_damage.bonus += @s test.temporary
 function test:damage/pre_magic
 function test:status/update {status:effect_damage}
 
+# effect_damageは1万分率(10000で×1)。属性ダメージに掛けてから10000で割ると、攻撃力が高いとき(剣を持ったまま
+# 自動発動した魔法など)に2^31を超えて負になり、damage/apply_typeでカンストしていたので、先に100で割ってから掛ける
+scoreboard players operation @s test.fire_damage /= #100 test.constant
 scoreboard players operation @s test.fire_damage *= @s test.status.effect_damage
-scoreboard players operation @s test.fire_damage /= #10000 test.constant
+scoreboard players operation @s test.fire_damage /= #100 test.constant
 
+scoreboard players operation @s test.water_damage /= #100 test.constant
 scoreboard players operation @s test.water_damage *= @s test.status.effect_damage
-scoreboard players operation @s test.water_damage /= #10000 test.constant
+scoreboard players operation @s test.water_damage /= #100 test.constant
 
+scoreboard players operation @s test.wood_damage /= #100 test.constant
 scoreboard players operation @s test.wood_damage *= @s test.status.effect_damage
-scoreboard players operation @s test.wood_damage /= #10000 test.constant
+scoreboard players operation @s test.wood_damage /= #100 test.constant
 
+scoreboard players operation @s test.metal_damage /= #100 test.constant
 scoreboard players operation @s test.metal_damage *= @s test.status.effect_damage
-scoreboard players operation @s test.metal_damage /= #10000 test.constant
+scoreboard players operation @s test.metal_damage /= #100 test.constant
 
+scoreboard players operation @s test.earth_damage /= #100 test.constant
 scoreboard players operation @s test.earth_damage *= @s test.status.effect_damage
-scoreboard players operation @s test.earth_damage /= #10000 test.constant
+scoreboard players operation @s test.earth_damage /= #100 test.constant
 
 # 防具のセット効果(magic_cast)。ダメージが決まった後、届け方へ渡す前に詠唱者の属性ダメージをいじれる
 function test:equip/event {event:"magic_cast"}

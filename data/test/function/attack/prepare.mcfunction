@@ -8,8 +8,10 @@ function test:status/update {status:crit_damage}
 
 scoreboard players operation #damage test.status.crit_rate = @s test.status.crit_rate
 
-scoreboard players operation @s test.status.crit_damage /= #100 test.constant
+# 会心ダメージは15000=150%で持っている。damage/crit_applyには÷100した値(150)を渡す
+# (プレイヤー自身のスコアは書き換えない。ステータス表示やターン制の計算がずれるため)
 scoreboard players operation #damage test.status.crit_damage = @s test.status.crit_damage
+scoreboard players operation #damage test.status.crit_damage /= #100 test.constant
 
 scoreboard players operation #damage test.def.pene = @s test.def.pene
 

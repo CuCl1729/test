@@ -7,6 +7,9 @@
 
 $execute unless data storage test: asset.consumable.$(item) run return run function test:debug/log {msg:"自動使用: 消耗品「$(item)」の定義がありません"}
 
+# 個別ストレージの参照先を自分に戻す(同じtickに先に唱えた魔法の枠が、バフの付与などで敵や味方に切り替えているため)
+function #oh_my_dat:please
+
 $execute store result score #proc_count test.temporary run data get storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.equip.proc_count.$(key)
 scoreboard players add #proc_count test.temporary 1
 $execute store result score #proc_every test.temporary run data get storage test: asset.consumable.$(item).every

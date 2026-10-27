@@ -3,6 +3,8 @@
 # 詠唱者は一時タグdamage_attackerで参照する(投射は着弾が詠唱の数tick後になるため、
 # projectile/moveがtest.ownerから詠唱者を引いてタグを付けている)
 
+# 魔法は会心が出ない仕様(剣・職業スキルだけ会心がある)
+scoreboard players set #damage test.status.crit_rate 0
 function test:damage/
 
 function test:damage/display {verb:" の魔法！ "}

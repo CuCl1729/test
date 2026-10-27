@@ -12,6 +12,8 @@ execute unless data block ~ ~ ~ Items[{Slot:9b}].components."minecraft:custom_da
 data remove storage test: loot.item
 data modify storage test: loot.item.id set from block ~ ~ ~ Items[{Slot:9b}].id
 data modify storage test: loot.item.components set from block ~ ~ ~ Items[{Slot:9b}].components
+# アクセサリーは重なるので、付与するのは1個だけ(残りはスロット9に残す)
+data modify storage test: loot.item.count set value 1
 
 data modify storage test: equip_magic_work.returns set value []
 scoreboard players set #imbued test.temporary 0
@@ -24,7 +26,7 @@ execute if score #imbued test.temporary matches 0 run return run tellraw @a[dist
 function test:item/weapon/lore/render
 function test:loot/give
 
-data remove block ~ ~ ~ Items[{Slot:9b}]
+function test:craft/equip_magic/take_one {slot:9}
 
 # 上書きした枠のルーンを返す(装備を渡し終えてから。loot.itemを使い回すため)
 function test:craft/equip_magic/return_loop

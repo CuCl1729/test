@@ -6,7 +6,7 @@ particle explosion ~ ~0.5 ~ 0 0 0 0 1 force @a
 playsound minecraft:entity.generic.explode master @a ~ ~ ~ 1 1.4
 
 # ダメージ(test:magic/hitはfunction test:damage/のみの既存関数。投射魔法の着弾処理と同じ経路)
-execute as @e[tag=hit,type=!player,tag=!projectile] run function test:magic/hit
+execute as @e[tag=hit,type=!player,tag=!projectile,scores={test.status.hp=1..}] run function test:magic/hit
 
 # 回復(magic/effect/healは@sを回復する再帰関数なので、対象ごとにtest.repeatをリセットしてから呼ぶ)
 # 回復するかどうかは呼び出し元が#aoe_healで指定する(投射体の着弾は詠唱から時間が経っており、

@@ -10,5 +10,5 @@ $data modify storage test: loot.item.components."minecraft:custom_data".equip.pr
 $data modify storage test: loot.item.components."minecraft:custom_data".equip.procs[$(index)].status set from storage test: asset.rune.$(id).status
 $function test:craft/equip_magic/copy_name {index:$(index),slot:$(slot)}
 
-$data remove block ~ ~ ~ Items[{Slot:$(slot)b}]
+$function test:craft/equip_magic/take_one {slot:$(slot)}
 scoreboard players add #imbued test.temporary 1

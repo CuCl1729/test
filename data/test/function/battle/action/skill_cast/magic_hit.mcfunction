@@ -2,6 +2,8 @@
 # @s = ダメージを受ける対象(1体)。詠唱者は一時タグbattle_casterで参照する。
 # 範囲魔法で複数体を同時にループ処理する場合でも、対象ごとに個別のダメージ計算・メッセージ表示を行う
 
+# 魔法は会心が出ない仕様(剣・職業スキルだけ会心がある)
+scoreboard players set #damage test.status.crit_rate 0
 function test:damage/
 
 scoreboard players set #total_damage test.temporary 0
