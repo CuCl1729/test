@@ -9,6 +9,8 @@ execute if data storage test: equip_work.item.base_status run function test:equi
 
 data modify storage test: equip_work.entry_queue set value []
 data modify storage test: equip_work.entry_queue set from storage test: equip_work.item.substatus
+# ルーンの枠の能力(付与したときに枠へ写したstatus)も、サブステータスと同じように足す
+data modify storage test: equip_work.entry_queue append from storage test: equip_work.item.equip.procs[{kind:"rune"}].status[]
 function test:equip/entry_loop
 
 # 自動発動の枠のうち、イベントで動くもの(魔法)を、枠を見分けるキー付きで一覧に足す

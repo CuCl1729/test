@@ -6,3 +6,4 @@
 $execute unless data storage test: loot.item.components."minecraft:custom_data".equip.procs[$(index)] run return 0
 
 $execute if data block ~ ~ ~ Items[{Slot:$(slot)b}].components."minecraft:custom_data".test{magic:1b} run return run function test:craft/equip_magic/apply_magic {index:$(index),slot:$(slot)}
+$execute if data block ~ ~ ~ Items[{Slot:$(slot)b}].components."minecraft:custom_data".test.rune run return run function test:craft/equip_magic/apply_rune {index:$(index),slot:$(slot)}

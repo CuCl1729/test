@@ -1,11 +1,18 @@
 #> test:item/weapon/lore/proc_line
-# @macro event: 自動発動の枠のイベント(magic・nameも渡ってくるが、ここではproc_queue[0]から読む)。
-# 「  <イベントの表示名>: <魔法の名前>  消費MP <cost>」の1行を描く。表示名は asset.equip.proc_events(init/asset/equip/)
+# @macro event: 自動発動の枠のイベント(他のキーも渡ってくるが、中身はlore_work.proc_curから読む)。
+# イベントで動く枠(魔法・空)の1行を描く。イベントの表示名は asset.equip.proc_events(init/asset/equip/)
+#   魔法: 「  <イベントの表示名>: <魔法の名前>  消費MP <cost>」(kindが無く魔法がある古い枠も魔法として描く)
+#   空:   「  <イベントの表示名>: なし(付与台で付ける)」
 
 function test:item/weapon/lore/line_begin
-data modify storage test: lore_work.line append value {text:"  ",color:"gray"}
+data modify storage test: lore_work.line append value {text:"  "}
+data modify storage test: lore_work.line append value {text:"",color:"gray"}
 $data modify storage test: lore_work.line[-1].text set from storage test: asset.equip.proc_events[{id:"$(event)"}].label
 data modify storage test: lore_work.line append value {text:": ",color:"gray"}
-execute unless data storage test: lore_work.proc_queue[0].magic run data modify storage test: lore_work.line append value {text:"なし(魔法付与台で付ける)",color:"dark_gray"}
-execute if data storage test: lore_work.proc_queue[0].magic run function test:item/weapon/lore/proc_magic
+
+scoreboard players set #lore_proc_drawn test.temporary 0
+execute if data storage test: lore_work.proc_cur.magic run scoreboard players set #lore_proc_drawn test.temporary 1
+execute if data storage test: lore_work.proc_cur.magic run function test:item/weapon/lore/proc_magic
+execute if score #lore_proc_drawn test.temporary matches 0 run data modify storage test: lore_work.line append value {text:"なし(付与台で付ける)",color:"dark_gray"}
+
 function test:item/weapon/lore/commit

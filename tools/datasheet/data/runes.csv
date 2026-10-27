@@ -1,0 +1,4 @@
+﻿id,元アイテム,名前,能力
+power_rune,amethyst_shard,力のルーン,atk_m=5
+guard_rune,prismarine_crystals,守りのルーン,def_add=20
+vigor_rune,echo_shard,活力のルーン,hp_max_m=5

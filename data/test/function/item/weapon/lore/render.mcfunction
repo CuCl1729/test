@@ -36,6 +36,9 @@ execute if score #lore_has_special test.temporary matches 1 run function test:it
 # 防具・アクセサリーの自動発動の枠(イベントは作るときに抽選、魔法は魔法付与台で付ける)
 execute if data storage test: lore_work.data.equip.procs[0] run function test:item/weapon/lore/section_proc
 
+# ルーンのアイテム(能力)
+execute if data storage test: lore_work.data.test.rune run function test:item/weapon/lore/section_rune with storage test: lore_work.data.test
+
 # 防具のシリーズ(セット効果)。宣言はasset.equip.sets
 execute if data storage test: lore_work.data.equip.set run function test:item/weapon/lore/section_set with storage test: lore_work.data.equip
 

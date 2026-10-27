@@ -1,7 +1,8 @@
 #> test:craft/equip_magic/craft
-# @s = 魔法付与台マーカー。スロット9の装備(防具・アクセサリー)の自動発動の枠に、スロット10・11・12の魔法(nether_star)を
-# 1・2・3個目の枠の順に入れる。魔法を置かなかった枠は今の魔法のまま。
-# 入れた魔法は使い切り。枠の無い位置に置いた魔法は消費せずに残す
+# @s = 付与台マーカー。スロット9の装備(防具・アクセサリー)の自動発動の枠に、スロット10・11・12に置いたもの
+# (魔法・ルーン)を1・2・3個目の枠の順に入れる。何も置かなかった枠は今のまま。
+# 入れた魔法・ルーンは使い切り。枠の無い位置に置いたものは消費せずに残す。
+# 上書きした枠にルーンが入っていたら、そのルーンを返す
 
 execute unless data block ~ ~ ~ Items[{Slot:9b}] unless data block ~ ~ ~ Items[{Slot:10b}] unless data block ~ ~ ~ Items[{Slot:11b}] unless data block ~ ~ ~ Items[{Slot:12b}] run return 0
 
@@ -11,16 +12,20 @@ data remove storage test: loot.item
 data modify storage test: loot.item.id set from block ~ ~ ~ Items[{Slot:9b}].id
 data modify storage test: loot.item.components set from block ~ ~ ~ Items[{Slot:9b}].components
 
+data modify storage test: equip_magic_work.returns set value []
 scoreboard players set #imbued test.temporary 0
 function test:craft/equip_magic/apply_slot {index:0,slot:10}
 function test:craft/equip_magic/apply_slot {index:1,slot:11}
 function test:craft/equip_magic/apply_slot {index:2,slot:12}
 
-execute if score #imbued test.temporary matches 0 run return run tellraw @a[distance=..6] {text:"スロット10〜12に、枠に入れる魔法を置いてください(10が1つ目の枠)",color:"red"}
+execute if score #imbued test.temporary matches 0 run return run tellraw @a[distance=..6] {text:"スロット10〜12に、枠に入れる魔法かルーンを置いてください(10が1つ目の枠)",color:"red"}
 
 function test:item/weapon/lore/render
 function test:loot/give
 
 data remove block ~ ~ ~ Items[{Slot:9b}]
 
-tellraw @a[distance=..6] {text:"装備に魔法を付けました",color:"light_purple"}
+# 上書きした枠のルーンを返す(装備を渡し終えてから。loot.itemを使い回すため)
+function test:craft/equip_magic/return_loop
+
+tellraw @a[distance=..6] {text:"装備の枠に入れました",color:"light_purple"}

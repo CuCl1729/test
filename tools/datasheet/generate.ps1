@@ -25,6 +25,7 @@ $Tabs = [ordered]@{
   sets             = 'シリーズ'
   set_effects      = '4部位効果'
   workshop_recipes = '防具工房レシピ'
+  runes            = 'ルーン'
 }
 
 # ---------------------------------------------------------------- 取得
@@ -108,6 +109,7 @@ $RequiredHeaders = @{
   sets             = @('id','名前','2部位ボーナス')
   set_effects      = @('シリーズ','event','kind','params','説明')
   workshop_recipes = @('素材','部位','装備id')
+  runes            = @('id','元アイテム','名前','能力')
 }
 foreach ($key in $Tabs.Keys) {
   $path = Join-Path $dataDir "$key.csv"
@@ -142,7 +144,7 @@ function Esc([string]$s) { return $s.Replace('\', '\\').Replace('"', '\"') }
 
 function Check-Id($tab, $row, $col, $value) {
   if ($value -eq '') { Add-Err $tab $row "「$col」が空です"; return $false }
-  if ($value -notmatch $IdPattern) { Add-Err $tab $row "「$col」($value) は半角英小文字・数字・_ だけで書いてください"; return $false }
+  if ($value -cnotmatch $IdPattern) { Add-Err $tab $row "「$col」($value) は半角英小文字・数字・_ だけで書いてください"; return $false }
   return $true
 }
 function Check-Num($tab, $row, $col, $value, [bool]$required) {
@@ -315,6 +317,33 @@ foreach ($r in $data.workshop_recipes) {
   $workshopByMaterial[$mat][$part] = $eid
 }
 
+# ---------------------------------------------------------------- ルーン(付与台で装備の自動発動の枠に入れ、常に能力を上げる)
+
+$runeIds = @{}
+$runeDecls = New-Object System.Collections.Generic.List[string]
+foreach ($r in $data.runes) {
+  $tab = $Tabs.runes; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($runeIds.ContainsKey($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $runeIds[$id] = $true
+
+  $item = Cell $r '元アイテム'; $name = Cell $r '名前'
+  if ($item -notmatch $ItemPattern) { Add-Err $tab $n "「元アイテム」($item) がアイテムidの形ではありません" }
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
+
+  $stats = Parse-Pairs $tab $n '能力' (Cell $r '能力') ';'
+  if ($stats.Count -eq 0) { Add-Err $tab $n '「能力」が空です(例: atk_m=5; def_add=20)' }
+  $parts = @()
+  foreach ($k in $stats.Keys) {
+    Check-Stat $tab $n '能力' $k
+    Check-Num $tab $n '能力' $stats[$k] $true
+    $parts += "{type:`"$k`",value:$($stats[$k])}"
+  }
+  $runeDecls.Add("data modify storage test: asset.rune.$id set value {item:`"$item`",name:`"$(Esc $name)`",status:[$($parts -join ',')]}")
+  $runeDecls.Add("data modify storage test: asset.rune_ids append value `"$id`"")
+}
+
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
 if ($Errors.Count -gt 0) {
@@ -370,8 +399,15 @@ foreach ($mat in $workshopByMaterial.Keys) {
   $outputs[$rel] = $lines
 }
 
+$rel = 'init\asset\rune\generated\runes.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# ルーンの宣言(スプレッドシートの「ルーン」タブ)。asset.rune.<id> = {item, name, status:[{type,value}…]}。',
+  '# 付与台(craft/equip_magic/)で装備の自動発動の枠に入れると、statusが枠に写され、常に能力を上げる。',
+  '# asset.rune_ids は全種類のidの一覧(デバッグで配るときに使う)', '')
+$outputs[$rel] = $lines + $runeDecls
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
-$managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe')
+$managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d
