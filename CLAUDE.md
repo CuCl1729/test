@@ -240,6 +240,11 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     but UI items. UI items must carry one of the markers `station_ui` / `button` / `crafter_ui` / `job_ui`:
     those are what `enter_mode` clears, what `next_mode` doesn't count, and what `no_barrel` deletes from
     the drops of a broken barrel.
+  - **Prefer adding a mode to an existing station over adding a new station.** When a new feature needs a
+    barrel GUI, first check whether it fits as a mode of a station with a similar role (e.g. another
+    "make an item from materials" screen → a mode of 工房; another "modify the item in slot 9" screen →
+    a mode of 強化台). Likewise, if existing stations turn out to overlap in role, merge them into one
+    station with modes. Only add a separate station when no existing one fits.
   - A new station or mode is a registry line plus its `craft` (or `main`/`enter`) function. Place one with
     `test:debug/spawn_station {id:<id>}` (also listed in the debug menu). `station/migrate` (run from
     `init/`) converts markers placed before stations were merged (old per-station tags).
