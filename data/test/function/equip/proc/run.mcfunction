@@ -9,3 +9,4 @@ tag @s remove equip_proc_queued
 tag @s remove equip_proc.magic_cast
 tag @s remove equip_proc.attack_hit
 tag @s remove equip_proc.damaged
+tag @s remove equip_proc.hp_low

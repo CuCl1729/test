@@ -36,6 +36,11 @@ data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.equip.proc
 scoreboard players set @s test.equip.has_procs 0
 execute if data storage test: equip_work.procs[0] run scoreboard players set @s test.equip.has_procs 1
 
+# hp_low の枠に中身があれば、tickでHPを見張る(test:equip/proc/hp_low_check)。無くなったら「下回り中」のタグも外す
+scoreboard players set @s test.equip.has_hp_low 0
+execute if data storage test: equip_work.procs[{event:"hp_low"}] run scoreboard players set @s test.equip.has_hp_low 1
+execute if score @s test.equip.has_hp_low matches 0 run tag @s remove equip_hp_low
+
 # 属性耐性は test.<属性>_resist に直接入れる(基準値0。init/asset/status/defense)
 function test:equip/apply_resist
 
