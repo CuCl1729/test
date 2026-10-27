@@ -81,7 +81,7 @@ Three custom flat dimensions under `data/test/dimension/`, each a distinct game 
 - `test:turn` — the explorable field map. Enemies with `data.ai_field_enabled` wander/chase here
   (`battle/field_ai/`) and trigger `test:battle/start` on contact.
 - `test:arena` — void dimension holding up to 4 battle instances at fixed offsets
-  (`(0,0,0)`, `(500,0,0)`, `(1000,0,0)`, `(1500,0,0)`), each tracked by a `battle_marker` entity that
+  (`(0,100,0)`, `(500,100,0)`, `(1000,100,0)`, `(1500,100,0)`), each tracked by a `battle_marker` entity that
   owns that instance's turn order/state. `test:battle/setup` claims a free slot and builds the arena;
   `battle/tick` → `turn_start_actor`/`turn_start_enemy` → the acting side's action → `turn_end` is the
   per-battle loop.
