@@ -1,8 +1,9 @@
 #> test:battle/ui/target_minecart_resolve
 # @s = 決定アイコンを取ったプレイヤー(トロッコ式)。@e[tag=battle_target]に選択済みの対象がいる想定
 
-execute as @e[tag=target_minecart] run data remove entity @s Items
-kill @e[tag=target_minecart]
+# 自分の対象選択トロッコだけを片付ける(他のアリーナのトロッコまで消さない。item.mcfunctionなどと同じ範囲)
+execute as @e[tag=target_minecart,distance=..8] run data remove entity @s Items
+kill @e[tag=target_minecart,distance=..8]
 
 clear @s minecraft:ender_eye[custom_data~{test:{target_pick:"confirm"}}]
 

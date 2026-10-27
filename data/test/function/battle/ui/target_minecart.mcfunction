@@ -16,7 +16,7 @@ execute unless entity @e[tag=target_minecart,distance=..3] anchored eyes positio
 scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.awaiting_skill 0
 scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.awaiting_target 2
 
-tag @e remove battle_target
+function test:battle/target/clear
 
 function test:battle/ui/target_minecart_populate
 

@@ -30,9 +30,11 @@ scoreboard players operation #damage test.status.crit_damage /= #100 test.consta
 # 攻撃者を一時タグで参照できるようにしてから対象ごとにループする
 tag @s add battle_attacker
 
-execute as @e[tag=battle_target] run function test:battle/action/attack_hit
+# 対象は同じ戦闘のものだけ(他のアリーナで選択中の敵を巻き込まない)
+scoreboard players operation #target_battle test.battle.id = @s test.battle.id
+execute as @e[tag=battle_target] if score @s test.battle.id = #target_battle test.battle.id run function test:battle/action/attack_hit
 
 tag @e remove battle_attacker
-tag @e remove battle_target
+function test:battle/target/clear
 
 function test:battle/turn_end

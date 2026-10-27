@@ -4,10 +4,14 @@
 scoreboard players operation #target_select test.battle.target_select = @s test.battle.target_select
 scoreboard players set @s test.battle.target_select 0
 
+# target_toggleは敵を@sにして呼ぶので、手番の人(@s)の選択できる数をここで控えておく
+scoreboard players operation #target_max test.battle.target_max = @s test.battle.target_max
 execute if score #target_select test.battle.target_select matches 1..998 as @e[tag=battle_member,tag=enemy,distance=..64] if score @s test.battle.turn_order = #target_select test.battle.target_select run function test:battle/ui/target_toggle
 
 execute if score #target_select test.battle.target_select matches 1..998 run scoreboard players enable @s test.battle.target_select
 execute if score #target_select test.battle.target_select matches 1..998 run function test:battle/ui/target_display
 
-execute if score #target_select test.battle.target_select matches 999 unless entity @e[tag=battle_target] run scoreboard players enable @s test.battle.target_select
-execute if score #target_select test.battle.target_select matches 999 if entity @e[tag=battle_target] run function test:battle/ui/target_confirm
+# 選択済みの対象がいるかは、同じ戦闘のものだけで見る
+execute store result score #has_target test.temporary run function test:battle/target/exists
+execute if score #target_select test.battle.target_select matches 999 if score #has_target test.temporary matches 0 run scoreboard players enable @s test.battle.target_select
+execute if score #target_select test.battle.target_select matches 999 if score #has_target test.temporary matches 1 run function test:battle/ui/target_confirm
