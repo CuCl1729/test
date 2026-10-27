@@ -33,6 +33,9 @@ execute if data storage test: lore_work.data.test{aoe_attack:1b} run scoreboard 
 execute if data storage test: lore_work.data.test.buff_on_hit[0] run scoreboard players set #lore_has_special test.temporary 1
 execute if score #lore_has_special test.temporary matches 1 run function test:item/weapon/lore/section_special
 
+# 防具・アクセサリーの自動発動の枠(イベントは作るときに抽選、魔法は魔法付与台で付ける)
+execute if data storage test: lore_work.data.equip.procs[0] run function test:item/weapon/lore/section_proc
+
 # 防具のシリーズ(セット効果)。宣言はasset.equip.sets
 execute if data storage test: lore_work.data.equip.set run function test:item/weapon/lore/section_set with storage test: lore_work.data.equip
 

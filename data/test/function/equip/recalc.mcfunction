@@ -8,6 +8,7 @@ function test:equip/reset
 
 data modify storage test: equip_work.sets set value []
 data modify storage test: equip_work.effects set value []
+data modify storage test: equip_work.procs set value []
 
 # 防具4部位(custom_data.equipがあるものだけ)
 execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.equipment.head.components."minecraft:custom_data".equip run function test:equip/add_slot {slot:"head"}
@@ -28,6 +29,11 @@ function test:equip/set_loop
 data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.equip.effects set from storage test: equip_work.effects
 scoreboard players set @s test.equip.has_effects 0
 execute if data storage test: equip_work.effects[0] run scoreboard players set @s test.equip.has_effects 1
+
+# 自動発動の魔法の一覧(test:equip/proc/run が唱える)
+data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.equip.procs set from storage test: equip_work.procs
+scoreboard players set @s test.equip.has_procs 0
+execute if data storage test: equip_work.procs[0] run scoreboard players set @s test.equip.has_procs 1
 
 # 属性耐性は test.<属性>_resist に直接入れる(基準値0。init/asset/status/defense)
 function test:equip/apply_resist

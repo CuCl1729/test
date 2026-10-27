@@ -24,5 +24,13 @@ scoreboard players set #level test.status.level 0
 execute store result storage test: loot.substatus int 1 run function test:loot/roll_substatus_type
 execute if score #loot test.substatus matches 1.. run function test:loot/set_substatus with storage test: loot
 
+# 自動発動の枠(イベントだけ抽選する。魔法は魔法付与台で入れる)。数はレア度3/4/5で1/2/3、レア度が無ければ無し
+data modify storage test: loot.item.components."minecraft:custom_data".equip.procs set value []
+scoreboard players set #proc_left test.temporary 0
+execute if data storage test: {loot:{rare:3}} run scoreboard players set #proc_left test.temporary 1
+execute if data storage test: {loot:{rare:4}} run scoreboard players set #proc_left test.temporary 2
+execute if data storage test: {loot:{rare:5}} run scoreboard players set #proc_left test.temporary 3
+function test:asset/equip/proc_roll_loop
+
 function test:item/weapon/lore/render
 function test:loot/give

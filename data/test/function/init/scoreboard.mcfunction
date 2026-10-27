@@ -258,6 +258,8 @@ scoreboard objectives add test.owner dummy
 # 4部位のセット効果(特殊効果)を1つ以上持っていれば1。test:equip/eventが、持っていない人のために
 # #oh_my_dat:please(個別ストレージの切り替え)を呼ばずに済ませる判定に使う
  scoreboard objectives add test.equip.has_effects dummy
+# 防具の自動発動の魔法(魔法付与台で付けたもの)を1つ以上着ていれば1。test:equip/eventの門番(has_effectsと同じ理由)
+ scoreboard objectives add test.equip.has_procs dummy
 
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy

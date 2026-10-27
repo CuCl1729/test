@@ -15,6 +15,7 @@ execute as @e[tag=weapon_upgrade] at @s if entity @e[type=player,distance=..6] r
 execute as @e[tag=magic_research] at @s if entity @e[type=player,distance=..6] run function test:craft/magic/research/main
 execute as @e[tag=job_station] at @s if entity @e[type=player,distance=..6] run function test:job/station/main
 execute as @e[tag=equip_workshop] at @s if entity @e[type=player,distance=..6] run function test:craft/equip/main
+execute as @e[tag=equip_magic_station] at @s if entity @e[type=player,distance=..6] run function test:craft/equip_magic/main
 execute as @e[tag=attract] at @s run function test:motion/player/attract/main
 # ログインし直したプレイヤー(戦闘中にログアウトしていたら、戦闘の続きに戻すか元の場所へ帰す)
 execute as @a[scores={test.leave_game=1..}] at @s run function test:battle/rejoin
@@ -26,6 +27,9 @@ execute as @e[tag=skill_effect_minecart] at @s run function test:battle/ui/skill
 execute as @e[tag=target_minecart] at @s run function test:battle/ui/target_cart_tick
 execute as @e[tag=enemy] at @s run function test:status/hp_display_tick
 execute in test:turn as @e[tag=enemy,tag=!battle_member,scores={test.status.hp=1..}] at @s if data entity @s data.ai_field_enabled run function test:battle/field_ai/tick
+
+# 防具の自動発動の魔法(イベントの最中には唱えず、test:equip/proc/queueがタグで予約したものをここで唱える)
+execute as @a[tag=equip_proc_queued] at @s run function test:equip/proc/run
 
 # 召喚と同じtick内でtextを設定するとクライアントに反映されないことがあるため、次のtickで確定させる
 # (毎ticktpして浮き上がらせる案は、tpのたびにtextの描画が崩れることが判明したため不採用。静止表示のみ)

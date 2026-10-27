@@ -10,3 +10,6 @@ execute if data storage test: equip_work.item.base_status run function test:equi
 data modify storage test: equip_work.entry_queue set value []
 data modify storage test: equip_work.entry_queue set from storage test: equip_work.item.substatus
 function test:equip/entry_loop
+
+# 自動発動の枠のうち、魔法付与台で魔法が入ったものだけを一覧に足す({event, magic, name}。test:equip/recalcが個別ストレージへ写す)
+data modify storage test: equip_work.procs append from storage test: equip_work.item.equip.procs[{magic:{}}]

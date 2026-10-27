@@ -17,3 +17,4 @@ data modify storage test: asset.debug.rng append value {key:"aoe_multiplier",lab
 data modify storage test: asset.debug.rng append value {key:"equip_drop",label:"装備のドロップ",range:"1..100 (値≦確率で落ちる)",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"equip_drop_rare",label:"落ちた装備のレア度",range:"3..4",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"equip_effect",label:"セット効果の発動",range:"1..100 (値≦確率で発動)",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"equip_proc_event",label:"自動発動の枠のイベント",range:"0..イベント数-1 (asset.equip.proc_eventsの何番目か)",fixable:1b}
