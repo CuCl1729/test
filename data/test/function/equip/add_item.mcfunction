@@ -11,5 +11,9 @@ data modify storage test: equip_work.entry_queue set value []
 data modify storage test: equip_work.entry_queue set from storage test: equip_work.item.substatus
 function test:equip/entry_loop
 
-# 自動発動の枠のうち、魔法付与台で魔法が入ったものだけを一覧に足す({event, magic, name}。test:equip/recalcが個別ストレージへ写す)
-data modify storage test: equip_work.procs append from storage test: equip_work.item.equip.procs[{magic:{}}]
+# 自動発動の枠のうち、イベントで動くもの(魔法)を、枠を見分けるキー付きで一覧に足す
+# (test:equip/recalcが個別ストレージへ写す)。キーの部位は呼び出し元が equip_work.part に入れてある
+data modify storage test: equip_work.slot_queue set value []
+data modify storage test: equip_work.slot_queue set from storage test: equip_work.item.equip.procs
+scoreboard players set #proc_idx test.temporary 0
+function test:equip/proc/collect_loop

@@ -2,6 +2,8 @@
 # @s = プレイヤー。@macro slot: 防具の部位(head/chest/legs/feet)。その部位の防具の能力を足し、シリーズを控える
 
 $data modify storage test: equip_work.item set from storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.equipment.$(slot).components."minecraft:custom_data"
+# 自動発動の枠を見分けるキー("<部位>_<枠番号>")の部位の部分
+$data modify storage test: equip_work.part set value "$(slot)"
 function test:equip/add_item
 
 # セット効果の部位数を数えるため、シリーズidを控える(数えるときに{id}で絞れるようcompoundにしておく)

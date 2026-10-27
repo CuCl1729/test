@@ -20,6 +20,7 @@ execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data
 data modify storage test: equip_work.accessories set value []
 data modify storage test: equip_work.accessories append from storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.Inventory[{components:{"minecraft:custom_data":{equip:{slot:"accessory"}}}}]
 execute store result score #equip_acc_left test.temporary run data get storage test: asset.equip.accessory_limit
+scoreboard players set #equip_acc_n test.temporary 1
 function test:equip/accessory_loop
 
 # セット効果(シリーズのレジストリを順に見て、着ている部位数で2部位/4部位のボーナスを足す)
