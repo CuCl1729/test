@@ -16,6 +16,8 @@ $scoreboard players set @e[tag=battle_entrance,sort=nearest,limit=1] test.battle
 
 # エリア側マーカー(実際のターン管理はこちら)
 $execute positioned $(x) $(y) $(z) in test:arena run function test:battle/setup_arena_marker
+# マーカーにもアリーナ番号を持たせる(手番を飛ばした結果などで、マーカーを@sにbattle/endが呼ばれても枠を空けられるように)
+$execute positioned $(x) $(y) $(z) in test:arena run scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.arena $(arena)
 
 # チャンク座標を算出(プレイヤーが実際に戦闘を起こした位置を使うため、参加処理でテレポートする前に行う)
 execute store result score #chunk_x test.temporary run data get entity @s Pos[0] 1

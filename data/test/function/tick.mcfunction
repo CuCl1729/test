@@ -16,6 +16,8 @@ execute as @e[tag=magic_research] at @s if entity @e[type=player,distance=..6] r
 execute as @e[tag=job_station] at @s if entity @e[type=player,distance=..6] run function test:job/station/main
 execute as @e[tag=equip_workshop] at @s if entity @e[type=player,distance=..6] run function test:craft/equip/main
 execute as @e[tag=attract] at @s run function test:motion/player/attract/main
+# ログインし直したプレイヤー(戦闘中にログアウトしていたら、戦闘の続きに戻すか元の場所へ帰す)
+execute as @a[scores={test.leave_game=1..}] at @s run function test:battle/rejoin
 execute in test:arena as @e[tag=battle_marker] at @s run function test:battle/tick
 execute as @e[tag=skill_minecart,tag=!skill_effect_minecart,tag=!target_minecart,tag=!skill_category_minecart,tag=!active_skill_minecart] at @s run function test:battle/ui/skill_type_cart_tick
 execute as @e[tag=skill_category_minecart] at @s run function test:battle/ui/skill_category_cart_tick

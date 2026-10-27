@@ -19,3 +19,7 @@ execute if score @s test.battle.acting matches 1 if score @s test.battle.awaitin
 execute if score @s test.battle.acting matches 1 if score @s test.battle.awaiting_target matches 1 run function test:battle/ui/target_poll
 execute if score @s test.battle.acting matches 1 unless score @s test.battle.awaiting_skill matches 1.. unless score @s test.battle.awaiting_target matches 1.. if score @s test.battle.enemy_delay matches 1.. run function test:battle/enemy_delay_tick
 execute if score @s test.battle.acting matches 1 unless score @s test.battle.awaiting_skill matches 1.. unless score @s test.battle.awaiting_target matches 1.. unless score @s test.battle.enemy_delay matches 1.. run function test:battle/ui/chat_poll
+
+# プレイヤーの手番の時間切れ(30秒で自動的に防御)と、手番の人がいなくなったときの手番飛ばし。
+# 戦闘が終わってマーカーが消えた後に動かないよう、最後に置く
+execute if score @s test.battle.acting matches 1 if score @s test.battle.turn_timer matches 1.. run function test:battle/turn_timer_tick

@@ -102,6 +102,10 @@ scoreboard objectives add test.owner dummy
 
  scoreboard objectives add test.battle.acting dummy
  scoreboard objectives add test.battle.enemy_delay dummy
+# 戦闘マーカー: プレイヤーの手番の残り時間(tick)。test:battle/turn_timer_tick
+ scoreboard objectives add test.battle.turn_timer dummy
+# プレイヤー: ログアウトするたびに増える。test:battle/rejoinがログインし直したときに戦闘の状態を整える
+ scoreboard objectives add test.leave_game minecraft.custom:minecraft.leave_game
  scoreboard objectives add test.battle.awaiting_skill dummy
  scoreboard objectives add test.settings.battle_ui dummy
  scoreboard objectives add test.battle.chat_select trigger
