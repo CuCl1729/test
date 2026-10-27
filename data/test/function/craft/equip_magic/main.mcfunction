@@ -1,6 +1,7 @@
 #> test:craft/equip_magic/main
 # @s = 魔法付与台マーカー(test:tickからプレイヤーが近くにいる間だけ毎tick呼ばれる)。強化炉(craft/weapon/upgrade)と同じ作り。
-# スロット9に自動発動の枠がある装備、スロット10・11・12に魔法を置いて、スロット26のボタンを取ると1・2・3個目の枠に魔法を付ける
+# スロット9に自動発動の枠がある装備、スロット10・11・12に魔法・ルーン・消耗品を置いて、
+# スロット26のボタンを取ると1・2・3個目の枠に入れる(test:craft/equip_magic/craft)
 
 execute unless block ~ ~ ~ barrel run function test:craft/equip_magic/place
 

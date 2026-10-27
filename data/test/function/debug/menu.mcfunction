@@ -20,7 +20,7 @@ tellraw @s {text:"― 状態の表示 ―",color:gold}
 tellraw @s [{text:"[自分]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/inspect/self"}},{text:" "},{text:"[近くの対象]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/inspect/nearest"}},{text:" (16ブロック以内で最も近い、HPを持つプレイヤー以外)",color:dark_gray}]
 
 tellraw @s {text:"― アイテム ―",color:gold}
-tellraw @s [{text:"[ルーン全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_runes"}},{text:" (付与台で装備の枠に入れる)",color:dark_gray}]
+tellraw @s [{text:"[ルーン全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_runes"}},{text:" "},{text:"[消耗品全種×16]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_consumables"}},{text:" (付与台で装備の枠に入れる)",color:dark_gray}]
 
 tellraw @s {text:"― 監視(サイドバー) ―",color:gold}
 data modify storage test: debug_work.watch_queue set value []

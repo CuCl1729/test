@@ -39,6 +39,9 @@ execute if data storage test: lore_work.data.equip.procs[0] run function test:it
 # ルーンのアイテム(能力)
 execute if data storage test: lore_work.data.test.rune run function test:item/weapon/lore/section_rune with storage test: lore_work.data.test
 
+# 消耗品のアイテム(効果と、装備の枠に設定したときの使われ方)
+execute if data storage test: lore_work.data.test.consumable run function test:item/weapon/lore/section_consumable with storage test: lore_work.data.test
+
 # 防具のシリーズ(セット効果)。宣言はasset.equip.sets
 execute if data storage test: lore_work.data.equip.set run function test:item/weapon/lore/section_set with storage test: lore_work.data.equip
 

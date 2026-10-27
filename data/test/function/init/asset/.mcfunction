@@ -12,4 +12,6 @@ function test:init/asset/equip/
 
 function test:init/asset/rune/
 
+function test:init/asset/consumable/
+
 function test:init/asset/debug/rng

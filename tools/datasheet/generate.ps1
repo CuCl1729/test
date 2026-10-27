@@ -26,6 +26,7 @@ $Tabs = [ordered]@{
   set_effects      = '4部位効果'
   workshop_recipes = '防具工房レシピ'
   runes            = 'ルーン'
+  consumables      = '消耗品'
 }
 
 # ---------------------------------------------------------------- 取得
@@ -110,6 +111,7 @@ $RequiredHeaders = @{
   set_effects      = @('シリーズ','event','kind','params','説明')
   workshop_recipes = @('素材','部位','装備id')
   runes            = @('id','元アイテム','名前','能力')
+  consumables      = @('id','元アイテム','名前','every','効果','params')
 }
 foreach ($key in $Tabs.Keys) {
   $path = Join-Path $dataDir "$key.csv"
@@ -133,6 +135,19 @@ foreach ($f in Get-ChildItem (Join-Path $fnRoot 'equip\effect') -Filter *.mcfunc
   $body = [IO.File]::ReadAllText($f.FullName, [Text.Encoding]::UTF8)
   $EffectParams[$f.BaseName] = @([regex]::Matches($body, '\$\(([a-z_]+)\)') | ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique)
 }
+# 消耗品の効果の種類: consumable/effect/<kind>.mcfunction があるもの(説明文の consumable/lore/<kind>.mcfunction も要る)。
+# 必要なparamsはその関数の $(…) から読む
+$ConsumableParams = @{}
+$consumableEffectDir = Join-Path $fnRoot 'consumable\effect'
+if (Test-Path $consumableEffectDir) {
+  foreach ($f in Get-ChildItem $consumableEffectDir -Filter *.mcfunction) {
+    $body = [IO.File]::ReadAllText($f.FullName, [Text.Encoding]::UTF8)
+    $ConsumableParams[$f.BaseName] = @([regex]::Matches($body, '\$\(([a-z_]+)\)') | ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique)
+  }
+}
+# 割合(percent)と固定値(flat)を組み合わせる回復の効果。無い方は0で補う
+$HealKinds = @('heal_hp','heal_mp')
+
 $Events = @('magic_cast','attack_hit','damaged')
 $Parts = @('head','chest','legs','feet','accessory')
 
@@ -344,6 +359,42 @@ foreach ($r in $data.runes) {
   $runeDecls.Add("data modify storage test: asset.rune_ids append value `"$id`"")
 }
 
+# ---------------------------------------------------------------- 消耗品(付与台で装備の自動発動の枠に設定し、イベント every 回ごとに1個自動で使う)
+
+$consumableIds = @{}
+$consumableDecls = New-Object System.Collections.Generic.List[string]
+foreach ($r in $data.consumables) {
+  $tab = $Tabs.consumables; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($consumableIds.ContainsKey($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $consumableIds[$id] = $true
+
+  $item = Cell $r '元アイテム'; $name = Cell $r '名前'; $every = Cell $r 'every'; $kind = Cell $r '効果'
+  if ($item -notmatch $ItemPattern) { Add-Err $tab $n "「元アイテム」($item) がアイテムidの形ではありません" }
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
+  if ($every -notmatch '^\d+$' -or [int]$every -lt 1) { Add-Err $tab $n "「every」($every) は1以上の整数にしてください(イベントが何回起きるごとに1個使うか)" }
+
+  if (-not $ConsumableParams.ContainsKey($kind)) { Add-Err $tab $n "効果「$kind」の関数 consumable/effect/$kind.mcfunction がありません(今あるもの: $(@($ConsumableParams.Keys) -join ' / '))"; continue }
+  if (-not (Test-Path (Join-Path $fnRoot "consumable\lore\$kind.mcfunction"))) { Add-Err $tab $n "効果「$kind」の説明文の関数 consumable/lore/$kind.mcfunction がありません"; continue }
+
+  $params = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
+  if ($HealKinds -contains $kind) {
+    foreach ($k in @('percent','flat')) {
+      if (-not $params.Contains($k)) { $params[$k] = '0' }
+      if ($params[$k] -notmatch '^\d+$') { Add-Err $tab $n "効果「$kind」の params の $k ($($params[$k])) は0以上の整数にしてください" }
+    }
+    if ($params['percent'] -match '^\d+$' -and $params['flat'] -match '^\d+$' -and ([int]$params['percent'] + [int]$params['flat']) -lt 1) {
+      Add-Err $tab $n "効果「$kind」の params は percent(最大値の何%)か flat(固定値)のどちらかを1以上にしてください"
+    }
+  }
+  foreach ($need in $ConsumableParams[$kind]) { if (-not $params.Contains($need)) { Add-Err $tab $n "効果「$kind」には params の $need が必要です" } }
+  $ps = @($params.Keys | ForEach-Object { "$($_):$(Snbt-Value $params[$_])" }) -join ','
+
+  $consumableDecls.Add("data modify storage test: asset.consumable.$id set value {item:`"$item`",name:`"$(Esc $name)`",every:$every,effect:{kind:`"$kind`",params:{$ps}}}")
+  $consumableDecls.Add("data modify storage test: asset.consumable_ids append value `"$id`"")
+}
+
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
 if ($Errors.Count -gt 0) {
@@ -406,8 +457,16 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# asset.rune_ids は全種類のidの一覧(デバッグで配るときに使う)', '')
 $outputs[$rel] = $lines + $runeDecls
 
+$rel = 'init\asset\consumable\generated\consumables.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 消耗品の宣言(スプレッドシートの「消耗品」タブ)。asset.consumable.<id> = {item, name, every, effect:{kind, params}}。',
+  '# 効果は test:consumable/use {id} が test:consumable/effect/<kind> にparamsを渡して実行する。',
+  '# 付与台で装備の自動発動の枠に設定すると、イベントが every 回起きるごとに1個自動で使う。',
+  '# asset.consumable_ids は全種類のidの一覧(デバッグで配るときに使う)', '')
+$outputs[$rel] = $lines + $consumableDecls
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
-$managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated')
+$managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d
