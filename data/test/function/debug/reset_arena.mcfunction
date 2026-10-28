@@ -7,7 +7,7 @@ execute in test:arena run kill @e[tag=battle_marker]
 execute in test:turn run kill @e[tag=battle_entrance]
 
 execute as @a run function test:debug/reset_battle_state
-execute in test:turn as @e[tag=enemy] run function test:debug/reset_battle_state
+execute in test:turn as @e[tag=enemy,distance=0..] run function test:debug/reset_battle_state
 
 # test:arena に敵が残っているのは前回までのテストの残骸なので、リセットではなく削除する
-execute in test:arena run kill @e[tag=enemy]
+execute in test:arena run kill @e[tag=enemy,distance=0..]

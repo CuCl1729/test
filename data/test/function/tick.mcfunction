@@ -21,7 +21,7 @@ execute as @e[tag=active_skill_minecart] at @s run function test:battle/ui/activ
 execute as @e[tag=skill_effect_minecart] at @s run function test:battle/ui/skill_effect_cart_tick
 execute as @e[tag=target_minecart] at @s run function test:battle/ui/target_cart_tick
 execute as @e[tag=enemy] at @s run function test:status/hp_display_tick
-execute in test:turn as @e[tag=enemy,tag=!battle_member,scores={test.status.hp=1..}] at @s if data entity @s data.ai_field_enabled run function test:battle/field_ai/tick
+execute in test:turn as @e[tag=enemy,tag=!battle_member,distance=0..,scores={test.status.hp=1..}] at @s if data entity @s data.ai_field_enabled run function test:battle/field_ai/tick
 
 # 防具の自動発動の魔法(イベントの最中には唱えず、test:equip/proc/queueがタグで予約したものをここで唱える)
 execute as @a[scores={test.equip.has_watch=1}] at @s run function test:equip/proc/watch_check
