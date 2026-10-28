@@ -10,3 +10,5 @@ data modify storage test: asset.rune.guard_rune set value {item:"prismarine_crys
 data modify storage test: asset.rune_ids append value "guard_rune"
 data modify storage test: asset.rune.vigor_rune set value {item:"echo_shard",name:"活力のルーン",status:[{type:"hp_max_m",value:5}]}
 data modify storage test: asset.rune_ids append value "vigor_rune"
+data modify storage test: asset.rune.mana_rune set value {item:"experience_bottle",name:"知識のルーン",status:[{type:"mp_max_m",value:5}]}
+data modify storage test: asset.rune_ids append value "mana_rune"
