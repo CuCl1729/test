@@ -20,12 +20,14 @@ execute as @e[tag=skill_category_minecart] at @s run function test:battle/ui/ski
 execute as @e[tag=active_skill_minecart] at @s run function test:battle/ui/active_skill_cart_tick
 execute as @e[tag=skill_effect_minecart] at @s run function test:battle/ui/skill_effect_cart_tick
 execute as @e[tag=target_minecart] at @s run function test:battle/ui/target_cart_tick
+execute as @e[tag=item_minecart] at @s run function test:battle/ui/item_cart_tick
 execute as @e[tag=enemy] at @s run function test:status/hp_display_tick
 execute in test:turn as @e[tag=enemy,tag=!battle_member,distance=0..,scores={test.status.hp=1..}] at @s if data entity @s data.ai_field_enabled run function test:battle/field_ai/tick
 
 # 防具の自動発動の魔法(イベントの最中には唱えず、test:equip/proc/queueがタグで予約したものをここで唱える)
 execute as @a[scores={test.equip.has_watch=1}] at @s run function test:equip/proc/watch_check
-execute as @a[tag=equip_proc_queued] at @s run function test:equip/proc/run
+# ターン制の戦闘中の予約は、手番の終わり(test:battle/proc_all)で実行する
+execute as @a[tag=equip_proc_queued] at @s unless score @s test.battle.id matches 1.. run function test:equip/proc/run
 
 # 召喚と同じtick内でtextを設定するとクライアントに反映されないことがあるため、次のtickで確定させる
 # (毎ticktpして浮き上がらせる案は、tpのたびにtextの描画が崩れることが判明したため不採用。静止表示のみ)

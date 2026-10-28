@@ -8,3 +8,4 @@ execute if score #chat_select test.battle.chat_select matches 1 run function tes
 execute if score #chat_select test.battle.chat_select matches 2 run function test:battle/action/skill
 execute if score #chat_select test.battle.chat_select matches 3 run function test:battle/action/item
 execute if score #chat_select test.battle.chat_select matches 4 run function test:battle/action/defend
+execute if score #chat_select test.battle.chat_select matches 5 run function test:battle/action/flee

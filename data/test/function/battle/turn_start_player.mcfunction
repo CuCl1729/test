@@ -23,6 +23,8 @@ execute if score @s test.battle.weapon_aoe matches 1 store result score @s test.
 # 共有のストレージに置いても他の参加者と混ざることはない
 data modify storage test: battle.actor_weapon set value {}
 data modify storage test: battle.actor_weapon.buff_on_hit set from storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test.buff_on_hit
+# 通常攻撃・剣のスキルのダメージ計算用に、武器の custom_data も丸ごと控える(test:battle/action/attack_resolve)
+data modify storage test: battle.actor_weapon.item set from storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data"
 
 execute if score @s test.settings.battle_ui matches 1 run function test:battle/ui/chat
 execute if score @s test.settings.battle_ui matches 2 run function test:battle/ui/item

@@ -9,8 +9,9 @@
 #   damaged:    @s 自身がダメージを受けた直後
 
 # 防具の自動発動の魔法は、ここでは予約(タグ)だけしてtickで唱える(test:equip/proc/queue)。
-# 自動発動した魔法自身の magic_cast では予約しない(連鎖を防ぐ)。ターン制のアリーナでは発動しない
-$execute if score @s test.equip.has_procs matches 1 unless entity @s[tag=equip_proc_casting] unless dimension test:arena run function test:equip/proc/queue {event:"$(event)"}
+# 自動発動した魔法自身の magic_cast では予約しない(連鎖を防ぐ)。ターン制の戦闘中は、予約を手番の終わり
+# (test:battle/proc_all)に実行する
+$execute if score @s test.equip.has_procs matches 1 unless entity @s[tag=equip_proc_casting] run function test:equip/proc/queue {event:"$(event)"}
 
 # セット効果を持っていない人では何もしない(ダメージ処理などの途中で個別ストレージの参照先を切り替えないため)
 execute unless score @s test.equip.has_effects matches 1 run return 0

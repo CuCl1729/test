@@ -37,8 +37,11 @@ scoreboard players operation #damage test.status.crit_damage /= #100 test.consta
 
 tellraw @a[distance=..64] ["",{selector:"@s"},{text:" のスキル！",color:gold}]
 
+# damage_attacker はダメージ表示用、battle_attacker は命中時の効果(test:battle/action/attack_hit_buff)用
 tag @s add damage_attacker
+tag @s add battle_attacker
 execute as @e[tag=battle_member,tag=enemy,distance=..64,scores={test.status.hp=1..}] run function test:battle/action/job_skill/hit_one
 tag @s remove damage_attacker
+tag @s remove battle_attacker
 
 function test:battle/turn_end

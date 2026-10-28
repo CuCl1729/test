@@ -22,3 +22,5 @@ function test:magic/crafter/finalize
 data remove storage test: magic.player
 data modify storage test: magic.player set from storage test: magic.loot.status
 scoreboard players operation #skill_cost test.temporary = #cost test.temporary
+# 支払い(test:magic/pay)は magic.player.cost を読む(クラフトした魔法のアイテムと同じ形にする)
+execute store result storage test: magic.player.cost int 1 run scoreboard players get #cost test.temporary

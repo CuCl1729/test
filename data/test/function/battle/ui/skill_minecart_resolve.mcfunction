@@ -7,6 +7,7 @@
 clear @s minecraft:iron_sword[custom_data~{test:{battle_action:"attack"}}]
 clear @s minecraft:potion[custom_data~{test:{battle_action:"item"}}]
 clear @s minecraft:shield[custom_data~{test:{battle_action:"defend"}}]
+clear @s minecraft:feather[custom_data~{test:{battle_action:"flee"}}]
 
 # 決定アイコン自体も手元から消す
 clear @s minecraft:ender_eye[custom_data~{test:{skill_choice:"confirm"}}]

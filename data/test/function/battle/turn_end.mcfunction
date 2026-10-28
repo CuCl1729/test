@@ -9,6 +9,9 @@ execute if score #log_battle test.debug.enabled matches 1 run function test:debu
 execute if entity @s[tag=buffed] unless score @s test.status.hp matches ..0 run scoreboard players set #buff_step test.buff.work 10
 execute if entity @s[tag=buffed] unless score @s test.status.hp matches ..0 run function test:buff/step
 
+# 行動の直後に、防具の自動発動と倒した敵の報酬(勝敗を決める check_end より前)
+execute at @s run function test:battle/proc_all
+
 scoreboard players add @e[tag=battle_marker,sort=nearest,limit=1] test.battle.current_turn 1
 execute if score @e[tag=battle_marker,sort=nearest,limit=1] test.battle.current_turn > @e[tag=battle_marker,sort=nearest,limit=1] test.battle.member_count run scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.current_turn 1
 

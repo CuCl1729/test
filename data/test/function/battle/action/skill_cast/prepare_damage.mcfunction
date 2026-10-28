@@ -2,7 +2,8 @@
 # @s = 詠唱者。組み立て済みのmagic.playerから魔法ダメージを計算し、#damage系スコアへ載せる
 # (投射・範囲どちらの詠唱でも使う共通処理)
 
-function test:damage/pre_magic
+# 魔法の与ダメ補正・神秘(effect_damage)もリアルタイムと同じ test:magic/prepare_damage で計算する
+function test:magic/prepare_damage
 
 # 防具のセット効果(magic_cast)。#damageへ写す前に詠唱者の属性ダメージをいじれる(リアルタイムのmagic/と同じ)
 execute if entity @s[type=player] run function test:equip/event {event:"magic_cast"}

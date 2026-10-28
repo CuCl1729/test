@@ -6,6 +6,8 @@ function test:battle/ui/clear_items
 
 execute as @e[tag=skill_minecart,distance=..8] run data remove entity @s Items
 kill @e[tag=skill_minecart,distance=..8]
+execute as @e[tag=item_minecart,distance=..8] run data remove entity @s Items
+kill @e[tag=item_minecart,distance=..8]
 
 scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.awaiting_skill 0
 scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.awaiting_target 0

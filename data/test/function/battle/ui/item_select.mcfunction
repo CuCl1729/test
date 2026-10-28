@@ -4,9 +4,11 @@
 clear @s minecraft:iron_sword[custom_data~{test:{battle_action:"attack"}}]
 clear @s minecraft:potion[custom_data~{test:{battle_action:"item"}}]
 clear @s minecraft:shield[custom_data~{test:{battle_action:"defend"}}]
+clear @s minecraft:feather[custom_data~{test:{battle_action:"flee"}}]
 # 攻撃/アイテム/防御を選んだ場合、スキル選択を保留中だったならここでキャンセル扱いにする
 # (blaze_powderが残ったままだと次ターンに持ち越されてしまうため)
 clear @s minecraft:blaze_powder[custom_data~{test:{battle_action:"skill"}}]
 kill @e[tag=skill_minecart,distance=..8]
+kill @e[tag=item_minecart,distance=..8]
 
 $function test:battle/action/$(action)

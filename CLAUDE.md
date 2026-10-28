@@ -242,7 +242,13 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - Events only **queue** (tags `equip_proc.<event>` + `equip_proc_queued` via `equip/proc/queue`), never
     act mid-damage; `tick` runs `equip/proc/run` once per tick, which dispatches by kind in `run_entry`
     (`cast` / `use_item`). So an AoE hitting many targets counts once. Casts from a slot don't re-queue
-    `magic_cast` (`equip_proc_casting` tag). Nothing fires in `test:arena`.
+    `magic_cast` (`equip_proc_casting` tag).
+  - In turn-based battle (`test.battle.id` ≥ 1) `tick` doesn't run the queue; `battle/turn_end` →
+    `battle/proc_all` runs it right after each action (before `check_end`, without using a turn), and also
+    checks `below` events there. Magic slots go through `equip/proc/cast_battle`, which reuses the turn-based
+    magic core (`skill_cast/apply_{projectile,aoe,self}`) with an automatic target: the enemy that was hit
+    (`equip_proc_target`, tagged by `queue` from `equip_event_target`) or else the nearest one. Leaving a
+    battle clears the queue (`equip/proc/clear_queue` in `return_member*`).
   - Item slots count executed queues per slot in `test.equip.proc_count.<key>` (oh_my_dat, outside the
     list that `recalc` rebuilds, so picking up/using items doesn't reset it). At `every` the count resets
     and `equip/proc/consume` runs `clear … 1` first; only a successful clear runs the effect.
@@ -297,6 +303,24 @@ this direction broke once when the `guard` buff was special-cased around an earl
 stacking attacker `def.pene` / defender `def.debuff` gives *accelerating* (not diminishing) returns per
 point, with `def.coefficient` acting purely as the defender's resistance to that pene/debuff (and having
 no effect at all when pene/debuff is zero).
+
+Turn-based battle (`battle/`) uses the same formulas as real time, through shared pieces:
+- Sword damage: `attack/prepare_damage` reads `storage test: attack.player` (the weapon's custom_data).
+  Real time fills it from the main hand (`attack/prepare`); battle fills it from `battle.actor_weapon.item`,
+  cached at turn start (`turn_start_player`), because the item UI swaps the main hand for action items.
+- Magic: `magic/pay` (MP + burnout, magic_efficiency; fails when MP is short) and `magic/prepare_damage`
+  (magic_damage_bonus, `damage/pre_magic`, effect_damage) are used by both `magic/` and
+  `battle/action/skill_cast/apply_*`.
+- Stats are recalculated with `status/refresh {status}`, which skips non-players and the battle item UI
+  (`battle/ui/item` computes them before handing out the action items). Use it instead of `status/update`
+  in anything a battle action can reach.
+- Every action ends in `battle/turn_end`, which runs `battle/proc_all` (equipment slots, then rewards) before
+  `check_end`. Rewards are paid per kill: `damage/kill` tags a battle enemy `battle_reward_pending`
+  (it's deleted at the end of that tick) and `proc_all` → `battle/grant_reward` pays everyone tagged
+  `battle_reward_recipient`. Returning from a battle (`return_member*`) clears buffs.
+- Player actions: 攻撃 / スキル / アイテム (`action/item` chat list or `ui/item_hover_*` minecart →
+  `action/item_use` → `consumable/use`) / 防御 / 逃げる (`action/flee`; the last living player ending the
+  battle without a result).
 
 ## JSON schemas in this game version (26.3)
 

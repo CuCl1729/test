@@ -113,6 +113,7 @@ scoreboard objectives add test.owner dummy
  scoreboard objectives add test.battle.skill_effect trigger
  scoreboard objectives add test.battle.skill_category trigger
  scoreboard objectives add test.battle.active_skill_select trigger
+ scoreboard objectives add test.battle.item_select trigger
  scoreboard objectives add test.battle.awaiting_target dummy
  scoreboard objectives add test.battle.target_select trigger
  scoreboard objectives add test.battle.pending_target_action dummy

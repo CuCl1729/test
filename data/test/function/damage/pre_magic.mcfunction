@@ -1,11 +1,7 @@
-# ターン制バトルのアイテム式UIでは行動アイテム選択でメインハンドが一時的に入れ替わるため、
-# ここで再計算すると武器補正が失われる。その場合はtest:battle/ui/itemで配布前に計算済みの値を使う。
-execute unless score @s test.battle.id matches 1.. run function test:status/update {status:"atk"}
-execute unless score @s test.battle.id matches 1.. run function test:status/update {status:"hp_max"}
-execute unless score @s test.battle.id matches 1.. run function test:status/update {status:"def"}
-execute if score @s test.battle.id matches 1.. if score @s test.settings.battle_ui matches 1 run function test:status/update {status:"atk"}
-execute if score @s test.battle.id matches 1.. if score @s test.settings.battle_ui matches 1 run function test:status/update {status:"hp_max"}
-execute if score @s test.battle.id matches 1.. if score @s test.settings.battle_ui matches 1 run function test:status/update {status:"def"}
+# 戦闘中のアイテム式UIでは計算し直さない(test:status/refresh)
+function test:status/refresh {status:"atk"}
+function test:status/refresh {status:"hp_max"}
+function test:status/refresh {status:"def"}
 
 scoreboard players reset @s test.fire_damage
 scoreboard players reset @s test.water_damage

@@ -9,3 +9,4 @@ tellraw @s [{text:"[攻撃]",color:red,click_event:{action:"run_command",command
 tellraw @s [{text:"[スキル]",color:light_purple,click_event:{action:"run_command",command:"/trigger test.battle.chat_select set 2"}}]
 tellraw @s [{text:"[アイテム]",color:green,click_event:{action:"run_command",command:"/trigger test.battle.chat_select set 3"}}]
 tellraw @s [{text:"[防御]",color:aqua,click_event:{action:"run_command",command:"/trigger test.battle.chat_select set 4"}}]
+tellraw @s [{text:"[逃げる]",color:gray,click_event:{action:"run_command",command:"/trigger test.battle.chat_select set 5"}}]

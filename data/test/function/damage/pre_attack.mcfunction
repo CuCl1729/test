@@ -1,6 +1,6 @@
-function test:status/update {status:"atk"}
-function test:status/update {status:"hp_max"}
-function test:status/update {status:"def"}
+function test:status/refresh {status:"atk"}
+function test:status/refresh {status:"hp_max"}
+function test:status/refresh {status:"def"}
 
 scoreboard players reset @s test.fire_damage
 scoreboard players reset @s test.water_damage

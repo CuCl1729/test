@@ -9,3 +9,7 @@
 
 $tag @s add equip_proc.$(event)
 tag @s add equip_proc_queued
+
+# ターン制の戦闘中は、当たった敵(attack_hit の equip_event_target)を覚えておき、投射の魔法の狙いにする
+# (test:equip/proc/cast_battle。手番の終わりの test:battle/proc_all が外す)
+execute if score @s test.battle.id matches 1.. run tag @e[tag=equip_event_target] add equip_proc_target

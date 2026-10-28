@@ -8,6 +8,8 @@ tellraw @a[distance=..64] [{text:"手番のプレイヤーがいないため、�
 # その人が開いたままのトロッコと選択状態を片付ける(本人がいないので手元のアイテムは戻ってきたときにrejoinで消す)
 execute as @e[tag=skill_minecart,distance=..64] run data remove entity @s Items
 kill @e[tag=skill_minecart,distance=..64]
+execute as @e[tag=item_minecart,distance=..64] run data remove entity @s Items
+kill @e[tag=item_minecart,distance=..64]
 scoreboard players set @s test.battle.awaiting_skill 0
 scoreboard players set @s test.battle.awaiting_target 0
 function test:battle/target/clear

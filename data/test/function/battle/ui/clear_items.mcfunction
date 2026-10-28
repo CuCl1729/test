@@ -8,7 +8,9 @@ clear @s minecraft:iron_sword[custom_data~{test:{battle_action:"attack"}}]
 clear @s minecraft:blaze_powder[custom_data~{test:{battle_action:"skill"}}]
 clear @s minecraft:potion[custom_data~{test:{battle_action:"item"}}]
 clear @s minecraft:shield[custom_data~{test:{battle_action:"defend"}}]
+clear @s minecraft:feather[custom_data~{test:{battle_action:"flee"}}]
 clear @s *[custom_data~{test:{active_skill:1b}}]
+clear @s *[custom_data~{test:{battle_item_pick:1b}}]
 clear @s *[custom_data~{test:{skill_category:"magic"}}]
 clear @s *[custom_data~{test:{skill_category:"active"}}]
 clear @s *[custom_data~{test:{skill_choice:"confirm"}}]
@@ -29,4 +31,5 @@ scoreboard players reset @s test.battle.skill_select
 scoreboard players reset @s test.battle.skill_effect
 scoreboard players reset @s test.battle.skill_category
 scoreboard players reset @s test.battle.active_skill_select
+scoreboard players reset @s test.battle.item_select
 scoreboard players reset @s test.battle.target_select
