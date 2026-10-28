@@ -6,6 +6,6 @@ goblin_boots,leather_boots,Goblin Boots,feet,goblin,def_m,5,60,#4E7A2E
 mage_hat,leather_helmet,Apprentice Hat,head,mage,magic_efficiency_add,5,60,#6A3D9A
 mage_robe,leather_chestplate,Apprentice Robe,chest,mage,mp_max_m,5,60,#6A3D9A
 mage_leggings,leather_leggings,Apprentice Leggings,legs,mage,effect_damage_add,10,60,#6A3D9A
-mage_boots,leather_boots,Apprentice Boots,feet,mage,mp_max_add,40,60,#6A3D9A
+mage_boots,leather_boots,Apprentice Boots,feet,mage,mp_regene_m,20,60,#6A3D9A
 power_ring,gold_nugget,Power Ring,accessory,,atk_m,5,60,
 fire_charm,emerald,Fireward Charm,accessory,,fire_resist_add,10,60,
