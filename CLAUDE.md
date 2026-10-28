@@ -275,6 +275,12 @@ no effect at all when pene/debuff is zero).
 
 ## UI conventions specific to this game version
 
+- **Keep all player-facing text as short as possible** — item lore, chat messages, button/item names,
+  GUI titles. Prefer a compact label + value over a sentence (e.g. `自動使用: 3回ごと`, `✚ HP回復 20%+10`,
+  `命中時50%: 毒 x1`, event names like `被ダメージ時`), and don't explain in lore what the item name or
+  the station already makes obvious (e.g. how/where to socket a rune). When adding new text, match the
+  length of the existing lore lines rather than writing full explanations.
+
 - **Player NBT can be read with `/data get` but never written with `/data modify`/`data remove`.**
   To change a player's items, build the item in the overworld shulker box at `0 -64 0` and either
   `loot spawn` it and let the player pick it up (`test:loot/give`, `test:job/bundle/deliver`) or
