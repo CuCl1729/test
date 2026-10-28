@@ -6,7 +6,6 @@
 execute unless entity @s[tag=downed] if score @s test.status.hp matches 1.. run function test:equip/proc/run_all
 
 tag @s remove equip_proc_queued
-tag @s remove equip_proc.magic_cast
-tag @s remove equip_proc.attack_hit
-tag @s remove equip_proc.damaged
-tag @s remove equip_proc.hp_low
+# 各イベントの予約タグ equip_proc.<id> は、イベントの一覧(asset.equip.proc_events)から外す
+data modify storage test: equip_work.untag_queue set from storage test: asset.equip.proc_events
+function test:equip/proc/untag_loop

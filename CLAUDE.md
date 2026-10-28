@@ -216,11 +216,19 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     `magic_cast` (`equip_proc_casting` tag). Nothing fires in `test:arena`.
   - Item slots count executed queues per slot in `test.equip.proc_count.<key>` (oh_my_dat, outside the
     list that `recalc` rebuilds, so picking up/using items doesn't reset it). At `every` the count resets
-    and `use_item` runs `clear … 1` first; only a successful clear runs the effect.
-  - `hp_low` fires once when HP drops below `asset.equip.hp_low_percent` % of max (HP×100 vs max×percent),
-    checked every tick by `equip/proc/hp_low_check` for players with `test.equip.has_hp_low` (set by
-    `recalc` when an hp_low slot has content). The tag `equip_hp_low` blocks repeats until HP is back at
-    or above the line. A new event needs a line in `proc_events` and a tag-removal line in `proc/run`.
+    and `equip/proc/consume` runs `clear … 1` first; only a successful clear runs the effect.
+  - Events are declared in `asset.equip.proc_events` (`init/asset/equip/`) as `{id, label, instant?, below?}`.
+    **A new event is one line there** (plus firing `equip/proc/queue {event}` from its hook if it isn't a
+    `below` event); `proc/run` clears the `equip_proc.<id>` tags by walking the list.
+    - `instant:1b`: item slots skip the `every` count and use one consumable on every trigger (for rare
+      events like `hp_low`); the lore then omits "(N回ごと)".
+    - `below:{stat, max, percent}`: a threshold event, fired once when `test.status.<stat>`×100 drops below
+      `test.status.<max>`×percent and re-armed once it's back at or above (`hp_low` is
+      `{stat:"hp",max:"hp_max",percent:30}`; an `mp_low` would be one more line). `recalc` →
+      `equip/proc/watch_recalc` tags the player `equip_watch.<id>` for each such event that has a filled
+      slot and sets `test.equip.has_watch`; `tick` → `equip/proc/watch_check` → `watch_below` compares
+      every tick (HP also drops from poison etc., so not inside `damage/`). The tag `equip_below.<id>`
+      blocks repeats while below the line.
 - **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
   `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
   craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:

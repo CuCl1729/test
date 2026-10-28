@@ -260,8 +260,8 @@ scoreboard objectives add test.owner dummy
  scoreboard objectives add test.equip.has_effects dummy
 # 防具の自動発動の魔法(魔法付与台で付けたもの)を1つ以上着ていれば1。test:equip/eventの門番(has_effectsと同じ理由)
  scoreboard objectives add test.equip.has_procs dummy
-# hp_low(HPが減ったとき)の枠に中身(魔法・アイテム)があれば1。tickでHPを見張る人を絞る
- scoreboard objectives add test.equip.has_hp_low dummy
+# しきい値型のイベント(HP低下時など)の枠に中身があれば1。tickで見張る人を絞る(test:equip/proc/watch_recalc)
+ scoreboard objectives add test.equip.has_watch dummy
 
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy

@@ -24,7 +24,7 @@ execute as @e[tag=enemy] at @s run function test:status/hp_display_tick
 execute in test:turn as @e[tag=enemy,tag=!battle_member,scores={test.status.hp=1..}] at @s if data entity @s data.ai_field_enabled run function test:battle/field_ai/tick
 
 # 防具の自動発動の魔法(イベントの最中には唱えず、test:equip/proc/queueがタグで予約したものをここで唱える)
-execute as @a[scores={test.equip.has_hp_low=1}] at @s run function test:equip/proc/hp_low_check
+execute as @a[scores={test.equip.has_watch=1}] at @s run function test:equip/proc/watch_check
 execute as @a[tag=equip_proc_queued] at @s run function test:equip/proc/run
 
 # 召喚と同じtick内でtextを設定するとクライアントに反映されないことがあるため、次のtickで確定させる
