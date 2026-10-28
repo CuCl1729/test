@@ -13,7 +13,7 @@ data modify storage test: asset.equip set value {items:{},sets:[]}
 
 # 自動発動の枠のイベント(抽選はこのリストの何番目かを引くので、増やすときはここに足すだけでよい)。
 # labelは説明文の表示名。idはtest:equip/eventのeventと同じもの
-data modify storage test: asset.equip.proc_events set value [{id:"magic_cast",label:"魔法を唱えたとき"},{id:"attack_hit",label:"攻撃が当たったとき"},{id:"damaged",label:"ダメージを受けたとき"},{id:"hp_low",label:"HPが減ったとき"}]
+data modify storage test: asset.equip.proc_events set value [{id:"magic_cast",label:"詠唱時"},{id:"attack_hit",label:"命中時"},{id:"damaged",label:"被ダメージ時"},{id:"hp_low",label:"HP低下時"}]
 
 # hp_low(HPが減ったとき)のしきい値。HPが最大HPのこの%を下回った瞬間に1回発動する(test:equip/proc/hp_low_check)
 data modify storage test: asset.equip.hp_low_percent set value 30

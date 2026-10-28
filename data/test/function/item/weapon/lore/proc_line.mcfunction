@@ -1,8 +1,8 @@
 #> test:item/weapon/lore/proc_line
 # @macro event: 自動発動の枠のイベント(他のキーも渡ってくるが、中身はlore_work.proc_curから読む)。
 # イベントで動く枠(魔法・アイテム・空)の1行を描く。イベントの表示名は asset.equip.proc_events(init/asset/equip/)
-#   魔法:     「  <イベントの表示名>: <魔法の名前>  消費MP <cost>」(kindが無く魔法がある古い枠も魔法として描く)
-#   アイテム: 「  <イベントの表示名>: <消耗品の名前> を使う(<every>回ごと)」
+#   魔法:     「  <イベントの表示名>: <魔法の名前> MP<cost>」(kindが無く魔法がある古い枠も魔法として描く)
+#   アイテム: 「  <イベントの表示名>: <消耗品の名前>(<every>回ごと)」
 #   空:       「  <イベントの表示名>: なし」
 
 function test:item/weapon/lore/line_begin
