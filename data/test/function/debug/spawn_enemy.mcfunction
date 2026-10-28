@@ -1,7 +1,7 @@
 #> test:debug/spawn_enemy
-# @s (プレイヤー) の近くに、テスト用ダミー敵を test:turn 次元内に召喚する。
-# 事前に test:debug/goto_turn 等で test:turn 次元に入っていること。
-# 召喚後、近づいて殴ると通常の戦闘開始トリガー(test:attack/damage)経由で戦闘が始まる。
+# @s (プレイヤー) のすぐ横、今いる次元にテスト用ダミー敵を召喚する。
+# test:turn では殴ると通常の戦闘開始トリガー(test:attack/damage)経由で戦闘が始まる。
+# test:action ではそのままダメージが入る。
 # ほかの敵は test:debug/spawn_enemy_id {id:<id>}(デバッグメニューの「敵」欄)
 
-execute in test:turn positioned ~1 ~ ~ run function test:asset/enemy/spawn {id:"dummy"}
+execute positioned ~1 ~ ~ run function test:asset/enemy/spawn {id:"dummy"}
