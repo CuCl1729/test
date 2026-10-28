@@ -1,0 +1,4 @@
+﻿バフ,時間,最大段数,間隔,params
+atk_up,30,3,,per_stack=5
+poison,30,3,5,per_stack=2
+guard,30,1,,amount=10

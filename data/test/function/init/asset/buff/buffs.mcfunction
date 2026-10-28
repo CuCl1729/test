@@ -1,6 +1,8 @@
 #> test:init/asset/buff/buffs
 # バフ/デバフのレジストリ。付与・経過・終了の処理はすべてこの一覧を走査して行うため、
 # 種類を増やすときはここに1行足し、宣言したイベントぶん test:buff/on/<event>/<id>.mcfunction を作れば済む
+# duration・max_stacks・interval と効果の強さ(params)は、スプレッドシートの「バフの数値」タブから生成して
+# 上書きする(init/asset/buff/generated/values)。ここには書かない。params は buff/on/<event>/<id> がマクロ引数で受け取る
 #
 # id:         識別子(関数名・ストレージのキーに使う)
 # label:      チャット通知に出す表示名
@@ -23,9 +25,9 @@
 
 data remove storage test: asset.buff.types
 
-data modify storage test: asset.buff.types append value {id:"atk_up",label:"攻撃力上昇",color:"gold",icon:{text:" ▲",color:"gold"},kind:"buff",duration:30,max_stacks:3,refresh:"stack",events:{apply:1b,expire:1b}}
-data modify storage test: asset.buff.types append value {id:"poison",label:"毒",color:"dark_green",icon:{text:" ☠",color:"dark_green"},kind:"debuff",duration:30,max_stacks:3,refresh:"stack",interval:5,events:{interval:1b}}
+data modify storage test: asset.buff.types append value {id:"atk_up",label:"攻撃力上昇",color:"gold",icon:{text:" ▲",color:"gold"},kind:"buff",refresh:"stack",events:{apply:1b,expire:1b}}
+data modify storage test: asset.buff.types append value {id:"poison",label:"毒",color:"dark_green",icon:{text:" ☠",color:"dark_green"},kind:"debuff",refresh:"stack",events:{interval:1b}}
 
 # 「防御」行動を選んだときに自分へ付与する。継続時間30秒(≒手番2回ぶん)は目安の数値で、
 # バランス調整で変えてよい
-data modify storage test: asset.buff.types append value {id:"guard",label:"防御",color:"aqua",icon:{text:" 防",color:"aqua"},kind:"buff",duration:30,max_stacks:1,refresh:"refresh",events:{apply:1b,expire:1b}}
+data modify storage test: asset.buff.types append value {id:"guard",label:"防御",color:"aqua",icon:{text:" 防",color:"aqua"},kind:"buff",refresh:"refresh",events:{apply:1b,expire:1b}}

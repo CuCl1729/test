@@ -1,6 +1,8 @@
 {
   "sheet_id": "",
   "tabs": {
+    "stats": "",
+    "materials": "",
     "weapons": "",
     "forge_recipes": "",
     "equipment": "",
@@ -8,6 +10,15 @@
     "set_effects": "",
     "workshop_recipes": "",
     "runes": "",
-    "consumables": ""
+    "consumables": "",
+    "enemies": "",
+    "enemy_gimmicks": "",
+    "enemy_drops": "",
+    "jobs": "",
+    "job_skills": "",
+    "magic_values": "",
+    "buff_values": "",
+    "player_base": "",
+    "config": ""
   }
 }

@@ -95,13 +95,16 @@ under `asset/` (or an `init/asset/*` registry) *declares data only*, and separat
 that data to decide what to do. Adding a new instance of something almost never means touching the
 generic driver — it means adding a declaration plus a small per-id handler function.
 
-- **Enemies**: `asset/enemy/<name>/.mcfunction` builds a full stat block into the `enemy.*` storage
-  root (see `asset/enemy/dummy/.mcfunction` for the baseline reference stats) plus optional
-  `enemy.data.*` flags — `buff_on_hit`, `loot_table`, `ai_field_enabled`, `ai` (weighted
-  attack/defend/gimmick behavior read by `battle/enemy_ai/decide.mcfunction`) — then
+- **Enemies** are declared in the sheet's 敵 / 敵のギミック / 敵のドロップ tabs (generated, see below) as
+  `asset.enemy.<id> = {name?, stats:{hp,mp,atk,def,coef,crit_rate,crit_damage,exp}, resist:{…}, data}`.
+  `test:asset/enemy/spawn {id}` → `asset/enemy/load` builds the `enemy.*` storage root and the `#enemy`
+  scores from it (HP/MP start full; damage bonuses 100, pene/debuff 0 are fixed in `load`), then
   `asset/enemy/summon.mcfunction` copies `enemy.data` onto the summoned entity's `data` tag verbatim.
-  `dummy` is intentionally kept static (a balance-testing mannequin, no `ai`/`ai_field_enabled`); new
-  behaviors go on new enemies like `goblin`, not on `dummy`.
+  `data` carries `buff_on_hit`, `loot_table` (`test:enemy/<id>`, generated JSON), `equip_drops`,
+  `ai_field_enabled`, `ai` (weighted attack/defend/gimmick behavior read by
+  `battle/enemy_ai/decide.mcfunction`). `dummy` is intentionally kept static (a balance-testing
+  mannequin, no `ai`/`ai_field_enabled`); new behaviors go on new enemies like `goblin`, not on `dummy`.
+  Spawn any enemy with `test:debug/spawn_enemy_id {id}` (also in the debug menu).
 - **AI gimmicks**: a per-enemy `data.ai.gimmicks` entry (`{id, weight, hp_below?, cooldown?}`) is
   matched to `battle/enemy_ai/gimmick/<id>.mcfunction`. Extending an enemy's move set is: declare an
   entry, write that one function (it must end by calling `battle/action/attack`, `.../defend`, or
@@ -109,9 +112,11 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   Actions are weighted-random over attack (fixed) + defend (0 unless an enemy explicitly declares
   `data.ai.defend_weight` — enemies deliberately default to *not* defending, since HP-scaled defend
   weight was found to make fights drag on) + eligible gimmicks.
-- **Buffs/debuffs**: registered once in `init/asset/buff/buffs.mcfunction` (id, duration, stacking,
-  which of `apply`/`expire`/`interval` events it needs); the actual effect is
-  `buff/on/{apply,expire,interval}/<id>.mcfunction`, almost always via `buff/stat/add`/`buff/stat/remove`
+- **Buffs/debuffs**: registered once in `init/asset/buff/buffs.mcfunction` (id, label, icon, kind,
+  refresh, which of `apply`/`expire`/`interval` events it needs); `duration`, `max_stacks`, `interval` and
+  the effect strength `params` are merged in from the sheet's バフの数値 tab
+  (`init/asset/buff/generated/values`). The actual effect is `buff/on/{apply,expire,interval}/<id>.mcfunction`,
+  which `buff/fire_entry` calls `with` the buff's `params` (never hard-code amounts there), almost always via `buff/stat/add`/`buff/stat/remove`
   (`{stat, amount}`) rather than touching scores directly. `status/recalc.mcfunction` reconciles the
   accumulated buff amount into the effective `test.status.<stat>`: players get fully rebuilt from
   equipment via `status/update` (except mid-battle turn-UI, where the main hand is a UI item, not the
@@ -119,7 +124,10 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   the same situation); non-players (no equipment) just add onto the `test.status.base.<stat>` recorded
   at summon time.
 - **Magic**: `init/asset/magic/{types,effects}.mcfunction` register the catalog; `asset/magic/type/<t>`
-  and `asset/magic/effect/<e>` hold the per-id logic. When one effect's `data modify ... set value`
+  and `asset/magic/{effect,status}/<e>` hold the per-id logic. Each element's `cost` and `params` (speed,
+  radius, base damage, max stacks…) come from the sheet's 魔法の数値 tab (merged by
+  `init/asset/magic/generated/values`); every build path calls `test:asset/magic/run {id, folder}`, which
+  passes them as macro args, so per-id files read `$(cost)`/`$(…)` instead of literals. When one effect's `data modify ... set value`
   targets a compound another effect also writes to, use `merge value`, not `set value` — `set`
   silently destroys sibling keys other effects already wrote (this was a real bug: an atk-boost effect
   overwriting a fire effect's sibling key in the same compound).
@@ -131,32 +139,53 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - Stat type names must match the `test.status.<stat>` names (`hp_max_*`, not `max_hp_*`), because
     `status/update` builds `$(status)_add`/`_m` from them. A mismatch silently never applies; this happened
     with HP substats.
-  - `init/set_table` holds the substat roll table, per-level `grow`, and lore `stat_display`. The roll table
-    is indexed by roll value, so only append to its end. Weapons roll 0..9 and armor rolls 0..15 (adds
-    resistances), chosen via `storage test: loot.substatus_max` and `test:loot/roll_substatus_type`.
+  - The substat roll table, per-level `grow`, and lore `stat_display` come from the sheet's ステータス tab
+    (`init/asset/generated/stats`, called by `init/set_table`, which still holds `element_display`). The roll
+    table is indexed by roll value: weapon-eligible rows first (0..`loot.table.substatus_weapon_max`), then
+    armor-only rows such as resistances (armor rolls 0..`loot.table.substatus_armor_max`), chosen via
+    `storage test: loot.substatus_max` and `test:loot/roll_substatus_type`.
   - Item lore is never edited line by line: `test:item/weapon/lore/render` rebuilds the whole lore from
     `custom_data` on creation and on every level-up. Add lore by extending that renderer.
-- **Weapon/equipment definitions are generated from a Google Sheet** by `tools/datasheet/generate.ps1`
+- **Game data is generated from a Google Sheet** by `tools/datasheet/generate.ps1`
   (PowerShell 5.1; run `generate.cmd`, or `generate.cmd -Offline` to use `tools/datasheet/data/*.csv`).
-  - It covers weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop recipes, runes,
-    and consumables.
+  **Balance numbers belong in the sheet, not in function literals** — when adding a feature with tunable
+  values, add them to a tab (or `params`) and read them via macro args/storage.
+  - Tabs: stats, materials, weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop
+    recipes, runes, consumables, enemies (+ gimmicks, drops), jobs (+ skills), magic values, buff values,
+    player base stats, constants. A tab without a gid in `config.json` is not downloaded; its local CSV is used.
+  - **Units**: status values (enemy HP/atk/def/…, job growth, buff params, player base stats) are written in
+    display units (as in item lore) and the script multiplies by 100; resist %, exp, chance %, counts are
+    as written; magic `params` are raw (internal) values.
   - Generated files start with a `# 自動生成: tools/datasheet/generate.ps1…` header. **Never edit them by
     hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
-  - Generated files: `init/asset/generated/weapons`, `init/asset/equip/generated/{items,sets}`,
+  - Generated files: `init/asset/generated/{weapons,stats,config}`, `init/asset/equip/generated/{items,sets}`,
     `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
-    `init/asset/rune/generated/runes`, `init/asset/consumable/generated/consumables`. Stale generated files
-    in those folders are deleted.
+    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status}/generated/*`, and the loot tables
+    `data/test/loot_table/enemy/<id>.json` (JSON can't carry the header, so stale loot tables aren't
+    deleted). Stale generated `.mcfunction` files in those folders are deleted.
+  - Registries that keep their structure hand-written and only get numbers merged in from the sheet:
+    `init/asset/magic/{types,effects}` (+ `magic/generated/values`), `init/asset/buff/buffs`
+    (+ `buff/generated/values`). Constants are `asset.config.{turn_time,turn_warn,enemy_delay,accessory_limit}`.
+    Player base stats are set by `init/asset/status/generated/base` (from `vanilla` on first join, and for
+    everyone online on every `/reload`).
   - The script validates everything before writing anything:
-    - stat types against `loot.table.grow` in `init/set_table` (also rune stats)
-    - effect `kind`s against the files in `equip/effect/` (4-piece) and `consumable/effect/` (consumables,
-      which also need `consumable/lore/<kind>`), and required `params` against that file's `$(…)` names
-    - cross-references (series, recipe ids)
+    - stat types against the ステータス tab rows that have a `成長` (also rune stats)
+    - effect `kind`s against the files in `equip/effect/` (4-piece), `consumable/effect/` (consumables,
+      which also need `consumable/lore/<kind>`), `job/skill/handler/` (job skills), gimmick ids against
+      `battle/enemy_ai/gimmick/`, and required `params` against that file's `$(…)` names (magic: the
+      per-id file; buffs: all `buff/on/*/<id>`)
+    - cross-references (series, recipe materials by role, drops, enemy buffs/equip drops, job prerequisites)
+    - every magic element, buff, base stat and constant has a row; job `exp_coefficient` ≥ 1 (0 would
+      level up forever); gimmick `hp_below` defaults to 100 (a missing value would read as 0)
     - consumables: `every` ≥ 1; `heal_hp`/`heal_mp` take `percent`/`flat` as non-negative integers (a
       missing one is filled with 0), at least one of them ≥ 1
 
-    So adding a stat type or an effect kind needs no script change. Each tab needs its gid in the
-    gitignored `tools/datasheet/config.json` for online runs. Columns are documented in
+    So adding a stat type, an effect kind or a skill kind needs no script change. Columns are documented in
     `tools/datasheet/README.md`; `tools/` is outside `data/`, so the game ignores it.
+  - Materials (`asset.material.<id> = {item, name, role, data}`, roles material/catalyst/special/pattern)
+    are built by `test:item/material/build {id}`; the generated loot tables use the same definition, so
+    dropped and given materials match. Special materials' effects are code (`craft/weapon/forge/craft`,
+    `asset/weapon/`).
   - Weapons are declared at `asset.<id>` and built by `test:asset/weapon/sword/apply {material:<id>}`
     (used for wands too).
 - **Equipment (armor/accessories)**:
@@ -166,7 +195,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     `recipe/<material>` maps `loot.equip_part` to an id. Enemies can also drop them via
     `data.equip_drops:[{id, chance}]` (`equip/drop/`).
   - Stats are **aggregated, not read at use time**. `test:equip/recalc` runs from `cache/update` on every
-    inventory change. It sums the 4 armor slots, up to `asset.equip.accessory_limit` accessories anywhere
+    inventory change. It sums the 4 armor slots, up to `asset.config.accessory_limit` accessories anywhere
     in the inventory, and 2-piece set bonuses into `test.equip.<type>` (×100). `status/update` just adds
     those, and resistances are written straight into `test.<element>_resist`. A new stat type needs its
     `test.equip.<type>` objective (and a reset line in `equip/reset`).

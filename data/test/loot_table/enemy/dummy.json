@@ -14,14 +14,8 @@
             {
               "type": "minecraft:set_components",
               "components": {
-                "minecraft:custom_data": {
-                  "test": {
-                    "material": {
-                      "source": "dummy",
-                      "kind": "bone"
-                    }
-                  }
-                }
+                "minecraft:custom_data": {"test": {"material": {"kind": "bone"}}},
+                "minecraft:custom_name": {"text": "骨の欠片", "italic": false}
               }
             }
           ]

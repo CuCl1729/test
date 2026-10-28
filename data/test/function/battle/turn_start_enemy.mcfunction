@@ -4,4 +4,4 @@
 
 tellraw @a[distance=..64] ["",{text:"敵のターン",color:red},{text:" ― 行動を選んでいます...",color:gray}]
 
-scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.enemy_delay 20
+execute store result score @e[tag=battle_marker,sort=nearest,limit=1] test.battle.enemy_delay run data get storage test: asset.config.enemy_delay

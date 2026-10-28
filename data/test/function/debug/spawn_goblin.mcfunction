@@ -3,5 +3,4 @@
 # 事前に test:debug/goto_turn 等で test:turn 次元に入っていること。
 # dummyと違い自分から巡回・追跡し、接触すると自分からバトルを仕掛けてくる。
 
-function test:asset/enemy/goblin/
-execute in test:turn positioned ~1 ~ ~ run function test:asset/enemy/summon {id:"armor_stand"}
+execute in test:turn positioned ~1 ~ ~ run function test:asset/enemy/spawn {id:"goblin"}

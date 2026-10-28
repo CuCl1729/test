@@ -7,8 +7,8 @@ execute if score #level test.status.level >= #max test.status.level run return f
 scoreboard players add #level test.status.level 1
 
 # 防具・アクセサリー(custom_data.equipあり)は、サブステータスを耐性込みの0..15から引く
-data modify storage test: loot.substatus_max set value 9
-execute if data storage test: loot.item.components."minecraft:custom_data".equip run data modify storage test: loot.substatus_max set value 15
+data modify storage test: loot.substatus_max set from storage test: loot.table.substatus_weapon_max
+execute if data storage test: loot.item.components."minecraft:custom_data".equip run data modify storage test: loot.substatus_max set from storage test: loot.table.substatus_armor_max
 
 function test:item/weapon/level_up/mainstatus
 

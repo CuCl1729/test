@@ -1,0 +1,11 @@
+﻿要素,コスト,params
+self,20,
+projectile,50,speed=100; range=20
+aoe,80,radius=5
+fire,50,base=1000
+atk,100,per_stack=1000; max_stacks=3
+gravity,10,gravity=100
+heal,200,power=3
+range,60,per_stack=2; max_stacks=3
+atk_up,120,max_stacks=3
+poison,90,max_stacks=3

@@ -1,0 +1,3 @@
+﻿id,名前,色,HP,MP,攻撃,防御,防御係数,会心率,会心ダメージ,経験値,物理耐性,火耐性,水耐性,木耐性,金耐性,土耐性,フィールドAI,防御の重み,命中時バフ,装備ドロップ
+dummy,,,1000,0,1,10,10,0,0,0,20,20,20,20,20,20,,,poison 1 50,
+goblin,ゴブリン,dark_green,100,0,1,10,10,0,0,0,20,20,20,20,20,20,1,,poison 1 50,goblin_helmet=5; goblin_chestplate=5; goblin_leggings=5; goblin_boots=5

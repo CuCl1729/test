@@ -3,7 +3,8 @@
 # applyで足したぶんをそのまま戻す
 
 scoreboard players operation #atk_up test.buff.work = #buff_stacks test.buff.work
-scoreboard players operation #atk_up test.buff.work *= #500 test.constant
+$scoreboard players set #atk_up_per test.buff.work $(per_stack)
+scoreboard players operation #atk_up test.buff.work *= #atk_up_per test.buff.work
 
 data modify storage test: buff_work.stat_arg set value {stat:"atk",amount:0}
 execute store result storage test: buff_work.stat_arg.amount int 1 run scoreboard players get #atk_up test.buff.work

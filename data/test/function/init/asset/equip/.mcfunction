@@ -24,8 +24,7 @@ data modify storage test: asset.equip.proc_events set value [\
   {id:"hp_low",label:"HP低下時",instant:1b,below:{stat:"hp",max:"hp_max",percent:30}}\
 ]
 
-# アクセサリーはインベントリに入れておくだけで効く。効くのは先頭からこの個数まで
-data modify storage test: asset.equip.accessory_limit set value 2
+# アクセサリーはインベントリに入れておくだけで効く。効く数は「定数」タブの accessory_limit(asset.config.accessory_limit)
 
 # 各品とシリーズの宣言はスプレッドシートから生成している(tools/datasheet/generate.ps1。生成先はgenerated/)
 function test:init/asset/equip/generated/items

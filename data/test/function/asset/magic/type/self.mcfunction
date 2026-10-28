@@ -9,4 +9,4 @@ data modify storage test: magic.loot.status.type_flags.self set value 1b
 data modify storage test: magic.loot.status.types append value "self"
 
 scoreboard players add #delivery_count test.temporary 1
-scoreboard players add #cost test.temporary 20
+$scoreboard players add #cost test.temporary $(cost)

@@ -37,4 +37,7 @@ function test:init/set_table
 # 統合する前の種類ごとのステーションを、共通のステーションに直す
 function test:station/migrate
 
+# 初期の能力値(「プレイヤー初期値」タブ)を、今いるプレイヤーにも入れ直す(シートで変えた値を /reload で反映するため)
+execute as @a run function test:init/asset/status/generated/base
+
 data modify storage test: installed set value 1b

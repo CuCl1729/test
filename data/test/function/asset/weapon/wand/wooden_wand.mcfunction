@@ -1,6 +1,6 @@
 data remove storage test: loot.item
 # 武器のサブステータスは耐性を含まない0..9から引く(test:loot/roll_substatus_type)
-data modify storage test: loot.substatus_max set value 9
+data modify storage test: loot.substatus_max set from storage test: loot.table.substatus_weapon_max
 
 data modify storage test: loot.item.id set from storage test: asset.wooden_wand.item
 

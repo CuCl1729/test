@@ -1,0 +1,13 @@
+﻿id,元アイテム,名前,種類,部位
+bone,bone,骨の欠片,素材,
+goblin_hide,rabbit_hide,ゴブリンの革,素材,
+mana_shard,prismarine_crystals,魔力の欠片,素材,
+iron_catalyst,iron_nugget,鉄の触媒,触媒,
+diamond_catalyst,amethyst_shard,輝きの触媒,触媒,
+aoe_core,fire_charge,範囲攻撃の核,特殊,
+poison_fang,fermented_spider_eye,毒の牙,特殊,
+head_pattern,paper,兜の型紙,型紙,head
+chest_pattern,paper,鎧の型紙,型紙,chest
+legs_pattern,paper,脚甲の型紙,型紙,legs
+feet_pattern,paper,靴の型紙,型紙,feet
+accessory_pattern,paper,装飾の型紙,型紙,accessory

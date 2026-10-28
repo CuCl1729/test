@@ -3,4 +3,4 @@
 
 $execute unless data storage test: registry_work.combo.type_flags{$(id):1b} run return 0
 
-$function test:asset/magic/type/$(id)
+$function test:asset/magic/run {id:"$(id)",folder:"type"}

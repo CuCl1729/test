@@ -8,7 +8,7 @@ $data modify storage test: loot.item.id set from storage test: asset.equip.items
 $data modify storage test: loot.item.components set from storage test: asset.equip.items.$(id).components
 data modify storage test: loot.item.components."minecraft:custom_data".substatus set value []
 
-data modify storage test: loot.substatus_max set value 15
+data modify storage test: loot.substatus_max set from storage test: loot.table.substatus_armor_max
 
 scoreboard players set #loot test.substatus 0
 execute if data storage test: {loot:{rare:3}} store result score #loot test.substatus run function test:rng/roll {key:"substatus_count",min:1,max:2}

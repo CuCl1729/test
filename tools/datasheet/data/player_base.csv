@@ -1,0 +1,12 @@
+﻿ステータス,値
+atk,5
+def,2.5
+hp_max,50
+mp_max,20
+crit_rate,5
+crit_damage,150
+effect_damage,20
+magic_efficiency,1
+divergence,1
+hp_regene,5
+mp_regene,2

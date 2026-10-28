@@ -1,5 +1,7 @@
 #> test:init/asset/magic/types
 # 魔法タイプのレジストリ。UI表示・バリデーション・ディスパッチはすべてこの一覧を走査して行うため、
+# コストと数値(params)はスプレッドシートの「魔法の数値」タブから生成して上書きする(init/asset/magic/generated/values)。
+# コストと数値(params)はスプレッドシートの「魔法の数値」タブから生成して上書きする(init/asset/magic/generated/values)。
 # タイプを増やすときはここに1行足し、asset/magic/type/<id>.mcfunction と
 # (roleがdeliveryなら)magic/<id>/cast.mcfunction・battle/action/skill_cast/<id>.mcfunction を作れば済む
 #

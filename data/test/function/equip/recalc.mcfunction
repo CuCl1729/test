@@ -16,10 +16,10 @@ execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data
 execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.equipment.legs.components."minecraft:custom_data".equip run function test:equip/add_slot {slot:"legs"}
 execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.equipment.feet.components."minecraft:custom_data".equip run function test:equip/add_slot {slot:"feet"}
 
-# アクセサリー: インベントリにあるものを先頭から上限(asset.equip.accessory_limit)個まで
+# アクセサリー: インベントリにあるものを先頭から上限(asset.config.accessory_limit)個まで
 data modify storage test: equip_work.accessories set value []
 data modify storage test: equip_work.accessories append from storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.Inventory[{components:{"minecraft:custom_data":{equip:{slot:"accessory"}}}}]
-execute store result score #equip_acc_left test.temporary run data get storage test: asset.equip.accessory_limit
+execute store result score #equip_acc_left test.temporary run data get storage test: asset.config.accessory_limit
 scoreboard players set #equip_acc_n test.temporary 1
 function test:equip/accessory_loop
 

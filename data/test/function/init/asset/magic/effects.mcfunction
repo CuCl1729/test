@@ -1,6 +1,8 @@
 #> test:init/asset/magic/effects
 # 魔法効果のレジストリ。効果選択UI(チャット式/トロッコ式)はこの一覧を走査して描画するため、
 # 効果を増やすときはここに1行足し、asset/magic/effect|status/<id>.mcfunction を作れば済む
+# コストと数値(params)はスプレッドシートの「魔法の数値」タブから生成して上書きする(init/asset/magic/generated/values)。
+# 要素の関数は test:asset/magic/run から cost と params をマクロ引数で受け取る
 #
 # id:            効果識別子(素材のcustom_data・関数名・ストレージのキーに使う)
 # label:         UIに出す表示名

@@ -2,7 +2,7 @@
 # @s = 現在手番のプレイヤー(実行位置は戦闘マーカー)
 
 # 手番の制限時間(tick)。test:battle/turn_timer_tickが減らし、0で自動的に防御させる
-scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.turn_timer 600
+execute store result score @e[tag=battle_marker,sort=nearest,limit=1] test.battle.turn_timer run data get storage test: asset.config.turn_time 20
 
 # 戦闘中は毎秒の自動回復を止めている(status/regene/参照)ので、手番が回ってくるたびに
 # hp_regene/mp_regeneのぶんだけ1回回復させる。どちらも最大値でクランプ済み。

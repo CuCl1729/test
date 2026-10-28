@@ -4,7 +4,8 @@
 # ダメージ計算(防御・耐性)は通さず、固定値をそのまま削る毒として扱う
 
 scoreboard players operation #poison test.buff.work = #buff_stacks test.buff.work
-scoreboard players operation #poison test.buff.work *= #200 test.constant
+$scoreboard players set #poison_per test.buff.work $(per_stack)
+scoreboard players operation #poison test.buff.work *= #poison_per test.buff.work
 
 scoreboard players operation @s test.status.hp -= #poison test.buff.work
 

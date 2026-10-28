@@ -17,4 +17,5 @@ $execute if data storage test: buff_work.ev{event:"expire",reason:"expire"} run 
 execute if data storage test: buff_work.ev{event:"expire",reason:"expire"} run function test:buff/notify_expire with storage test: buff_work.notify
 
 $execute unless data storage test: asset.buff.types[{id:"$(id)"}].events.$(event) run return 0
-$function test:buff/on/$(event)/$(id)
+# 効果の強さ(params。「バフの数値」タブから生成)をマクロ引数として渡す
+$function test:buff/on/$(event)/$(id) with storage test: asset.buff.types[{id:"$(id)"}].params

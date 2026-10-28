@@ -14,14 +14,8 @@
             {
               "type": "minecraft:set_components",
               "components": {
-                "minecraft:custom_data": {
-                  "test": {
-                    "material": {
-                      "source": "goblin",
-                      "kind": "bone"
-                    }
-                  }
-                }
+                "minecraft:custom_data": {"test": {"material": {"kind": "bone"}}},
+                "minecraft:custom_name": {"text": "骨の欠片", "italic": false}
               }
             }
           ]
@@ -42,18 +36,8 @@
             {
               "type": "minecraft:set_components",
               "components": {
-                "minecraft:custom_data": {
-                  "test": {
-                    "material": {
-                      "source": "goblin",
-                      "kind": "goblin_hide"
-                    }
-                  }
-                },
-                "minecraft:custom_name": {
-                  "text": "ゴブリンの革",
-                  "italic": false
-                }
+                "minecraft:custom_data": {"test": {"material": {"kind": "goblin_hide"}}},
+                "minecraft:custom_name": {"text": "ゴブリンの革", "italic": false}
               }
             }
           ]
