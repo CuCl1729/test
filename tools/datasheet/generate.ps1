@@ -191,6 +191,7 @@ $ItemPattern = '^([a-z0-9_.-]+:)?[a-z0-9_./-]+$'
 $NumPattern = '^-?\d+(\.\d+)?$'
 
 function Esc([string]$s) { return $s.Replace('\', '\\').Replace('"', '\"') }
+function Json-Str([string]$s) { return '"' + $s.Replace('\', '\\').Replace('"', '\"') + '"' }
 
 function Check-Id($tab, $row, $col, $value) {
   if ($value -eq '') { Add-Err $tab $row "「$col」が空です"; return $false }
@@ -831,6 +832,7 @@ $StructurePattern = '^([a-z0-9_.-]+:[a-z0-9_./-]+)@\s*(-?\d+)\s+(-?\d+)\s+(-?\d+
 $mines = [ordered]@{}
 $mineDecls = New-Object System.Collections.Generic.List[string]
 $blockOwner = @{}
+$blockLoot = [ordered]@{}   # data/minecraft 配下の相対パス => JSON
 foreach ($r in $data.mines) {
   $tab = $Tabs.mines; $n = $r.__row
   $errBefore = $Errors.Count
@@ -877,6 +879,35 @@ foreach ($r in $data.mines) {
   if ($structs.Count -eq 0) { Add-Err $tab $n '「構造物」が空です' }
 
   if ($Errors.Count -gt $errBefore) { continue }
+  # 鉱石ブロックのルートテーブル(data/minecraft/loot_table/blocks/<ブロック>.json)。抽選はせず、目印を1個だけ落とす。
+  # 目印は custom_data に鉱山のidを持ち、見た目と名前は原石と同じ。持ち物に入ると test:mine/token/convert が原石に変える
+  $o = $ores[$ore]
+  $oreItem = if ($o.item -match ':') { $o.item } else { "minecraft:$($o.item)" }
+  $blockLoot["loot_table\blocks\$bid.json"] = @"
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "$oreItem",
+          "modifier": [
+            {
+              "type": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {"test": {"ore_token": "$id"}},
+                "minecraft:custom_name": {"text": $(Json-Str $o.name), "italic": false}
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+"@ -replace "`r", ''
   # 範囲は小さい方の角と、そこからの幅(セレクターの dx/dy/dz)にしておく
   $x1 = [Math]::Min($area[0], $area[3]); $y1 = [Math]::Min($area[1], $area[4]); $z1 = [Math]::Min($area[2], $area[5])
   $dx = [Math]::Abs($area[3] - $area[0]); $dy = [Math]::Abs($area[4] - $area[1]); $dz = [Math]::Abs($area[5] - $area[2])
@@ -1081,6 +1112,18 @@ foreach ($relPath in $outputs.Keys) {
   [IO.File]::WriteAllText($path, (($outputs[$relPath] -join "`n") + "`n"), $utf8)
 }
 
-Write-Host "生成しました($($outputs.Count) ファイル)。ゲーム内で /reload してください。" -ForegroundColor Green
+# 鉱石ブロックのルートテーブル(JSON)。JSONには見出しを書けないので、古いファイルの掃除はしない
+# (鉱山を消したり鉱石ブロックを変えたりしたときは、古いJSONを手で消す)
+$dataMcRoot = Join-Path $repoRoot 'data\minecraft'
+foreach ($relPath in $blockLoot.Keys) {
+  $path = Join-Path $dataMcRoot $relPath
+  $dir = Split-Path $path -Parent
+  if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir | Out-Null }
+  [IO.File]::WriteAllText($path, $blockLoot[$relPath], $utf8)
+}
+
+Write-Host "生成しました($($outputs.Count + $blockLoot.Count) ファイル)。ゲーム内で /reload してください(ルートテーブルを変えたときはワールドの読み直し)。" -ForegroundColor Green
 foreach ($relPath in $outputs.Keys) { Write-Host "  data/test/function/$($relPath -replace '\\','/')" }
+if ($blockLoot.Count -gt 0) { Write-Host '  鉱石ブロックのルートテーブル(古いものは自動で消さないので、鉱山を消したときは手で消す):' }
+foreach ($relPath in $blockLoot.Keys) { Write-Host "  data/minecraft/$($relPath -replace '\\','/')" }
 foreach ($relPath in $removed) { Write-Host "  (削除) data/test/function/$($relPath -replace '\\','/')" -ForegroundColor Yellow }

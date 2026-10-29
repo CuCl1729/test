@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:raw_copper",
+          "modifier": [
+            {
+              "type": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {"test": {"ore_token": "copper_mine"}},
+                "minecraft:custom_name": {"text": "銅の原石", "italic": false}
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
