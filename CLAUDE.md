@@ -50,6 +50,7 @@ There isn't any — verification is manual, in-game:
   - Otherwise it draws from the named sequence `test:<key>`, so `random reset test:<key> <seed>` replays it.
   - Every key must be declared in `init/asset/debug/rng.mcfunction` (the menu lists rolls from there).
     Mark it `fixable:0b` if a fixed result could loop forever (e.g. re-roll-on-duplicate loops).
+  - ルートテーブルは抽選に使わない(条件で決まるものだけに使う)。抽選は関数で `test:rng/roll` を通す。
 - Game chat/log output for this specific instance is **not** in the top-level `.minecraft/logs/` —
   this launcher setup keeps a separate log dir per version at
   `.minecraft/versions/1.20.5/logs/latest.log` (and `.../saves/<world>/...` for world data). Check
@@ -100,7 +101,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   `test:asset/enemy/spawn {id}` → `asset/enemy/load` builds the `enemy.*` storage root and the `#enemy`
   scores from it (HP/MP start full; damage bonuses 100, pene/debuff 0 are fixed in `load`), then
   `asset/enemy/summon.mcfunction` copies `enemy.data` onto the summoned entity's `data` tag verbatim.
-  `data` carries `buff_on_hit`, `loot_table` (`test:enemy/<id>`, generated JSON), `attack_element` (the
+  `data` carries `buff_on_hit`, `material_drops` (`[{id, min, max}]` from the 敵のドロップ tab; one roll per
+  entry, see rewards under "Battle/combat pipeline"), `attack_element` (the
   normal attack's element, from the sheet's 攻撃属性; `battle/action/attack_damage_enemy`), `equip_drops`,
   `ai_field_enabled`, `ai` (weighted attack/defend/gimmick behavior read by
   `battle/enemy_ai/decide.mcfunction`). `dummy` is intentionally kept static (a balance-testing
@@ -166,9 +168,9 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
   - Generated files: `init/asset/generated/{weapons,stats,config}`, `init/asset/equip/generated/{items,sets}`,
     `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
-    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status}/generated/*`, and the loot tables
-    `data/test/loot_table/enemy/<id>.json` (JSON can't carry the header, so stale loot tables aren't
-    deleted). Stale generated `.mcfunction` files in those folders are deleted.
+    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status}/generated/*`. Stale generated
+    `.mcfunction` files in those folders are deleted. No loot tables are generated (enemy drops are rolled
+    in functions).
   - Registries that keep their structure hand-written and only get numbers merged in from the sheet:
     `init/asset/magic/{types,effects}` (+ `magic/generated/values`), `init/asset/buff/buffs`
     (+ `buff/generated/values`). Constants are `asset.config.{turn_time,turn_warn,enemy_delay,accessory_limit}`.
@@ -191,8 +193,10 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     So adding a stat type, an effect kind or a skill kind needs no script change. Columns are documented in
     `tools/datasheet/README.md`; `tools/` is outside `data/`, so the game ignores it.
   - Materials (`asset.material.<id> = {item, name, role, data}`, roles material/catalyst/special/pattern)
-    are built by `test:item/material/build {id}`; the generated loot tables use the same definition, so
-    dropped and given materials match. Special materials' effects are code (`craft/weapon/forge/craft`,
+    are built by `test:item/material/build {id}` and handed out by `test:item/material/give {id,count}`
+    (straight into the inventory, not through `test:loot/give`, whose `tooltip_display` would stop them
+    stacking). Enemy drops and the debug menu both use it, so dropped and given materials stack.
+    Special materials' effects are code (`craft/weapon/forge/craft`,
     `asset/weapon/`).
   - Weapons are declared at `asset.<id>` and built by `test:asset/weapon/sword/apply {material:<id>}`
     (used for wands too).
@@ -332,7 +336,12 @@ Turn-based battle (`battle/`) uses the same formulas as real time, through share
 - Every action ends in `battle/turn_end`, which runs `battle/proc_all` (equipment slots, then rewards) before
   `check_end`. Rewards are paid per kill: `damage/kill` tags a battle enemy `battle_reward_pending`
   (it's deleted at the end of that tick) and `proc_all` → `battle/grant_reward` pays everyone tagged
-  `battle_reward_recipient`. Returning from a battle (`return_member*`) clears buffs and `turn_order`.
+  `battle_reward_recipient`. `grant_reward` rolls drops once per enemy (material counts via
+  `item/material/roll_drops`, rng key `material_drop`; whether each equipment drops via
+  `equip/drop/roll_all`, key `equip_drop`) into `battle.temporary.{material_hits,equip_hits}` and logs them
+  (`battle/drop_log`); `grant_reward_to_player` only hands them out, so everyone gets the same materials and
+  the same equipment ids (only each piece's rarity/substats are rolled per player in `equip/drop/give`).
+  Returning from a battle (`return_member*`) clears buffs and `turn_order`.
   Kills outside battle (test:action, field first strikes) are paid by one `tick` line before the kill line →
   `reward/field_kill` (everyone within 32 blocks; `dummy` excluded), never mid-damage.
 - Player actions: 攻撃 / スキル / アイテム (`action/item` chat list or `ui/item_hover_*` minecart →
