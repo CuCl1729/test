@@ -97,6 +97,7 @@ scoreboard objectives remove test.def.coefficient
  scoreboard objectives remove test.status.mp
  
  scoreboard objectives remove test.status.burnout
+ scoreboard objectives remove test.magic.wand_bonus
  scoreboard objectives remove test.status.divergence
  
  scoreboard objectives remove test.status.mp_regene

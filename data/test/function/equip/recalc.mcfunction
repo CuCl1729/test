@@ -42,8 +42,8 @@ function test:equip/proc/watch_recalc
 # 属性耐性は test.<属性>_resist に直接入れる(基準値0。init/asset/status/defense)
 function test:equip/apply_resist
 
-# 主要ステータスを組み直す。ターン制のアイテム式UI中はメインハンドが行動アイテムなので組み直さない
-# (status/recalcと同じ条件。次の手番の配り直しやbattle/ui/itemで正しく組み直される)
+# 主要ステータスを組み直す。ターン制の戦闘中にメインハンドが行動UIのアイテムなら組み直さない
+# (test:status/ui_in_hand。status/recalcと同じ条件。次の手番の始めに正しく組み直される)
 scoreboard players set #equip_rebuild test.temporary 1
-execute if score @s test.battle.id matches 1.. if score @s test.settings.battle_ui matches 2 run scoreboard players set #equip_rebuild test.temporary 0
+execute if function test:status/ui_in_hand run scoreboard players set #equip_rebuild test.temporary 0
 execute if score #equip_rebuild test.temporary matches 1 run function test:equip/rebuild_status

@@ -1,15 +1,6 @@
 #> test:battle/ui/item
 
-# 行動アイテムを配る前に、実際に装備している武器(両手分)を反映したステータスを計算しておく。
-# 配った後はメインハンドが行動アイテムに入れ替わってしまうため、ここで計算した値をそのまま使う。
-# (魔法・通常攻撃の計算が参照するものをまとめて計算しておく。戦闘中は test:status/refresh が計算し直さない)
-function test:status/update {status:"atk"}
-function test:status/update {status:"hp_max"}
-function test:status/update {status:"def"}
-function test:status/update {status:"crit_rate"}
-function test:status/update {status:"crit_damage"}
-function test:status/update {status:"magic_efficiency"}
-function test:status/update {status:"effect_damage"}
+# ステータスは、行動アイテムを配る前に test:battle/turn_start_player で組み直してある
 
 # 前のターンでスキル選択を完了せずに終わった場合、blaze_powderが手元に残り続けることがあるため、
 # 新しい行動アイテムを配る前に必ず一度全部消しておく(トロッコ/追従状態も合わせて片付ける)

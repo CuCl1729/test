@@ -3,7 +3,10 @@
 # 魔法の与ダメ補正(magic_damage_bonus)→ test:damage/pre_magic → 神秘(effect_damage)の順。
 # リアルタイムの test:magic/ とターン制(test:battle/action/skill_cast/prepare_damage)の両方で使う
 
+# 魔法の与ダメ補正 = 魔法そのものの補正 + 両手に持った杖などの「魔法ダメージ%」(test:magic/wand_bonus)
+function test:magic/wand_bonus
 execute store result score @s test.temporary run data get storage test: magic.player.magic_damage_bonus
+scoreboard players operation @s test.temporary += @s test.magic.wand_bonus
 
 scoreboard players set @s test.fire_damage.bonus 100
 scoreboard players operation @s test.fire_damage.bonus += @s test.temporary

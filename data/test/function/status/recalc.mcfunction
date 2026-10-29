@@ -3,13 +3,13 @@
 # バフの蓄積値(test.buff.<名前>)を反映した実効値を test.status.<名前> に入れ直す
 # (test:buff/stat/add・test:buff/stat/remove から呼ぶ)
 
-# プレイヤーは装備から組み立て直す status/update がバフぶんも足してくれる。ただしターン制の
-# アイテム式UIではメインハンドが行動アイテムに入れ替わっているため、ここで組み立て直すと
+# プレイヤーは装備から組み立て直す status/update がバフぶんも足してくれる。ただしターン制の戦闘中に
+# メインハンドが行動UIのアイテムのとき(test:status/ui_in_hand)は、ここで組み立て直すと
 # 武器の補正が失われる(damage/pre_magic と同じ事情)。その場合だけは組み立て直さず、
-# 今回動いたぶんを実効値へ直接反映する(次の手番の battle/ui/item で正しく組み直される)
+# 今回動いたぶんを実効値へ直接反映する(次の手番の始めに正しく組み直される)
 scoreboard players set #recalc_rebuild test.buff.work 0
 execute if entity @s[type=player] run scoreboard players set #recalc_rebuild test.buff.work 1
-execute if entity @s[type=player] if score @s test.battle.id matches 1.. if score @s test.settings.battle_ui matches 2 run scoreboard players set #recalc_rebuild test.buff.work 0
+execute if entity @s[type=player] if function test:status/ui_in_hand run scoreboard players set #recalc_rebuild test.buff.work 0
 
 $execute if score #recalc_rebuild test.buff.work matches 1 run function test:status/update {status:"$(status)"}
 $execute if entity @s[type=player] if score #recalc_rebuild test.buff.work matches 0 run scoreboard players $(op) @s test.status.$(status) $(amount)

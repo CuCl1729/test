@@ -149,6 +149,7 @@ scoreboard objectives add test.owner dummy
  scoreboard objectives add test.status.mp dummy
  
  scoreboard objectives add test.status.burnout dummy
+ scoreboard objectives add test.magic.wand_bonus dummy
  scoreboard objectives add test.status.divergence dummy
  
  scoreboard objectives add test.status.mp_regene dummy
