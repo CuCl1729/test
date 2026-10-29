@@ -160,7 +160,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   values, add them to a tab (or `params`) and read them via macro args/storage.
   - Tabs: stats, materials, weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop
     recipes, runes, consumables, enemies (+ gimmicks, drops), jobs (+ skills), magic values, buff values,
-    player base stats, constants. A tab without a gid in `config.json` is not downloaded; its local CSV is used.
+    player base stats, constants, ores, mines, pickaxes. A tab without a gid in `config.json` is not
+    downloaded; its local CSV is used.
   - **Units**: status values (enemy HP/atk/def/…, job growth, buff params, player base stats) are written in
     display units (as in item lore) and the script multiplies by 100; resist %, exp, chance %, counts are
     as written; magic `params` are raw (internal) values.
@@ -168,9 +169,11 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
   - Generated files: `init/asset/generated/{weapons,stats,config}`, `init/asset/equip/generated/{items,sets}`,
     `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
-    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status}/generated/*`. Stale generated
-    `.mcfunction` files in those folders are deleted. No loot tables are generated (enemy drops are rolled
-    in functions).
+    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe}/generated/*`. Stale
+    generated `.mcfunction` files in those folders are deleted. The only generated loot tables are the mines'
+    ore blocks, `data/minecraft/loot_table/blocks/<block>.json` (a fixed single token, no rolls). JSON can't
+    carry the header, so **stale ones are not deleted: remove them by hand** when a mine is removed or its
+    block changes (the script lists the ones it wrote). Never touch the hand-written `red_shulker_box.json`.
   - Registries that keep their structure hand-written and only get numbers merged in from the sheet:
     `init/asset/magic/{types,effects}` (+ `magic/generated/values`), `init/asset/buff/buffs`
     (+ `buff/generated/values`). Constants are `asset.config.{turn_time,turn_warn,enemy_delay,accessory_limit}`.
@@ -185,6 +188,10 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     - cross-references (series, recipe materials by role, drops, enemy buffs/equip drops, job prerequisites)
     - enemy `攻撃属性` (物理/火/水/木/金/土), gimmick `params` against the gimmick file's `$(…)` (and `buff`,
       `element`, `target` values); consumable `revive` `percent` 1–100
+    - mines: ore block unique per mine (and not `red_shulker_box`), ore exists, rank ≥ 1, interval ≥ 0,
+      weights (rarity 1–5, weight ≥ 0, total ≥ 1), area 6 / entrance 3 integers, structures `ns:path@x y z`;
+      a pickaxe that can mine nothing is an error, a mine no pickaxe can mine is only a warning
+      (`Add-Warn`: printed in yellow, generation continues)
     - every magic element, buff, base stat and constant has a row; job `exp_coefficient` ≥ 1 (0 would
       level up forever); gimmick `hp_below` defaults to 100 (a missing value would read as 0)
     - consumables: `every` ≥ 1; `heal_hp`/`heal_mp` take `percent`/`flat` as non-negative integers (a
@@ -278,6 +285,33 @@ generic driver — it means adding a declaration plus a small per-id handler fun
       slot and sets `test.equip.has_watch`; `tick` → `equip/proc/watch_check` → `watch_below` compares
       every tick (HP also drops from poison etc., so not inside `damage/`). The tag `equip_below.<id>`
       blocks repeats while below the line.
+- **Mining** (pickaxes, mines, ores). Players are in adventure mode, so terrain can't be broken; only the
+  mines' ore blocks can, through the pickaxe's `can_break`.
+  - Registries (generated from the 原石 / 鉱山 / ツルハシ tabs): `asset.ore.<id> = {item, name}`,
+    `asset.mine.<id> = {name, block, ore, rank, weights:[{rare,weight}], weight_total, area:{x1,y1,z1,dx,dy,dz},
+    entrance:{x,y,z}, structures:[{id,x,y,z}], interval}`, `asset.pickaxe.<id> = {item, name, rank, speed, blocks}`
+    (`blocks` = the ore blocks of every mine whose rank ≤ the pickaxe's, computed by the script), plus
+    `asset.{ore,mine,pickaxe}_ids`.
+  - Pickaxe: `item/pickaxe/build {id}` sets `custom_data.test.pickaxe {id,rank}`, `can_break {blocks}`,
+    `tool {rules:[{blocks,speed,correct_for_drops:true}]}` (needed: vanilla ores drop nothing without the right
+    tool tier, whatever the base item is), `unbreakable`, and hides those in `tooltip_display`. Given by
+    `item/pickaxe/give {id}`.
+  - **Each mine's ore block is used only inside that mine.** The script overwrites that block's loot table
+    for the whole map with one token item (`custom_data.test.ore_token:"<mine id>"`, the ore's look and name).
+  - Token → ore: `cache/update` runs `mine/token/convert` **before** copying `player_data` (so `equip/recalc`
+    sees the result). Per mine id it `clear`s the tokens, rolls each one's rarity (rng key `ore_rarity`,
+    1..`weight_total`, walking `weights`), and gives the ores per rarity with `item/ore/give {id,rare,count}`.
+    Ores are `custom_data.test.ore = {kind, rare}` only (`item/ore/build`; name color = rarity, 3–5 like
+    equipment), so equal ones stack. `item/ore/give` inserts directly (not `loot/give`, whose
+    `tooltip_display` breaks stacking) in stacks of 64 and drops what didn't fit at the player's feet:
+    `loot give` silently loses overflow, so it compares the count before/after with `clear … 0`.
+  - Reset: every second `mine/tick_second` checks each mine in `test:action` and `test:turn` separately
+    (`storage test: mine_state.<action|turn>.<id> = {occupied, ready_at}`; `ready_at` is game time in ticks
+    from `time query gametime`). When a mine goes from empty to occupied and `ready_at` has passed,
+    `mine/reset {id,dim}` places every structure (`place template`), moves players whose feet or head
+    block isn't air to the entrance, and sets `ready_at = now + interval × 20`. The arena is never checked.
+    `debug/reset_mine` resets the mine you're standing in regardless of the interval; `debug/mine_status`
+    lists each mine's state.
 - **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
   `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
   craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:
