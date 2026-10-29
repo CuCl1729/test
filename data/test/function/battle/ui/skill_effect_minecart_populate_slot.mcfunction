@@ -3,6 +3,9 @@
 # @macro id/label/item/slot: レジストリの1件ぶんと詰め先スロット番号
 # maxが2ならON/OFF、3以上なら重ねがけ段階(×1〜)として名前に反映する
 
+# トロッコのスロット0〜25に並べる(26は詠唱ボタン)。26件を超える分は飛ばす
+execute if score #effect_slot test.temporary matches 26.. run return 0
+
 # 取られたスロットから効果idを引けるようにしておく
 $data modify storage test: battle.temporary.effect_slot append value "$(id)"
 

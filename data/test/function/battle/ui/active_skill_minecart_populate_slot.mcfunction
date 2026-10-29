@@ -1,8 +1,8 @@
 #> test:battle/ui/active_skill_minecart_populate_slot
 # @s = アクティブスキル選択中のプレイヤー。@macro job/node: 職業スキル参照1件
-# スロット8(確認/決定は無いので実質7件目)を超える分は諦めて飛ばす(paging未対応。populate参照)
+# トロッコのスロット0〜25に並べ、26件を超える分は飛ばす
 
-execute if score #active_slot test.temporary matches 8.. run return 0
+execute if score #active_slot test.temporary matches 26.. run return 0
 
 $function test:job/skill/load_entry {job:"$(job)",node:"$(node)"}
 

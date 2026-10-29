@@ -1,8 +1,8 @@
 #> test:job/station/populate_list_loop
-# @s = Jobステーション本体(please実行済み)。registry_work.job_queueを末尾から詰める
+# @s = Jobステーション本体(please実行済み)。registry_work.job_queueを末尾から、スロット1〜7に詰める
 
 execute unless data storage test: registry_work.job_queue[-1] run return 0
-execute if score #job_slot test.temporary matches 7.. run return 0
+execute if score #job_slot test.temporary matches 8.. run return 0
 
 data modify storage test: registry_work.job_entry set from storage test: registry_work.job_queue[-1]
 data remove storage test: registry_work.job_queue[-1]

@@ -1,6 +1,6 @@
 #> test:battle/action/item_list
 # @s = プレイヤー。持っている消耗品を asset.consumable_ids の順に数え、battle.temporary.item_slot に {id, count} で並べる
-# (最大8件。トロッコのスロット0〜7、チャットの番号1〜8に対応)。持っている種類の数を返す
+# (最大26件。トロッコのスロット0〜25、チャットの番号1〜26に対応)。持っている種類の数を返す
 
 data modify storage test: battle.temporary.item_slot set value []
 data modify storage test: registry_work.item_queue set value []

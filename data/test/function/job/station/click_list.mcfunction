@@ -1,5 +1,5 @@
 #> test:job/station/click_list
-# @s = Jobステーション本体。@macro index: 取られたスロットのpage_ids内インデックス(0〜6)
+# @s = Jobステーション本体。@macro index: 取られたスロット(1〜7)のpage_ids内インデックス(0〜6)
 # 前提を満たしていれば解放してから、その職業のツリービューへ切り替える
 
 data modify storage test: registry_work.click set value {id:""}
@@ -9,5 +9,6 @@ execute as @p[distance=..3] run function test:job/station/click_list_try_unlock 
 
 data modify entity @s data.job_ui.job set from storage test: registry_work.click.id
 data modify entity @s data.job_ui.view set value "tree"
+data modify entity @s data.job_ui.page set value 0
 
 function test:job/station/populate_tree

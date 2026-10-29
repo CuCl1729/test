@@ -1,5 +1,5 @@
 #> test:job/station/click_tree
-# @s = Jobステーション本体。@macro index: 取られたスロットのnode_ids内インデックス(0〜6)
+# @s = Jobステーション本体。@macro index: 取られたスロット(1〜7)のnode_ids内インデックス(0〜6)
 # 解放可能ならポイントを消費して解放する(test:job/skill/unlockが解放可否を再検証する)
 
 data modify storage test: registry_work.click_node set value {job:"",node:""}

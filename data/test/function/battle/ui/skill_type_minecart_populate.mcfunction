@@ -14,4 +14,4 @@ scoreboard players set #type_slot test.temporary 0
 function test:magic/registry/queue_types
 function test:battle/ui/skill_type_minecart_populate_loop
 
-data modify entity @n[tag=skill_minecart,tag=!target_minecart,tag=!skill_effect_minecart] Items append value {Slot:8b,id:"ender_eye",count:1,components:{"minecraft:custom_name":{text:"決定する",italic:false},"minecraft:custom_data":{test:{skill_choice:"confirm"}}}}
+data modify entity @n[tag=skill_minecart,tag=!target_minecart,tag=!skill_effect_minecart] Items append value {Slot:26b,id:"ender_eye",count:1,components:{"minecraft:custom_name":{text:"決定する",italic:false},"minecraft:custom_data":{test:{skill_choice:"confirm"}}}}

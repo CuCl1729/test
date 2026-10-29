@@ -1,8 +1,7 @@
 #> test:battle/ui/active_skill_minecart_populate
 # @s = アクティブスキル選択中のプレイヤー(トロッコ式)。使用可能な剣スキル+解放済み職業スキルを
-# 1スロット1件で並べ、クリックで即座に発動する(現状は数個程度を想定しページングは未実装。
-# 8件を超える場合は超過分を諦めて飛ばす。増やす必要が出たらcraft/magic/research/populate_top系と
-# 同じ矢印ページングを移植する)
+# 1スロット1件で並べ、クリックで即座に発動する(トロッコの27スロットのうち0〜25に並べる。
+# 26件を超える分は飛ばす)
 
 tag @n[tag=skill_minecart,tag=!target_minecart,tag=!skill_effect_minecart] add active_skill_minecart
 

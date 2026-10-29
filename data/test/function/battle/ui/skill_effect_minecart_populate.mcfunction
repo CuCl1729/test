@@ -15,4 +15,4 @@ scoreboard players set #effect_slot test.temporary 0
 function test:magic/registry/queue_effects
 function test:battle/ui/skill_effect_minecart_populate_loop
 
-data modify entity @n[tag=skill_effect_minecart] Items append value {Slot:8b,id:"ender_eye",count:1,components:{"minecraft:custom_name":{text:"詠唱する",italic:false},"minecraft:custom_data":{test:{skill_effect:"cast"}}}}
+data modify entity @n[tag=skill_effect_minecart] Items append value {Slot:26b,id:"ender_eye",count:1,components:{"minecraft:custom_name":{text:"詠唱する",italic:false},"minecraft:custom_data":{test:{skill_effect:"cast"}}}}

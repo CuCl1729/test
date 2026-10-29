@@ -4,6 +4,8 @@
 # 習得済みのタイプだけを詰め、詰めたらスロット番号を進める(習得していないタイプは飛ばす)
 
 $execute unless data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.magic.known{$(id):1b} run return 0
+# トロッコのスロット0〜25に並べる(26は決定ボタン)。26件を超える分は飛ばす
+execute if score #type_slot test.temporary matches 26.. run return 0
 
 # 取られたスロットからタイプidを引けるようにしておく
 $data modify storage test: battle.temporary.type_slot append value "$(id)"

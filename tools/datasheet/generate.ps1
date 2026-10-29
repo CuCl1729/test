@@ -696,10 +696,9 @@ foreach ($r in $data.job_skills) {
   $jobs[$jid].skills[$id] = @{ row = $n; reqs = $reqs; snbt = "label:`"$(Esc $label)`",requires_level:$lv,requires_nodes:[REQS],cost:$cost,kind:`"$kind`",params:{$ps}" }
 }
 $jobDecls = New-Object System.Collections.Generic.List[string]
-if ($jobs.Count -gt 7) { Add-Err $Tabs.jobs 0 "職業は7つまでです(Jobステーションに並べられる数)" }
+# 職業・スキルの数に上限は無い(Jobステーションは7つずつページを送って表示する)
 foreach ($jid in $jobs.Keys) {
   $j = $jobs[$jid]
-  if ($j.skills.Count -gt 7) { Add-Err $Tabs.job_skills 0 "職業「$jid」のスキルは7つまでです(Jobステーションに並べられる数)" }
   $sk = New-Object System.Collections.Generic.List[string]
   foreach ($sid in $j.skills.Keys) {
     $s = $j.skills[$sid]
