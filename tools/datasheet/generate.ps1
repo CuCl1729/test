@@ -221,8 +221,6 @@ function Check-Int($tab, $row, $col, [string]$value, [int]$min) {
   if ($value -notmatch '^-?\d+$' -or [long]$value -lt $min) { Add-Err $tab $row "「$col」($value) は$min 以上の整数にしてください"; return $false }
   return $true
 }
-function Json-Str([string]$s) { return '"' + $s.Replace('\', '\\').Replace('"', '\"') + '"' }
-
 # ---------------------------------------------------------------- ステータスの表(サブステータスの抽選・成長・説明文の表示)
 
 $StatTypes = @()
@@ -274,14 +272,14 @@ foreach ($r in $data.materials) {
   $role = $MaterialRoles[$roleJa]
   if ($role -eq 'pattern') {
     if ($Parts -notcontains $part) { Add-Err $tab $n "型紙の「部位」($part) は $($Parts -join ' / ') のどれかにしてください" }
-    $snbt = "pattern:{part:`"$part`"}"; $json = "{`"pattern`": {`"part`": `"$part`"}}"
+    $snbt = "pattern:{part:`"$part`"}"
   } else {
     if ($part -ne '') { Add-Err $tab $n '「部位」は型紙のときだけ書いてください' }
-    $snbt = "material:{kind:`"$id`"}"; $json = "{`"material`": {`"kind`": `"$id`"}}"
+    $snbt = "material:{kind:`"$id`"}"
   }
   # 特殊素材の効果はコードにある(鍛冶場が kind で探し、asset/weapon/ が効果を付ける)
   if ($role -eq 'special' -and $forgeCraftBody -notmatch "kind:`"$id`"") { Add-Err $tab $n "特殊素材「$id」の効果がコード(craft/weapon/forge/craft)にありません" }
-  $materials[$id] = @{ role = $role; item = $item; name = $name; json = $json }
+  $materials[$id] = @{ role = $role; item = $item; name = $name }
   $materialDecls.Add("data modify storage test: asset.material.$id set value {item:`"$item`",name:`"$(Esc $name)`",role:`"$role`",data:{$snbt}}")
   $materialDecls.Add("data modify storage test: asset.material_ids append value `"$id`"")
 }
@@ -616,7 +614,6 @@ foreach ($r in $data.enemy_drops) {
 }
 
 $enemyDecls = New-Object System.Collections.Generic.List[string]
-$lootTables = [ordered]@{}   # data/test 配下の相対パス => JSON
 foreach ($id in $enemies.Keys) {
   $e = $enemies[$id]
   $parts = New-Object System.Collections.Generic.List[string]
@@ -628,9 +625,13 @@ foreach ($id in $enemies.Keys) {
   $parts.Add("stats:{$($e.stats)}")
   $parts.Add("resist:{$($e.resist)}")
   $dp = New-Object System.Collections.Generic.List[string]
-  $dp.Add("loot_table:`"test:enemy/$id`"")
   $dp.Add("attack_element:`"$($e.element)`"")
   if ($e.buffs -ne '') { $dp.Add("buff_on_hit:[$($e.buffs)]") }
+  # 素材のドロップ: 1行が1回の抽選(test:battle/grant_reward が rng/roll で最小〜最大個を決める)。
+  # ルートテーブルは使わない(抽選を rng/roll に通すため)
+  $mdrops = New-Object System.Collections.Generic.List[string]
+  foreach ($d in $e.drops) { $mdrops.Add("{id:`"$($d.mat)`",min:$($d.min),max:$($d.max)}") }
+  if ($mdrops.Count -gt 0) { $dp.Add("material_drops:[$($mdrops -join ',')]") }
   if ($e.edrops -ne '') { $dp.Add("equip_drops:[$($e.edrops)]") }
   if ($e.field) { $dp.Add('ai_field_enabled:1b') }
   $ai = New-Object System.Collections.Generic.List[string]
@@ -640,39 +641,6 @@ foreach ($id in $enemies.Keys) {
   $parts.Add("data:{$($dp -join ',')}")
   $enemyDecls.Add("data modify storage test: asset.enemy.$id set value {$($parts -join ',')}")
   $enemyDecls.Add("data modify storage test: asset.enemy_ids append value `"$id`"")
-
-  # 素材のドロップ(ルートテーブル)。1行が1つのプール
-  $pools = @()
-  foreach ($d in $e.drops) {
-    $m = $materials[$d.mat]
-    $itemId = if ($m.item -match ':') { $m.item } else { "minecraft:$($m.item)" }
-    $pools += @"
-    {
-      "rolls": {
-        "type": "minecraft:uniform",
-        "min": $($d.min),
-        "max": $($d.max)
-      },
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "$itemId",
-          "modifier": [
-            {
-              "type": "minecraft:set_components",
-              "components": {
-                "minecraft:custom_data": {"test": $($m.json)},
-                "minecraft:custom_name": {"text": $(Json-Str $m.name), "italic": false}
-              }
-            }
-          ]
-        }
-      ]
-    }
-"@
-  }
-  if ($pools.Count -eq 0) { $lootTables["loot_table\enemy\$id.json"] = "{`n  `"pools`": []`n}`n" }
-  else { $lootTables["loot_table\enemy\$id.json"] = "{`n  `"pools`": [`n" + (($pools -join ",`n") -replace "`r", '') + "`n  ]`n}`n" }
 }
 
 # ---------------------------------------------------------------- 職業(前提・経験値・成長)と職業スキル
@@ -970,16 +938,6 @@ foreach ($relPath in $outputs.Keys) {
   [IO.File]::WriteAllText($path, (($outputs[$relPath] -join "`n") + "`n"), $utf8)
 }
 
-# 敵のドロップ(ルートテーブルのJSON)。JSONには見出しを書けないので、古いファイルの掃除はしない
-$dataTestRoot = Join-Path $repoRoot 'data\test'
-foreach ($relPath in $lootTables.Keys) {
-  $path = Join-Path $dataTestRoot $relPath
-  $dir = Split-Path $path -Parent
-  if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir | Out-Null }
-  [IO.File]::WriteAllText($path, $lootTables[$relPath], $utf8)
-}
-
-Write-Host "生成しました($($outputs.Count + $lootTables.Count) ファイル)。ゲーム内で /reload してください(ルートテーブルを変えたときはワールドの読み直し)。" -ForegroundColor Green
+Write-Host "生成しました($($outputs.Count) ファイル)。ゲーム内で /reload してください。" -ForegroundColor Green
 foreach ($relPath in $outputs.Keys) { Write-Host "  data/test/function/$($relPath -replace '\\','/')" }
-foreach ($relPath in $lootTables.Keys) { Write-Host "  data/test/$($relPath -replace '\\','/')" }
 foreach ($relPath in $removed) { Write-Host "  (削除) data/test/function/$($relPath -replace '\\','/')" -ForegroundColor Yellow }
