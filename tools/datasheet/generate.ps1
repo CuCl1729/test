@@ -491,6 +491,10 @@ foreach ($r in $data.consumables) {
       Add-Err $tab $n "効果「$kind」の params は percent(最大値の何%)か flat(固定値)のどちらかを1以上にしてください"
     }
   }
+  # 蘇生: 倒れた味方のHPを最大値の percent% で戻す
+  if ($kind -eq 'revive' -and $params.Contains('percent') -and ($params['percent'] -notmatch '^\d+$' -or [int]$params['percent'] -lt 1 -or [int]$params['percent'] -gt 100)) {
+    Add-Err $tab $n "効果「revive」の params の percent ($($params['percent'])) は1〜100の整数にしてください"
+  }
   foreach ($need in $ConsumableParams[$kind]) { if (-not $params.Contains($need)) { Add-Err $tab $n "効果「$kind」には params の $need が必要です" } }
   $ps = @($params.Keys | ForEach-Object { "$($_):$(Snbt-Value $params[$_])" }) -join ','
 

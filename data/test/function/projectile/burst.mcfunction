@@ -11,6 +11,7 @@ function test:projectile/prepare_buff
 
 # 投射タイプは攻撃系の効果しか組み合わせられないため、着弾では回復を行わない
 scoreboard players set #aoe_heal test.temporary 0
+scoreboard players set #aoe_revive test.temporary 0
 
 execute at @s run function test:magic/aoe/scan
 execute at @s run function test:magic/aoe/apply

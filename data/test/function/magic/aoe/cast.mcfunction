@@ -24,6 +24,13 @@ execute store result score #aoe_radius test.temporary run data get storage test:
 scoreboard players set #aoe_heal test.temporary 0
 execute if data storage test: magic.player.heal run scoreboard players set #aoe_heal test.temporary 1
 
+# 蘇生(範囲内でダウンしている味方を起こす)。投射体の着弾(projectile/burst)では行わない
+scoreboard players set #aoe_revive test.temporary 0
+execute if data storage test: magic.player.revive run scoreboard players set #aoe_revive test.temporary 1
+data modify storage test: magic_revive set value {radius:0,percent:0}
+data modify storage test: magic_revive.radius set from storage test: magic.player.aoe.radius
+data modify storage test: magic_revive.percent set from storage test: magic.player.revive.percent
+
 # 詠唱者を含むプレイヤーはダメージ側の対象から外れる(apply側でtype=!playerに絞っている)ため、
 # 自分を巻き込む心配はない。逆に回復効果は円内の味方として自分にも掛かる
 # ダメージ表示(test:damage/display)が詠唱者を引けるよう一時タグを付けておく

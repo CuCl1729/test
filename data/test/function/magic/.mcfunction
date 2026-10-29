@@ -1,5 +1,8 @@
 function #oh_my_dat:please
 
+# ダウン中は唱えられない(自分を回復して起き上がれないように)
+execute if entity @s[tag=downed] run return fail
+
 # 消費MPを払う(足りなければ唱えない)。ターン制でも同じ処理を使う
 execute unless function test:magic/pay run return fail
 

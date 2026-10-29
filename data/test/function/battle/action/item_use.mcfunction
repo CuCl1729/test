@@ -1,6 +1,10 @@
 #> test:battle/action/item_use
 # @s = 手番のプレイヤー。@macro id: 使う消耗品のid(ほかのキーも渡ってくるが使わない)。
+# 今使って意味が無ければ(倒れた味方がいないのに蘇生など。test:consumable/can_use)使わずに選び直しへ戻す。
 # 持ち物から1個減らせたときだけ効果を実行し(test:consumable/use)、手番を終える
+
+$execute store result score #item_can_use test.temporary run function test:consumable/can_use {id:"$(id)"}
+execute if score #item_can_use test.temporary matches 0 run return run function test:battle/action/no_target
 
 function test:battle/ui/cleanup
 

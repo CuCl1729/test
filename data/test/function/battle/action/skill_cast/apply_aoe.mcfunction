@@ -49,3 +49,7 @@ execute if data storage test: magic_buff.debuff[0] at @s as @e[tag=battle_member
 execute if data storage test: magic_buff.buff[0] run data modify storage test: buff_work.pending set from storage test: magic_buff.buff
 execute if data storage test: magic_buff.buff[0] at @s as @a[tag=battle_member,distance=..64,scores={test.status.hp=1..}] run function test:buff/apply_list
 
+# 蘇生は、回復とバフを配った後に、同じ戦闘で倒れている味方全員へ(起きた人にこの魔法の回復やバフは掛からない)
+scoreboard players operation #revive_battle test.battle.id = @s test.battle.id
+execute if data storage test: magic.player.revive at @s as @a[tag=battle_member,scores={test.status.hp=..0}] if score @s test.battle.id = #revive_battle test.battle.id run function test:status/revive with storage test: magic.player.revive
+

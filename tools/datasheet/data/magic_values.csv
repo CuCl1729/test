@@ -9,3 +9,4 @@ heal,200,power=3
 range,60,per_stack=2; max_stacks=3
 atk_up,120,max_stacks=3
 poison,90,max_stacks=3
+revive,300,percent=30

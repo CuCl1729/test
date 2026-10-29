@@ -1,6 +1,9 @@
 #> test:equip/proc/consume
 # @s = プレイヤー。@macro key/item/event: 枠のキー・消耗品のid・イベント(ログ用)。消耗品を持ち物から1個使う。
 # 先に clear を実行し、1個減らせたときだけ効果を実行する(持っているかを先に調べない)
+# 今使って意味が無ければ(倒れた味方がいないのに蘇生など。test:consumable/can_use)使わない
+$execute store result score #consumable_can_use test.temporary run function test:consumable/can_use {id:"$(item)"}
+execute if score #consumable_can_use test.temporary matches 0 run return 0
 
 scoreboard players set #consumable_used test.temporary 0
 $execute store success score #consumable_used test.temporary run clear @s *[custom_data~{test:{consumable:"$(item)"}}] 1

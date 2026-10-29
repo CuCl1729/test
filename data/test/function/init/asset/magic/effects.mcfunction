@@ -21,6 +21,8 @@ data modify storage test: asset.magic.effects append value {id:"fire",label:"火
 data modify storage test: asset.magic.effects append value {id:"atk",label:"威力上昇",color:"gold",item:"redstone",max:4,category:"attack",folder:"status"}
 data modify storage test: asset.magic.effects append value {id:"gravity",label:"重力",color:"gray",item:"feather",max:2,category:"attack",requires_type:"projectile",folder:"effect"}
 data modify storage test: asset.magic.effects append value {id:"heal",label:"回復",color:"white",item:"ghast_tear",max:2,category:"support",folder:"effect",name:{italic:0b,color:"white",text:"Heal"}}
+# 蘇生: 範囲と組み合わせたときだけ使える(倒れた味方を起こす。自分にかけても意味が無いため)
+data modify storage test: asset.magic.effects append value {id:"revive",label:"蘇生",color:"green",item:"totem_of_undying",max:2,category:"support",requires_type:"aoe",folder:"effect",name:{italic:0b,color:"green",text:"Revival"}}
 data modify storage test: asset.magic.effects append value {id:"range",label:"範囲拡大",color:"light_purple",item:"ender_pearl",max:4,category:"modifier",folder:"status"}
 
 # バフ/デバフを付与する効果。付与されるもの自体の内容はバフ側のレジストリ(test:init/asset/buff/buffs)にある

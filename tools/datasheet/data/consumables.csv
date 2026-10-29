@@ -2,3 +2,4 @@
 healing_potion,glistering_melon_slice,回復薬,3,heal_hp,percent=20; flat=10
 mana_dust,lapis_lazuli,魔力の粉,3,heal_mp,flat=20
 power_dust,sugar,力の粉,3,self_buff,id=atk_up; stacks=1
+revive_feather,feather,蘇生の羽,1,revive,percent=30; radius=8

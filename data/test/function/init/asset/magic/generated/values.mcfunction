@@ -13,3 +13,4 @@ data modify storage test: asset.magic.effects[{id:"heal"}] merge value {cost:200
 data modify storage test: asset.magic.effects[{id:"range"}] merge value {cost:60,params:{per_stack:2,max_stacks:3}}
 data modify storage test: asset.magic.effects[{id:"atk_up"}] merge value {cost:120,params:{max_stacks:3}}
 data modify storage test: asset.magic.effects[{id:"poison"}] merge value {cost:90,params:{max_stacks:3}}
+data modify storage test: asset.magic.effects[{id:"revive"}] merge value {cost:300,params:{percent:30}}
