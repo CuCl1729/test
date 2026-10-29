@@ -23,6 +23,9 @@ tellraw @s {text:"― アイテム ―",color:gold}
 tellraw @s [{text:"[素材全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_materials"}},{text:" (工房の材料・触媒・特殊素材・型紙)",color:dark_gray}]
 tellraw @s [{text:"[ルーン全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_runes"}},{text:" "},{text:"[消耗品全種×16]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_consumables"}},{text:" (強化台の付与モードで装備の枠に入れる)",color:dark_gray}]
 
+tellraw @s {text:"― 採掘 ―",color:gold}
+tellraw @s [{text:"[ツルハシ全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_pickaxes"}},{text:" (アドベンチャーモードで鉱山の鉱石だけ掘れる)",color:dark_gray}]
+
 tellraw @s {text:"― 敵 ―",color:gold}
 data modify storage test: debug_work.enemy_queue set from storage test: asset.enemy_ids
 function test:debug/menu/enemy_loop
