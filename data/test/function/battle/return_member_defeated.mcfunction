@@ -7,6 +7,8 @@ execute if entity @s[type=player] run function test:equip/proc/clear_queue
 
 scoreboard players operation @s test.status.hp = @s test.status.hp_max
 scoreboard players set @s test.battle.id 0
+# 手番の順番も消す(残っていると、右クリックで戦闘の行動判定が動いてしまう)
+scoreboard players set @s test.battle.turn_order 0
 tag @s remove battle_member
 
 execute store result storage test: battle.temporary.x int 1 run scoreboard players get @s test.battle.return_x

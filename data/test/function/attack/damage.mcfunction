@@ -12,7 +12,8 @@ tag @e remove damage_attacker
 execute if dimension test:turn if entity @e[tag=hit,tag=enemy,scores={test.status.hp=..0}] unless score @s test.battle.id matches 1.. run function test:battle/preemptive_kill
 execute unless entity @e[tag=hit,tag=enemy,scores={test.status.hp=..0}] if dimension test:turn if entity @e[tag=hit,tag=enemy] unless score @s test.battle.id matches 1.. run function test:battle/start
 
-execute if entity @e[tag=hit,tag=battle_marker] run function test:battle/join
+# 戦闘中の入り口(フィールドに残る battle_entrance)を叩くと、その戦闘に途中参加する
+execute at @e[tag=hit,tag=battle_entrance,limit=1] run function test:battle/join
 
 # 対象が戦闘開始でtest:arenaへ転送された場合、この時点のtag @eはtest:turn側しか見えないため個別に消す
 tag @e remove hit

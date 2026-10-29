@@ -11,6 +11,8 @@ execute store result storage test: battle.temporary.y int 1 run scoreboard playe
 execute store result storage test: battle.temporary.z int 1 run scoreboard players get @s test.battle.return_z
 
 scoreboard players set @s test.battle.id 0
+# 手番の順番も消す(残っていると、右クリックで戦闘の行動判定が動いてしまう)
+scoreboard players set @s test.battle.turn_order 0
 tag @s remove battle_member
 
 execute in test:turn run function test:battle/return_member_tp with storage test: battle.temporary
