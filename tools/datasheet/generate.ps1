@@ -118,8 +118,8 @@ foreach ($key in $Tabs.Keys) { $data[$key] = Read-Tab $key }
 $RequiredHeaders = @{
   stats            = @('種類','アイコン','名前','色','単位','抽選値','武器','成長')
   materials        = @('id','元アイテム','名前','種類','部位')
-  enemies          = @('id','名前','色','HP','MP','攻撃','防御','防御係数','会心率','会心ダメージ','経験値','物理耐性','火耐性','水耐性','木耐性','金耐性','土耐性','フィールドAI','防御の重み','命中時バフ','装備ドロップ')
-  enemy_gimmicks   = @('敵','id','重み','HP以下','クールダウン')
+  enemies          = @('id','名前','色','HP','MP','攻撃','防御','防御係数','会心率','会心ダメージ','経験値','攻撃属性','物理耐性','火耐性','水耐性','木耐性','金耐性','土耐性','フィールドAI','防御の重み','命中時バフ','装備ドロップ')
+  enemy_gimmicks   = @('敵','id','重み','HP以下','クールダウン','params')
   enemy_drops      = @('敵','素材','最小','最大')
   jobs             = @('id','名前','色','前提','経験値係数','成長')
   job_skills       = @('職業','id','名前','必要レベル','前提スキル','コスト','種類','params')
@@ -502,7 +502,13 @@ foreach ($r in $data.consumables) {
 
 $buffsBody = Read-Fn 'init\asset\buff\buffs.mcfunction'
 $BuffIds = @([regex]::Matches($buffsBody, 'asset\.buff\.types append value \{id:"([a-z_]+)"') | ForEach-Object { $_.Groups[1].Value })
-$GimmickIds = @(Get-ChildItem (Join-Path $fnRoot 'battle\enemy_ai\gimmick') -Filter *.mcfunction | ForEach-Object { $_.BaseName })
+# ギミック: battle/enemy_ai/gimmick/<id>.mcfunction があるもの(サブフォルダは補助の関数なので数えない)。
+# 必要な params はその関数の $(…) から読む
+$GimmickParams = @{}
+foreach ($f in Get-ChildItem (Join-Path $fnRoot 'battle\enemy_ai\gimmick') -Filter *.mcfunction) { $GimmickParams[$f.BaseName] = Macro-Args ([IO.File]::ReadAllText($f.FullName, [Text.Encoding]::UTF8)) }
+# ギミックの params のうち、値を確かめるもの
+$ElementIds = @($DamageCols.Values)
+$GimmickTargets = @('one','all')
 # 表示の単位で書き、×100して内部の値にする列
 $EnemyStatCols = [ordered]@{ 'HP' = 'hp'; 'MP' = 'mp'; '攻撃' = 'atk'; '防御' = 'def'; '防御係数' = 'coef'; '会心率' = 'crit_rate'; '会心ダメージ' = 'crit_damage' }
 $ResistCols = [ordered]@{ '物理耐性' = 'physics'; '火耐性' = 'fire'; '水耐性' = 'water'; '木耐性' = 'wood'; '金耐性' = 'metal'; '土耐性' = 'earth' }
@@ -524,6 +530,11 @@ foreach ($r in $data.enemies) {
   $exp = Cell $r '経験値'; if ($exp -eq '') { $exp = '0' }
   if (Check-Int $tab $n '経験値' $exp 0) { $stats.Add("exp:$exp") }
   $e.stats = $stats -join ','
+
+  # 攻撃属性: 物理/火/水/木/金/土(空なら物理)
+  $el = Cell $r '攻撃属性'; if ($el -eq '') { $el = '物理' }
+  if (-not $DamageCols.Contains($el)) { Add-Err $tab $n "「攻撃属性」($el) は $(@($DamageCols.Keys) -join ' / ') のどれかにしてください"; $el = '物理' }
+  $e.element = $DamageCols[$el]
 
   $resist = New-Object System.Collections.Generic.List[string]
   foreach ($col in $ResistCols.Keys) {
@@ -568,13 +579,24 @@ foreach ($r in $data.enemy_gimmicks) {
   $tab = $Tabs.enemy_gimmicks; $n = $r.__row
   $eid = Cell $r '敵'; $gid = Cell $r 'id'
   if (-not $enemies.Contains($eid)) { Add-Err $tab $n "敵「$eid」が「敵」タブにありません"; continue }
-  if ($GimmickIds -notcontains $gid) { Add-Err $tab $n "ギミック「$gid」の関数 battle/enemy_ai/gimmick/$gid.mcfunction がありません(今あるもの: $($GimmickIds -join ' / '))"; continue }
+  if (-not $GimmickParams.ContainsKey($gid)) { Add-Err $tab $n "ギミック「$gid」の関数 battle/enemy_ai/gimmick/$gid.mcfunction がありません(今あるもの: $(@($GimmickParams.Keys) -join ' / '))"; continue }
   $w = Cell $r '重み'; $hb = Cell $r 'HP以下'; $cd = Cell $r 'クールダウン'
   if ($hb -eq '') { $hb = '100' }
   if (-not (Check-Int $tab $n '重み' $w 1)) { continue }
   if (-not (Check-Int $tab $n 'HP以下' $hb 0)) { continue }
+
+  # params: 「キー=値; …」。ギミックの関数の $(…) がすべて要る。値はそのまま(内部の値)
+  $params = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
+  foreach ($need in $GimmickParams[$gid]) { if (-not $params.Contains($need)) { Add-Err $tab $n "ギミック「$gid」には params の $need が必要です" } }
+  if ($params.Contains('buff') -and $BuffIds -notcontains $params['buff']) { Add-Err $tab $n "params の buff「$($params['buff'])」が init/asset/buff/buffs にありません" }
+  if ($params.Contains('element') -and $ElementIds -notcontains $params['element']) { Add-Err $tab $n "params の element「$($params['element'])」は $($ElementIds -join ' / ') のどれかにしてください" }
+  if ($params.Contains('target') -and $GimmickTargets -notcontains $params['target']) { Add-Err $tab $n "params の target「$($params['target'])」は $($GimmickTargets -join ' / ') のどちらかにしてください" }
+  foreach ($k in @('stacks','power','percent','chance')) { if ($params.Contains($k)) { [void](Check-Int $tab $n "params の $k" $params[$k] 1) } }
+  $ps = @($params.Keys | ForEach-Object { "$($_):$(Snbt-Value $params[$_])" }) -join ','
+
   $g = "{id:`"$gid`",weight:$w,hp_below:$hb"
   if ($cd -ne '') { if (-not (Check-Int $tab $n 'クールダウン' $cd 0)) { continue }; $g += ",cooldown:$cd" }
+  $g += ",params:{$ps}"
   $enemies[$eid].gimmicks.Add("$g}")
 }
 
@@ -603,6 +625,7 @@ foreach ($id in $enemies.Keys) {
   $parts.Add("resist:{$($e.resist)}")
   $dp = New-Object System.Collections.Generic.List[string]
   $dp.Add("loot_table:`"test:enemy/$id`"")
+  $dp.Add("attack_element:`"$($e.element)`"")
   if ($e.buffs -ne '') { $dp.Add("buff_on_hit:[$($e.buffs)]") }
   if ($e.edrops -ne '') { $dp.Add("equip_drops:[$($e.edrops)]") }
   if ($e.field) { $dp.Add('ai_field_enabled:1b') }

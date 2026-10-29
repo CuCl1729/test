@@ -1,2 +1,3 @@
-﻿敵,id,重み,HP以下,クールダウン
-goblin,enrage,40,30,2
+﻿敵,id,重み,HP以下,クールダウン,params
+goblin,enrage,40,30,2,buff=atk_up; stacks=2
+goblin,heal,20,40,3,percent=20
