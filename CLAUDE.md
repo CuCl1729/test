@@ -100,15 +100,21 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   `test:asset/enemy/spawn {id}` → `asset/enemy/load` builds the `enemy.*` storage root and the `#enemy`
   scores from it (HP/MP start full; damage bonuses 100, pene/debuff 0 are fixed in `load`), then
   `asset/enemy/summon.mcfunction` copies `enemy.data` onto the summoned entity's `data` tag verbatim.
-  `data` carries `buff_on_hit`, `loot_table` (`test:enemy/<id>`, generated JSON), `equip_drops`,
+  `data` carries `buff_on_hit`, `loot_table` (`test:enemy/<id>`, generated JSON), `attack_element` (the
+  normal attack's element, from the sheet's 攻撃属性; `battle/action/attack_damage_enemy`), `equip_drops`,
   `ai_field_enabled`, `ai` (weighted attack/defend/gimmick behavior read by
   `battle/enemy_ai/decide.mcfunction`). `dummy` is intentionally kept static (a balance-testing
   mannequin, no `ai`/`ai_field_enabled`); new behaviors go on new enemies like `goblin`, not on `dummy`.
   Spawn any enemy with `test:debug/spawn_enemy_id {id}` (also in the debug menu).
-- **AI gimmicks**: a per-enemy `data.ai.gimmicks` entry (`{id, weight, hp_below?, cooldown?}`) is
-  matched to `battle/enemy_ai/gimmick/<id>.mcfunction`. Extending an enemy's move set is: declare an
-  entry, write that one function (it must end by calling `battle/action/attack`, `.../defend`, or
-  `battle/turn_end` directly).
+- **AI gimmicks**: a per-enemy `data.ai.gimmicks` entry (`{id, weight, hp_below?, cooldown?, params}`, from
+  the sheet's 敵のギミック tab) is matched to `battle/enemy_ai/gimmick/<id>.mcfunction`, which `act_gimmick`
+  calls `with` the entry's `params` (the generator requires every `$(…)` of that file). Existing ones:
+  `enrage` (buff self + attack), `magic` (element/power/target/label; its own `#damage`, no crit — the
+  player magic path needs MP/burnout/effect_damage that enemies don't have), `heal`, `curse` (debuff
+  players), `rally` (buff allied enemies). Targeting players goes through `enemy_ai/part/target_{one,all}
+  {fn}`; helpers live in `enemy_ai/part/` (not in `gimmick/`, whose files are all treated as gimmicks).
+  Extending an enemy's move set is: write that one function (it must end by calling
+  `battle/action/attack`, `.../defend`, or `battle/turn_end` directly) and add a sheet row.
   Actions are weighted-random over attack (fixed) + defend (0 unless an enemy explicitly declares
   `data.ai.defend_weight` — enemies deliberately default to *not* defending, since HP-scaled defend
   weight was found to make fights drag on) + eligible gimmicks.
@@ -175,6 +181,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
       `battle/enemy_ai/gimmick/`, and required `params` against that file's `$(…)` names (magic: the
       per-id file; buffs: all `buff/on/*/<id>`)
     - cross-references (series, recipe materials by role, drops, enemy buffs/equip drops, job prerequisites)
+    - enemy `攻撃属性` (物理/火/水/木/金/土), gimmick `params` against the gimmick file's `$(…)` (and `buff`,
+      `element`, `target` values); consumable `revive` `percent` 1–100
     - every magic element, buff, base stat and constant has a row; job `exp_coefficient` ≥ 1 (0 would
       level up forever); gimmick `hp_below` defaults to 100 (a missing value would read as 0)
     - consumables: `every` ≥ 1; `heal_hp`/`heal_mp` take `percent`/`flat` as non-negative integers (a
@@ -232,8 +240,10 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     don't alter existing gear) and summed in `equip/add_item` through the substatus `entry_queue`.
   - Consumables: `asset.consumable.<id> = {item, name, every, effect:{kind, params}}`, item marked
     `custom_data.test.consumable`, built by `item/consumable/build {id}`. `test:consumable/use {id}`
-    (@s = user) runs `consumable/effect/<kind>` with `params` and is independent of slots, so a future
-    turn-based item action can call it. All strengths live in `params`, never in the effect function.
+    (@s = user) runs `consumable/effect/<kind>` with `params` and is independent of slots; the turn-based
+    item action (`battle/action/item_use`) uses it too. Both callers ask `consumable/can_use {id}` first and
+    don't spend the item when it returns 0 (e.g. `revive` with nobody to revive). All strengths live in
+    `params`, never in the effect function.
     HP/MP healing goes through `consumable/heal {stat, percent, flat}` (max × percent ÷ 100 + flat × 100;
     `flat` uses the lore's units, the scores are ×100), clamped to the max.
   - Magic and item slots are collected by `equip/add_item` → `equip/proc/collect_loop` into
@@ -272,7 +282,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   | `smithy` 工房 | 武器 `craft/weapon/forge/craft` / 防具 `craft/equip/craft` |
   | `enhance` 強化台 | 強化 `craft/weapon/upgrade/craft` / 付与 `craft/equip_magic/craft` |
   | `magic` 魔法台 (breakable) | 作成 `magic/crafter/{main,enter}` / 研究 `craft/magic/research/{main,enter}` |
-  | `job` Jobステーション | one mode, `job/station/{main,enter}` |
+  | `job` Jobステーション | one mode, `job/station/{main,enter}` (7 per page: slots 1–7, arrows 0/8, 戻る 18) |
   - Markers are tagged `station` with `data.station = {id, mode, main|craft}`; `tick` has one line for all of
     them → `station/tick`: re-place a missing barrel (or, if `breakable`, return a spawn egg via
     `station/give_egg` and remove itself), decorate (`station/decorate`), enter the mode
@@ -311,16 +321,32 @@ Turn-based battle (`battle/`) uses the same formulas as real time, through share
 - Magic: `magic/pay` (MP + burnout, magic_efficiency; fails when MP is short) and `magic/prepare_damage`
   (magic_damage_bonus, `damage/pre_magic`, effect_damage) are used by both `magic/` and
   `battle/action/skill_cast/apply_*`.
-- Stats are recalculated with `status/refresh {status}`, which skips non-players and the battle item UI
-  (`battle/ui/item` computes them before handing out the action items). Use it instead of `status/update`
-  in anything a battle action can reach.
+- Stats are recalculated with `status/refresh {status}`, which skips non-players and players holding a
+  battle UI item in the main hand (`status/ui_in_hand`: `battle_action` / `active_skill` / `battle_item_pick`).
+  `equip/recalc` and `status/recalc` use the same check, so armor changed outside your own action applies at
+  once. `battle/turn_start_player` rebuilds everything (`equip/rebuild_status`) and the wand bonus while the
+  real weapon is still in hand. Use `status/refresh` instead of `status/update` in anything a battle action
+  can reach.
+- Wand bonus: `magic/wand_bonus` sums `magic_damage_bonus` from both hands' custom_data into
+  `test.magic.wand_bonus`, added by `magic/prepare_damage`.
 - Every action ends in `battle/turn_end`, which runs `battle/proc_all` (equipment slots, then rewards) before
   `check_end`. Rewards are paid per kill: `damage/kill` tags a battle enemy `battle_reward_pending`
   (it's deleted at the end of that tick) and `proc_all` → `battle/grant_reward` pays everyone tagged
-  `battle_reward_recipient`. Returning from a battle (`return_member*`) clears buffs.
+  `battle_reward_recipient`. Returning from a battle (`return_member*`) clears buffs and `turn_order`.
+  Kills outside battle (test:action, field first strikes) are paid by one `tick` line before the kill line →
+  `reward/field_kill` (everyone within 32 blocks; `dummy` excluded), never mid-damage.
 - Player actions: 攻撃 / スキル / アイテム (`action/item` chat list or `ui/item_hover_*` minecart →
   `action/item_use` → `consumable/use`) / 防御 / 逃げる (`action/flee`; the last living player ending the
-  battle without a result).
+  battle without a result). An action with no valid target (`action/no_target`) re-shows the menu
+  without using the turn.
+- Battle minecarts (27 slots) list entries in slots 0–25; the confirm/cast button is slot 26.
+- Joining mid-battle: hitting the field's `battle_entrance` (shown with particles from `tick`) runs
+  `battle/join` at it. `enter_arena` counts members on the marker with the same battle id.
+- Revive (`status/revive {percent}` on a fallen player; `status/revive_pick {radius}` tags one
+  `revive_target` and returns 0 if there's none — call it before spending anything): consumable kind
+  `revive`, magic effect `revive` (aoe only: battle `apply_aoe`, real-time `magic/aoe/revive`), job skill
+  kind `revive` (both handlers). In battle a fallen player is just HP ≤ 0 (skipped by `turn_start`); in
+  test:action it is `downed`, which no longer recovers through passive regen, and can't cast or use skills.
 
 ## JSON schemas in this game version (26.3)
 
