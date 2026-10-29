@@ -1,0 +1,3 @@
+﻿id,名前,アイテム,ランク,採掘速度
+novice_pickaxe,見習いのツルハシ,wooden_pickaxe,1,6
+miner_pickaxe,鉱夫のツルハシ,stone_pickaxe,2,8

@@ -25,6 +25,11 @@ function test:init/asset/material/
 
 function test:init/asset/enemy/
 
+# 採掘(原石・鉱山・ツルハシ)
+function test:init/asset/ore/
+function test:init/asset/mine/
+function test:init/asset/pickaxe/
+
 function test:init/asset/station
 
 function test:init/asset/debug/rng

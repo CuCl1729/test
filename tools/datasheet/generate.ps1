@@ -38,6 +38,9 @@ $Tabs = [ordered]@{
   buff_values      = 'バフの数値'
   player_base      = 'プレイヤー初期値'
   config           = '定数'
+  ores             = '原石'
+  mines            = '鉱山'
+  pickaxes         = 'ツルハシ'
 }
 
 # ---------------------------------------------------------------- 取得
@@ -85,6 +88,11 @@ if (-not $Offline) {
 $Errors = New-Object System.Collections.Generic.List[string]
 function Add-Err([string]$tab, [int]$row, [string]$msg) {
   if ($row -gt 0) { $script:Errors.Add("[$tab] $row 行目: $msg") } else { $script:Errors.Add("[$tab] $msg") }
+}
+# 警告: 表示するが、生成は止めない
+$Warnings = New-Object System.Collections.Generic.List[string]
+function Add-Warn([string]$tab, [int]$row, [string]$msg) {
+  if ($row -gt 0) { $script:Warnings.Add("[$tab] $row 行目: $msg") } else { $script:Warnings.Add("[$tab] $msg") }
 }
 
 function Read-Tab([string]$key) {
@@ -135,6 +143,9 @@ $RequiredHeaders = @{
   workshop_recipes = @('素材','部位','装備id')
   runes            = @('id','元アイテム','名前','能力')
   consumables      = @('id','元アイテム','名前','every','効果','params')
+  ores             = @('id','名前','アイテム')
+  mines            = @('id','名前','鉱石ブロック','原石','必要ランク','レア度の重み','範囲','入口','構造物','リセット間隔')
+  pickaxes         = @('id','名前','アイテム','ランク','採掘速度')
 }
 foreach ($key in $Tabs.Keys) {
   $path = Join-Path $dataDir "$key.csv"
@@ -788,8 +799,120 @@ foreach ($r in $data.config) {
 foreach ($k in $ConfigKeys.Keys) { if (-not $constCfg.Contains($k)) { Add-Err $Tabs.config 0 "キー「$k」の行がありません" } }
 if ($constCfg.Contains('turn_time') -and $constCfg.Contains('turn_warn') -and [int]$constCfg.turn_warn -ge [int]$constCfg.turn_time) { Add-Err $Tabs.config 0 'turn_warn(予告の残り秒数)は turn_time(制限時間)より小さくしてください' }
 
+# ---------------------------------------------------------------- 採掘(原石・鉱山・ツルハシ)
+
+# 「1 2 3」のように空白で区切った整数を $count 個読む。誤りなら $null
+function Parse-Ints($tab, $row, $col, [string]$text, [int]$count, [string]$example) {
+  $parts = @($text.Trim() -split '\s+' | Where-Object { $_ -ne '' })
+  if ($parts.Count -ne $count) { Add-Err $tab $row "「$col」は整数を $count 個、空白で区切って書いてください(例: $example)"; return $null }
+  foreach ($p in $parts) { if ($p -notmatch '^-?\d+$') { Add-Err $tab $row "「$col」の $p が整数ではありません"; return $null } }
+  return ,([long[]]$parts)
+}
+
+# 原石: asset.ore.<id> = {item, name}
+$ores = [ordered]@{}
+$oreDecls = New-Object System.Collections.Generic.List[string]
+foreach ($r in $data.ores) {
+  $tab = $Tabs.ores; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($ores.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $item = Cell $r 'アイテム'
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
+  if ($item -notmatch $ItemPattern) { Add-Err $tab $n "「アイテム」($item) がアイテムidの形ではありません" }
+  $ores[$id] = @{ name = $name; item = $item }
+  $oreDecls.Add("data modify storage test: asset.ore.$id set value {item:`"$item`",name:`"$(Esc $name)`"}")
+  $oreDecls.Add("data modify storage test: asset.ore_ids append value `"$id`"")
+}
+
+# 鉱山: asset.mine.<id>。鉱石ブロックは鉱山ごとに別のもの(そのブロックのルートテーブルを上書きするため、マップ全体に効く)
+$BlockPattern = '^(minecraft:)?[a-z0-9_]+$'
+$StructurePattern = '^([a-z0-9_.-]+:[a-z0-9_./-]+)@\s*(-?\d+)\s+(-?\d+)\s+(-?\d+)$'
+$mines = [ordered]@{}
+$mineDecls = New-Object System.Collections.Generic.List[string]
+$blockOwner = @{}
+foreach ($r in $data.mines) {
+  $tab = $Tabs.mines; $n = $r.__row
+  $errBefore = $Errors.Count
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($mines.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $block = Cell $r '鉱石ブロック'; $ore = Cell $r '原石'
+  $rank = Cell $r '必要ランク'; $iv = Cell $r 'リセット間隔'; if ($iv -eq '') { $iv = '0' }
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
+
+  $bid = ''
+  if ($block -notmatch $BlockPattern) { Add-Err $tab $n "「鉱石ブロック」($block) はバニラのブロックのid(例: deepslate_copper_ore)にしてください" }
+  else {
+    $bid = $block -replace '^minecraft:', ''
+    if ($bid -eq 'red_shulker_box') { Add-Err $tab $n '「鉱石ブロック」に red_shulker_box は使えません(アイテムを渡す仕組みで使っているため)' }
+    elseif ($blockOwner.ContainsKey($bid)) { Add-Err $tab $n "鉱石ブロック「$bid」は鉱山「$($blockOwner[$bid])」でも使われています(1つのブロックは1つの鉱山だけ)" }
+    else { $blockOwner[$bid] = $id }
+  }
+  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「原石」タブにありません" }
+  [void](Check-Int $tab $n '必要ランク' $rank 1)
+  [void](Check-Int $tab $n 'リセット間隔' $iv 0)
+
+  # レア度の重み: 「レア度=重み; …」(レア度は1〜5)
+  $weights = New-Object System.Collections.Generic.List[string]
+  $total = 0
+  $wp = Parse-Pairs $tab $n 'レア度の重み' (Cell $r 'レア度の重み') ';'
+  foreach ($k in $wp.Keys) {
+    if ($k -notmatch '^[1-5]$') { Add-Err $tab $n "「レア度の重み」のレア度 $k は1〜5にしてください"; continue }
+    if (-not (Check-Int $tab $n "レア度 $k の重み" $wp[$k] 0)) { continue }
+    $weights.Add("{rare:$k,weight:$($wp[$k])}"); $total += [int]$wp[$k]
+  }
+  if ($total -lt 1) { Add-Err $tab $n '「レア度の重み」の合計を1以上にしてください(例: 1=60; 2=25; 3=10; 4=4; 5=1)' }
+
+  $area = Parse-Ints $tab $n '範囲' (Cell $r '範囲') 6 '100 30 200 140 70 240'
+  $ent = Parse-Ints $tab $n '入口' (Cell $r '入口') 3 '98 40 220'
+
+  # 構造物: 「<名前空間>:<パス>@x y z; …」
+  $structs = New-Object System.Collections.Generic.List[string]
+  foreach ($part in ((Cell $r '構造物') -split ';')) {
+    $p = $part.Trim(); if ($p -eq '') { continue }
+    if ($p -notmatch $StructurePattern) { Add-Err $tab $n "「構造物」の「$p」は <名前空間>:<パス>@x y z の形で書いてください(例: test:mine/copper_0@100 30 200)"; continue }
+    $structs.Add("{id:`"$($Matches[1])`",x:$($Matches[2]),y:$($Matches[3]),z:$($Matches[4])}")
+  }
+  if ($structs.Count -eq 0) { Add-Err $tab $n '「構造物」が空です' }
+
+  if ($Errors.Count -gt $errBefore) { continue }
+  # 範囲は小さい方の角と、そこからの幅(セレクターの dx/dy/dz)にしておく
+  $x1 = [Math]::Min($area[0], $area[3]); $y1 = [Math]::Min($area[1], $area[4]); $z1 = [Math]::Min($area[2], $area[5])
+  $dx = [Math]::Abs($area[3] - $area[0]); $dy = [Math]::Abs($area[4] - $area[1]); $dz = [Math]::Abs($area[5] - $area[2])
+  $mines[$id] = @{ row = $n; block = $bid; ore = $ore; rank = [int]$rank }
+  $mineDecls.Add("data modify storage test: asset.mine.$id set value {name:`"$(Esc $name)`",block:`"minecraft:$bid`",ore:`"$ore`",rank:$rank,weights:[$($weights -join ',')],weight_total:$total,area:{x1:$x1,y1:$y1,z1:$z1,dx:$dx,dy:$dy,dz:$dz},entrance:{x:$($ent[0]),y:$($ent[1]),z:$($ent[2])},structures:[$($structs -join ',')],interval:$iv}")
+  $mineDecls.Add("data modify storage test: asset.mine_ids append value `"$id`"")
+}
+
+# ツルハシ: asset.pickaxe.<id> = {item, name, rank, speed, blocks}。blocks は必要ランクがこのランク以下の鉱山の鉱石ブロック
+$pickaxes = [ordered]@{}
+$pickaxeDecls = New-Object System.Collections.Generic.List[string]
+foreach ($r in $data.pickaxes) {
+  $tab = $Tabs.pickaxes; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($pickaxes.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $item = Cell $r 'アイテム'; $rank = Cell $r 'ランク'; $speed = Cell $r '採掘速度'
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
+  if ($item -notmatch $ItemPattern) { Add-Err $tab $n "「アイテム」($item) がアイテムidの形ではありません" }
+  if (-not (Check-Int $tab $n 'ランク' $rank 1)) { continue }
+  if ($speed -notmatch '^\d+(\.\d+)?$' -or [double]::Parse($speed, [Globalization.CultureInfo]::InvariantCulture) -le 0) { Add-Err $tab $n "「採掘速度」($speed) は0より大きい数にしてください"; continue }
+  $blocks = @($mines.Values | Where-Object { $_.rank -le [int]$rank } | ForEach-Object { "`"minecraft:$($_.block)`"" })
+  if ($blocks.Count -eq 0) { Add-Err $tab $n "このツルハシ(ランク $rank)で掘れる鉱山がありません"; continue }
+  $pickaxes[$id] = @{ rank = [int]$rank }
+  $pickaxeDecls.Add("data modify storage test: asset.pickaxe.$id set value {item:`"$item`",name:`"$(Esc $name)`",rank:$rank,speed:$($speed)f,blocks:[$($blocks -join ',')]}")
+  $pickaxeDecls.Add("data modify storage test: asset.pickaxe_ids append value `"$id`"")
+}
+# どのツルハシでも掘れない鉱山は警告(生成は止めない)
+$maxRank = 0; foreach ($p in $pickaxes.Values) { if ($p.rank -gt $maxRank) { $maxRank = $p.rank } }
+foreach ($mid in $mines.Keys) {
+  if ($mines[$mid].rank -gt $maxRank) { Add-Warn $Tabs.mines $mines[$mid].row "鉱山「$mid」(必要ランク $($mines[$mid].rank))は、どのツルハシでも掘れません" }
+}
+
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
+foreach ($w in $Warnings) { Write-Host "  警告: $w" -ForegroundColor Yellow }
 if ($Errors.Count -gt 0) {
   Write-Host "誤りが $($Errors.Count) 件あります。ファイルは書き換えていません。" -ForegroundColor Red
   foreach ($e in $Errors) { Write-Host "  $e" -ForegroundColor Red }
@@ -916,9 +1039,29 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   "data modify storage test: asset.config set value {$cfgSnbt}")
 $outputs[$rel] = $lines
 
+$rel = 'init\asset\ore\generated\ores.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 原石の種類(スプレッドシートの「原石」タブ)。asset.ore.<id> = {item, name}。作るのは test:item/ore/build {id, rare}。',
+  '# asset.ore_ids は全種類のidの一覧(デバッグで配るときに使う)', '')
+$outputs[$rel] = $lines + $oreDecls
+
+$rel = 'init\asset\mine\generated\mines.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 鉱山(スプレッドシートの「鉱山」タブ)。asset.mine.<id> = {name, block, ore, rank, weights:[{rare,weight}], weight_total,',
+  '#   area:{x1,y1,z1,dx,dy,dz}(小さい方の角とセレクターの幅), entrance:{x,y,z}, structures:[{id,x,y,z}], interval(秒)}。',
+  '# asset.mine_ids は全鉱山のidの一覧(test:mine/tick_second が毎秒見回る)', '')
+$outputs[$rel] = $lines + $mineDecls
+
+$rel = 'init\asset\pickaxe\generated\pickaxes.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# ツルハシ(スプレッドシートの「ツルハシ」タブ)。asset.pickaxe.<id> = {item, name, rank, speed, blocks}。',
+  '# blocks は必要ランクがこのランク以下の鉱山の鉱石ブロック(生成時に計算)。作るのは test:item/pickaxe/build {id}', '')
+$outputs[$rel] = $lines + $pickaxeDecls
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
-  'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated')
+  'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
+  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d
