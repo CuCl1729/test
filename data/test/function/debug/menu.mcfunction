@@ -26,6 +26,7 @@ tellraw @s [{text:"[ルーン全種]",color:aqua,click_event:{action:"run_comman
 tellraw @s {text:"― 採掘 ―",color:gold}
 tellraw @s [{text:"[ツルハシ全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_pickaxes"}},{text:" (アドベンチャーモードで鉱山の鉱石だけ掘れる)",color:dark_gray}]
 tellraw @s [{text:"[原石全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_ores"}},{text:" (全種類×レア度1〜5を10個ずつ)",color:dark_gray}]
+tellraw @s [{text:"[鉱山リセット]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/reset_mine"}},{text:" "},{text:"[鉱山の状態]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/mine_status"}},{text:" (リセットは今いる鉱山を、間隔を無視して元に戻す)",color:dark_gray}]
 
 tellraw @s {text:"― 敵 ―",color:gold}
 data modify storage test: debug_work.enemy_queue set from storage test: asset.enemy_ids

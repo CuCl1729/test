@@ -48,6 +48,8 @@ scoreboard players add @e[tag=time] test.time 1
 scoreboard players add #clock test.time 1
 execute if score #clock test.time matches 20.. run scoreboard players set #clock test.time 0
 execute if score #clock test.time matches 0 run function test:buff/tick_second_all
+# 鉱山のリセット(誰もいない鉱山に最初の1人が入ったら元に戻す)
+execute if score #clock test.time matches 0 run function test:mine/tick_second
 
 execute as @e[tag=executer] at @s rotated as @n[tag=Temp] run teleport @s ~ ~ ~ ~ ~
 
