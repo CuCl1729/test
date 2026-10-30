@@ -30,6 +30,9 @@ function test:init/asset/ore/
 function test:init/asset/mine/
 function test:init/asset/pickaxe/
 
+# 機械(原石を加工するマルチブロック)。形は手書き
+function test:init/asset/machine
+
 function test:init/asset/station
 
 function test:init/asset/debug/rng

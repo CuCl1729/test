@@ -33,6 +33,9 @@ function test:debug/menu/vein_loop
 tellraw @s [{text:"[鉱脈のずれを調べる]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/check_veins"}},{text:" (片方のマップにだけある鉱脈など)",color:dark_gray}]
 tellraw @s [{text:"[近くの鉱脈を消す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/remove_vein"}},{text:" "},{text:"[鉱脈の名前を表示]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/show_veins {visible:1b}"}},{text:" "},{text:"[隠す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/show_veins {visible:0b}"}}]
 
+tellraw @s {text:"― 機械 ―",color:gold}
+tellraw @s [{text:"[部品×64]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:machine_part,count:64}"}},{text:" "},{text:"[入れ物×16]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:machine_container,count:16}"}},{text:" "},{text:"[ホッパー×16]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:machine_hopper,count:16}"}},{text:" "},{text:"[レンチ]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:wrench,count:1}"}}]
+
 tellraw @s {text:"― 敵 ―",color:gold}
 data modify storage test: debug_work.enemy_queue set from storage test: asset.enemy_ids
 function test:debug/menu/enemy_loop

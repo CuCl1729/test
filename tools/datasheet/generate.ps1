@@ -862,6 +862,15 @@ foreach ($r in $data.mines) {
 # (置くのは鉱脈のアマスタ。鉱山をリセットすると、アマスタの位置に structure を置き直す)。
 # 鉱石ブロックは鉱脈ごとに別のもの(そのブロックのルートテーブルを上書きするため、マップ全体に効く)
 $BlockPattern = '^(minecraft:)?[a-z0-9_]+$'
+# 機械に使うブロック(手書きのタグ data/test/tags/block/machine_{floor,parts,containers,cores}.json とホッパー)。
+# 鉱脈の鉱石ブロックには使えない(ルートテーブルを上書きし合うため)
+$MachineBlocks = @('hopper')
+foreach ($t in @('machine_floor','machine_parts','machine_containers','machine_cores')) {
+  $tp = Join-Path $repoRoot "data\test\tags\block\$t.json"
+  if (-not (Test-Path $tp)) { continue }
+  $tj = [IO.File]::ReadAllText($tp, [Text.Encoding]::UTF8) | ConvertFrom-Json
+  foreach ($v in $tj.values) { if ("$v" -notmatch '^#') { $MachineBlocks += ("$v" -replace '^minecraft:', '') } }
+}
 $StructurePattern = '^[a-z0-9_.-]+:[a-z0-9_./-]+$'
 $veins = [ordered]@{}
 $veinDecls = New-Object System.Collections.Generic.List[string]
@@ -881,6 +890,7 @@ foreach ($r in $data.veins) {
   else {
     $bid = $block -replace '^minecraft:', ''
     if ($bid -eq 'red_shulker_box') { Add-Err $tab $n '「鉱石ブロック」に red_shulker_box は使えません(アイテムを渡す仕組みで使っているため)' }
+    elseif ($MachineBlocks -contains $bid) { Add-Err $tab $n "「鉱石ブロック」に $bid は使えません(機械の床・部品・入れ物・核・ホッパーに使っているため。data/test/tags/block/machine_*.json)" }
     elseif ($blockOwner.ContainsKey($bid)) { Add-Err $tab $n "鉱石ブロック「$bid」は鉱脈「$($blockOwner[$bid])」でも使われています(1つのブロックは1つの鉱脈だけ)" }
     else { $blockOwner[$bid] = $id }
   }

@@ -1,0 +1,9 @@
+{
+  "values": [
+    "#test:machine_floor",
+    "#test:machine_parts",
+    "#test:machine_containers",
+    "#test:machine_cores",
+    "minecraft:hopper"
+  ]
+}
