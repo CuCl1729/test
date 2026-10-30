@@ -289,9 +289,13 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   the veins' ore blocks can, through the pickaxe's `can_break`. A mine is only a place (area, entrance, reset
   interval). A vein is a reusable kind (one ore block → one ore kind, required rank, rarity weights, and a
   shape structure) placed anywhere by **vein markers**: invisible marker armor stands tagged `mine_vein` with
-  `data.vein = "<vein id>"` (`debug/spawn_vein {id}` puts one at the block corner under you, in the current
-  map only — place them in both `test:action` and `test:turn`). A marker belongs to whichever mine's area
-  contains it.
+  `data.vein = "<vein id>"`. A marker belongs to whichever mine's area contains it. The two maps share terrain
+  and coordinates, so markers are placed once for both: `debug/spawn_vein {id}` puts one at the block corner
+  under you in **both** `test:action` and `test:turn` (coordinates passed as numbers to `debug/vein_place`;
+  an existing marker at that spot is kept if it's the same vein, replaced otherwise), and `debug/remove_vein`
+  removes within 2 blocks in both. The other map is usually unloaded, so these (and `debug/check_veins`) do
+  nothing and offer `debug/mine_load {mode:add|remove}` (forceloads every mine area in both maps; saved with
+  the world, so turn it off afterwards) when a spot isn't loaded (`debug/vein_loaded`).
   - Registries (generated from the 原石 / 鉱山 / 鉱脈 / ツルハシ tabs): `asset.ore.<id> = {item, name}`,
     `asset.mine.<id> = {name, area:{x1,y1,z1,dx,dy,dz}, entrance:{x,y,z}, interval}`,
     `asset.vein.<id> = {block, ore, rank, weights:[{rare,weight}], weight_total, structure}`,
@@ -320,7 +324,10 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     players whose feet or head block isn't air to the entrance, and sets `ready_at = now + interval × 20`.
     The arena is never checked. Debug menu: `debug/reset_mine` resets the mine you're standing in regardless
     of the interval; `debug/mine_status` lists each mine's state; per-vein placement buttons,
-    `debug/remove_vein` (markers within 2 blocks) and `debug/show_veins {visible}` (name tags within 64).
+    `debug/remove_vein`, `debug/show_veins {visible}` (name tags within 64), `debug/mine_load`, and
+    `debug/check_veins`, which compares each mine's markers between the two maps (same selection as
+    `place_veins`) and lists those present on one side only or with a different vein at the same spot, with
+    buttons to fix each line (`debug/vein_fix_place` / `vein_fix_remove`).
 - **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
   `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
   craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:
