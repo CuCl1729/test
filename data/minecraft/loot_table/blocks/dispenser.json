@@ -5,17 +5,29 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
-          "name": "minecraft:dispenser",
-          "modifier": [
+          "type": "minecraft:alternatives",
+          "children": [
             {
-              "type": "minecraft:set_components",
-              "components": {
-                "minecraft:custom_data": {"test": {"machine_item": "port_out"}},
-                "minecraft:custom_name": {"text": "搬出口", "italic": false},
-                "minecraft:can_place_on": {"blocks": "#test:machine_placeable"},
-                "minecraft:tooltip_display": {"hidden_components": ["minecraft:can_place_on"]}
-              }
+              "type": "minecraft:item",
+              "name": "minecraft:dispenser",
+              "condition": {
+                "type": "minecraft:location_check",
+                "predicate": {"dimension": "test:factory"}
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_components",
+                  "components": {
+                    "minecraft:custom_data": {"test": {"machine_item": "port_out"}},
+                    "minecraft:custom_name": {"text": "搬出口", "italic": false}
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "minecraft:dispenser",
+              "condition": {"type": "minecraft:survives_explosion"}
             }
           ]
         }

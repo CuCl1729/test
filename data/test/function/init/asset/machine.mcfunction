@@ -2,20 +2,19 @@
 # 機械(3×3×3 のマルチブロック)のレジストリ。手書き(筐体の種類と性能だけはスプレッドシートの「筐体」タブから生成)。
 #
 # asset.machine_item.<id> = {item, name, kind}: 組み立てに使うアイテム。作るのは test:item/machine/build {id}
-#   kind "place":  置けるブロック。can_place_on で #test:machine_placeable(床・筐体・搬入口・搬出口・核・ホッパー)の上か横にだけ置ける。
-#                  壊すと、同じもの(custom_data・名前・can_place_on が一致)が落ちるよう、そのブロックのルートテーブルを上書きしてある
-#                  (data/minecraft/loot_table/blocks/<ブロック>.json。中身を変えるときは両方そろえる)
-#   kind "wrench": レンチ。can_break で #test:machine_breakable(筐体・搬入口・搬出口・核・ホッパー)だけ壊せる。耐久値は減らない
-#   筐体のアイテム(casing_<筐体のid>)は init/asset/machine/generated/casings が足す
+#   kind "place":  置けるブロック(custom_data と名前だけ)。機械は工場(test:factory。サバイバル)で普通に置いて組み立てる。
+#                  工場の中で壊すと同じもの(custom_data・名前が一致)が落ちるよう、そのブロックのルートテーブルを上書きしてある
+#                  (data/minecraft/loot_table/blocks/<ブロック>.json。工場の外ではバニラと同じものが落ちる。中身を変えるときは両方そろえる)
+#   kind "wrench": レンチ。工場で #test:machine_breakable(筐体・搬入口・搬出口・核)をすぐ壊せて、正しい道具として落とす。耐久値は減らない
+#   筐体のアイテム(casing_<筐体のid>)は init/asset/machine/generated/casings が足す。ホッパーは普通のホッパーを使う
 
 data modify storage test: asset.machine_item set value {}
 data modify storage test: asset.machine_item_ids set value []
 
 data modify storage test: asset.machine_item.port_in set value {item:"minecraft:dropper",name:"搬入口",kind:"place"}
 data modify storage test: asset.machine_item.port_out set value {item:"minecraft:dispenser",name:"搬出口",kind:"place"}
-data modify storage test: asset.machine_item.machine_hopper set value {item:"minecraft:hopper",name:"ホッパー",kind:"place"}
 data modify storage test: asset.machine_item.wrench set value {item:"minecraft:iron_hoe",name:"レンチ",kind:"wrench"}
-data modify storage test: asset.machine_item_ids set value ["port_in","port_out","machine_hopper","wrench"]
+data modify storage test: asset.machine_item_ids set value ["port_in","port_out","wrench"]
 
 # 筐体: asset.casing.<id> = {block, name, speed, by_bonus, fuel_use} と asset.casing_ids(スプレッドシートの「筐体」タブから生成)
 data modify storage test: asset.casing set value {}

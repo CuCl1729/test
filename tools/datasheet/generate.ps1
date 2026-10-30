@@ -885,10 +885,10 @@ foreach ($r in $data.mines) {
 # (置くのは鉱脈のアマスタ。鉱山をリセットすると、アマスタの位置に structure を置き直す)。
 # 鉱石ブロックは鉱脈ごとに別のもの(そのブロックのルートテーブルを上書きするため、マップ全体に効く)
 $BlockPattern = '^(minecraft:)?[a-z0-9_]+$'
-# 機械に使うブロック(手書きのタグ data/test/tags/block/machine_{floor,cores,inputs,outputs}.json とホッパー)。
-# 筐体(下の「筐体」タブ)・鉱脈の鉱石ブロックには使えない(ルートテーブルを上書きし合うため)
-$MachineBlocks = @('hopper')
-foreach ($t in @('machine_floor','machine_cores','machine_inputs','machine_outputs')) {
+# 機械に使うブロック(手書きのタグ data/test/tags/block/machine_{cores,inputs,outputs}.json)。
+# 筐体(下の「筐体」タブ)・鉱脈の鉱石ブロックには使えない(機械の形の判定が混ざるのと、ルートテーブルを上書きし合うため)
+$MachineBlocks = @()
+foreach ($t in @('machine_cores','machine_inputs','machine_outputs')) {
   $tp = Join-Path $repoRoot "data\test\tags\block\$t.json"
   if (-not (Test-Path $tp)) { continue }
   $tj = [IO.File]::ReadAllText($tp, [Text.Encoding]::UTF8) | ConvertFrom-Json
@@ -916,7 +916,7 @@ foreach ($r in $data.casings) {
   else {
     $bid = $block -replace '^minecraft:', ''
     if ($bid -eq 'red_shulker_box') { Add-Err $tab $n '「ブロック」に red_shulker_box は使えません(アイテムを渡す仕組みで使っているため)' }
-    elseif ($MachineBlocks -contains $bid) { Add-Err $tab $n "「ブロック」に $bid は使えません(機械の床・核・搬入口・搬出口・ホッパーに使っているため)" }
+    elseif ($MachineBlocks -contains $bid) { Add-Err $tab $n "「ブロック」に $bid は使えません(機械の核・搬入口・搬出口に使っているため)" }
     elseif ($casingBlocks.ContainsKey($bid)) { Add-Err $tab $n "ブロック「$bid」は筐体「$($casingBlocks[$bid])」でも使われています" }
     else { $casingBlocks[$bid] = $id }
   }
@@ -932,7 +932,8 @@ foreach ($r in $data.casings) {
 }
 if ($casings.Count -eq 0) { Add-Err $Tabs.casings 0 '筐体が1つもありません(機械を組み立てられなくなります)' }
 foreach ($cid in $casings.Keys) { $MachineBlocks += $casings[$cid].block }
-# 筐体のブロックのルートテーブル: 壊すと、item/machine/build(build_place)で作るものと同じ筐体のアイテムを1個落とす
+# 筐体のブロックのルートテーブル: 工場(test:factory)の中で壊すと、item/machine/build で作るものと同じ筐体のアイテム
+# (custom_data と名前)を1個落とす。工場の外ではバニラと同じく、そのブロックが落ちる(爆発で壊れたときは落ちないこともある)
 foreach ($cid in $casings.Keys) {
   $c = $casings[$cid]
   $blockLoot["loot_table\blocks\$($c.block).json"] = @"
@@ -943,17 +944,29 @@ foreach ($cid in $casings.Keys) {
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
-          "name": "minecraft:$($c.block)",
-          "modifier": [
+          "type": "minecraft:alternatives",
+          "children": [
             {
-              "type": "minecraft:set_components",
-              "components": {
-                "minecraft:custom_data": {"test": {"machine_item": "casing_$cid"}},
-                "minecraft:custom_name": {"text": $(Json-Str $c.name), "italic": false},
-                "minecraft:can_place_on": {"blocks": "#test:machine_placeable"},
-                "minecraft:tooltip_display": {"hidden_components": ["minecraft:can_place_on"]}
-              }
+              "type": "minecraft:item",
+              "name": "minecraft:$($c.block)",
+              "condition": {
+                "type": "minecraft:location_check",
+                "predicate": {"dimension": "test:factory"}
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_components",
+                  "components": {
+                    "minecraft:custom_data": {"test": {"machine_item": "casing_$cid"}},
+                    "minecraft:custom_name": {"text": $(Json-Str $c.name), "italic": false}
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "minecraft:$($c.block)",
+              "condition": {"type": "minecraft:survives_explosion"}
             }
           ]
         }
@@ -981,7 +994,7 @@ foreach ($r in $data.veins) {
   else {
     $bid = $block -replace '^minecraft:', ''
     if ($bid -eq 'red_shulker_box') { Add-Err $tab $n '「鉱石ブロック」に red_shulker_box は使えません(アイテムを渡す仕組みで使っているため)' }
-    elseif ($MachineBlocks -contains $bid) { Add-Err $tab $n "「鉱石ブロック」に $bid は使えません(機械の床・核・搬入口・搬出口・ホッパー・筐体に使っているため)" }
+    elseif ($MachineBlocks -contains $bid) { Add-Err $tab $n "「鉱石ブロック」に $bid は使えません(機械の核・搬入口・搬出口・筐体に使っているため)" }
     elseif ($blockOwner.ContainsKey($bid)) { Add-Err $tab $n "鉱石ブロック「$bid」は鉱脈「$($blockOwner[$bid])」でも使われています(1つのブロックは1つの鉱脈だけ)" }
     else { $blockOwner[$bid] = $id }
   }

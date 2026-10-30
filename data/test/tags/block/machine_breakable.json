@@ -3,7 +3,6 @@
     "#test:machine_casings",
     "#test:machine_inputs",
     "#test:machine_outputs",
-    "#test:machine_cores",
-    "minecraft:hopper"
+    "#test:machine_cores"
   ]
 }
