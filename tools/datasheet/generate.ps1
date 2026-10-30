@@ -812,7 +812,10 @@ function Parse-Ints($tab, $row, $col, [string]$text, [int]$count, [string]$examp
   return ,([long[]]$parts)
 }
 
-# 原石: asset.ore.<id> = {item, name}
+# 原石: asset.ore.<id> = {item, model, name}。元のアイテム(item)は全種類 $OreBaseItem に揃え、見た目だけを item_model で変える。
+# バニラのかまどの焼くレシピはアイテムのidだけで判定するので、raw_copper などのままだとかまどでインゴットになってしまうため。
+# 目印(鉱石ブロックのルートテーブル)も同じ形にする。「アイテム」列は見た目(item_model)に使うアイテム
+$OreBaseItem = 'minecraft:paper'
 $ores = [ordered]@{}
 $oreDecls = New-Object System.Collections.Generic.List[string]
 foreach ($r in $data.ores) {
@@ -823,8 +826,9 @@ foreach ($r in $data.ores) {
   $name = Cell $r '名前'; $item = Cell $r 'アイテム'
   if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
   if ($item -notmatch $ItemPattern) { Add-Err $tab $n "「アイテム」($item) がアイテムidの形ではありません" }
-  $ores[$id] = @{ name = $name; item = $item }
-  $oreDecls.Add("data modify storage test: asset.ore.$id set value {item:`"$item`",name:`"$(Esc $name)`"}")
+  $model = if ($item -match ':') { $item } else { "minecraft:$item" }
+  $ores[$id] = @{ name = $name; model = $model }
+  $oreDecls.Add("data modify storage test: asset.ore.$id set value {item:`"$OreBaseItem`",model:`"$model`",name:`"$(Esc $name)`"}")
   $oreDecls.Add("data modify storage test: asset.ore_ids append value `"$id`"")
 }
 
@@ -896,9 +900,8 @@ foreach ($r in $data.veins) {
 
   if ($Errors.Count -gt $errBefore) { continue }
   # 鉱石ブロックのルートテーブル(data/minecraft/loot_table/blocks/<ブロック>.json)。抽選はせず、目印を1個だけ落とす。
-  # 目印は custom_data に鉱脈のidを持ち、見た目と名前は原石と同じ。持ち物に入ると test:mine/token/convert が原石に変える
+  # 目印は custom_data に鉱脈のidを持ち、元のアイテム・見た目・名前は原石と同じ。持ち物に入ると test:mine/token/convert が原石に変える
   $o = $ores[$ore]
-  $oreItem = if ($o.item -match ':') { $o.item } else { "minecraft:$($o.item)" }
   $blockLoot["loot_table\blocks\$bid.json"] = @"
 {
   "type": "minecraft:block",
@@ -908,12 +911,13 @@ foreach ($r in $data.veins) {
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "$oreItem",
+          "name": "$OreBaseItem",
           "modifier": [
             {
               "type": "minecraft:set_components",
               "components": {
                 "minecraft:custom_data": {"test": {"ore_token": "$id"}},
+                "minecraft:item_model": "$($o.model)",
                 "minecraft:custom_name": {"text": $(Json-Str $o.name), "italic": false}
               }
             }
@@ -1085,7 +1089,8 @@ $outputs[$rel] = $lines
 
 $rel = 'init\asset\ore\generated\ores.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  '# 原石の種類(スプレッドシートの「原石」タブ)。asset.ore.<id> = {item, name}。作るのは test:item/ore/build {id, rare}。',
+  "# 原石の種類(スプレッドシートの「原石」タブ)。asset.ore.<id> = {item, model, name}。item は全種類 $OreBaseItem(かまどで焼けないもの)、",
+  '# 見た目は model(item_model)で変える。作るのは test:item/ore/build {id, rare}。',
   '# asset.ore_ids は全種類のidの一覧(デバッグで配るときに使う)', '')
 $outputs[$rel] = $lines + $oreDecls
 

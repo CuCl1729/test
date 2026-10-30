@@ -6,12 +6,13 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:raw_copper",
+          "name": "minecraft:paper",
           "modifier": [
             {
               "type": "minecraft:set_components",
               "components": {
                 "minecraft:custom_data": {"test": {"ore_token": "copper_vein"}},
+                "minecraft:item_model": "minecraft:raw_copper",
                 "minecraft:custom_name": {"text": "銅の原石", "italic": false}
               }
             }
