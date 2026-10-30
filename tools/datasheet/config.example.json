@@ -23,6 +23,10 @@
     "ores": "",
     "mines": "",
     "veins": "",
-    "pickaxes": ""
+    "pickaxes": "",
+    "refine_main": "",
+    "refine_by": "",
+    "pre_by": "",
+    "fuels": ""
   }
 }
