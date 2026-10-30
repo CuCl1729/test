@@ -274,6 +274,8 @@ scoreboard objectives add test.owner dummy
 
 # 工場(test:factory)の区画の番号(プレイヤー。1から。#factory_next が最後に割り当てた番号)
  scoreboard objectives add test.factory.plot dummy
+# 工場の鍵を最後に使ったゲーム時間(右クリックを押している間は毎tick発火するので、1秒あけるため)
+ scoreboard objectives add test.factory.cooldown dummy
 
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy

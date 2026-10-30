@@ -13,4 +13,7 @@ execute if score @s test.battle.id matches 1.. if score @s test.battle.turn_orde
 
 execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test{status_check:1b} run function test:ui/status/check
 
+# 工場の鍵(工場の区画へ行く / 元の場所へ戻る)
+execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test{factory_key:1b} run function test:factory/key
+
 advancement revoke @s only test:trigger/right_click/mainhand

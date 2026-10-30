@@ -34,7 +34,8 @@ tellraw @s [{text:"[鉱脈のずれを調べる]",color:aqua,click_event:{action
 tellraw @s [{text:"[近くの鉱脈を消す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/remove_vein"}},{text:" "},{text:"[鉱脈の名前を表示]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/show_veins {visible:1b}"}},{text:" "},{text:"[隠す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/show_veins {visible:0b}"}}]
 
 tellraw @s {text:"― 工場 ―",color:gold}
-tellraw @s [{text:"[区画の情報]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/factory_info"}},{text:" (番号・座標・作り終えたか・forceload)",color:dark_gray}]
+tellraw @s [{text:"[工場の鍵]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_factory_key"}},{text:" "},{text:"[区画へ / 戻る]",color:aqua,click_event:{action:"run_command",command:"/function test:factory/use"}},{text:" (鍵と同じ動き)",color:dark_gray}]
+tellraw @s [{text:"[区画の情報]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/factory_info"}},{text:" "},{text:"[番号を指定して移る…]",color:aqua,click_event:{action:"suggest_command",command:"/function test:debug/factory_goto {n:1}"}},{text:" (クリエイティブ向け)",color:dark_gray}]
 
 tellraw @s {text:"― 機械 ―",color:gold}
 data modify storage test: debug_work.casing_queue set from storage test: asset.casing_ids

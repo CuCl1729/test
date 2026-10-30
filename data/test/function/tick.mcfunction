@@ -42,6 +42,13 @@ execute as @e[tag=damage_pop,scores={test.damage_pop.life=..0}] run tag @s add k
 function test:debug/tick
 execute as @a[tag=downed] run function test:status/downed_tick
 
+# 工場(test:factory): 区画ができるのを待っている人を移す(forceload した直後はチャンクがまだ読み込まれていないため)
+execute as @a[tag=factory_going] run function test:factory/go_try
+# 工場の中だけサバイバル、それ以外はアドベンチャー(クリエイティブ・スペクテイターの人はそのまま)。
+# 毎tick見るので、鍵で行き来したときのほか、工場で死んで別の場所で復活したときやログインし直したときも切り替わる
+execute as @a[gamemode=adventure] at @s if dimension test:factory run gamemode survival @s
+execute as @a[gamemode=survival] at @s unless dimension test:factory run gamemode adventure @s
+
 scoreboard players add @e[tag=time] test.time 1
 
 # 全体共通の1秒クロック。バフ/デバフの継続時間は「秒」で持っているためここで進める
