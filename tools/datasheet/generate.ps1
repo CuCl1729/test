@@ -1142,8 +1142,19 @@ foreach ($relPath in $blockLoot.Keys) {
   [IO.File]::WriteAllText($path, $blockLoot[$relPath], $utf8)
 }
 
-Write-Host "生成しました($($outputs.Count + $blockLoot.Count) ファイル)。ゲーム内で /reload してください(ルートテーブルを変えたときはワールドの読み直し)。" -ForegroundColor Green
+# 全鉱脈の鉱石ブロックのタグ(#test:mine_ores)。mine/rescue が、リセットで戻った鉱石に埋まった人を探すのに使う。
+# 鉱脈が無くても空のタグを書く。毎回まるごと書き直すので、鉱脈を消しても古い内容は残らない(手で消す必要は無い)
+$mineOresPath = Join-Path $repoRoot 'data\test\tags\block\mine_ores.json'
+$oreBlockLines = @($veins.Values | ForEach-Object { "    `"minecraft:$($_.block)`"" })
+$mineOresJson = if ($oreBlockLines.Count -gt 0) { "{`n  `"values`": [`n$($oreBlockLines -join ",`n")`n  ]`n}`n" } else { "{`n  `"values`": []`n}`n" }
+$mineOresDir = Split-Path $mineOresPath -Parent
+if (-not (Test-Path $mineOresDir)) { New-Item -ItemType Directory -Path $mineOresDir | Out-Null }
+[IO.File]::WriteAllText($mineOresPath, $mineOresJson, $utf8)
+
+Write-Host "生成しました($($outputs.Count + $blockLoot.Count + 1) ファイル)。ゲーム内で /reload してください(ルートテーブルやタグを変えたときはワールドの読み直し)。" -ForegroundColor Green
 foreach ($relPath in $outputs.Keys) { Write-Host "  data/test/function/$($relPath -replace '\\','/')" }
 if ($blockLoot.Count -gt 0) { Write-Host '  鉱石ブロックのルートテーブル(古いものは自動で消さないので、鉱山を消したときは手で消す):' }
 foreach ($relPath in $blockLoot.Keys) { Write-Host "  data/minecraft/$($relPath -replace '\\','/')" }
+Write-Host '  鉱石ブロックのタグ(毎回まるごと書き直す):'
+Write-Host '  data/test/tags/block/mine_ores.json'
 foreach ($relPath in $removed) { Write-Host "  (削除) data/test/function/$($relPath -replace '\\','/')" -ForegroundColor Yellow }

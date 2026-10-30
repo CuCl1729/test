@@ -174,6 +174,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     ore blocks, `data/minecraft/loot_table/blocks/<block>.json` (a fixed single token, no rolls). JSON can't
     carry the header, so **stale ones are not deleted: remove them by hand** when a mine is removed or its
     block changes (the script lists the ones it wrote). Never touch the hand-written `red_shulker_box.json`.
+    The block tag `data/test/tags/block/mine_ores.json` (`#test:mine_ores`, every vein's ore block) is also
+    generated, but rewritten whole on every run (empty when there are no veins), so it never goes stale.
   - Registries that keep their structure hand-written and only get numbers merged in from the sheet:
     `init/asset/magic/{types,effects}` (+ `magic/generated/values`), `init/asset/buff/buffs`
     (+ `buff/generated/values`). Constants are `asset.config.{turn_time,turn_warn,enemy_delay,accessory_limit}`.
@@ -321,7 +323,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     `mine/reset {id,dim}` makes every vein marker inside the area place its vein's structure at its own
     position (`mine/place_veins` → `place_vein` → `place template <structure> ~ ~ ~`; files live in
     `data/test/structure/vein/`, saved with structure voids around the ore so tunnels aren't filled), moves
-    players whose feet or head block isn't air to the entrance, and sets `ready_at = now + interval × 20`.
+    players whose feet or head block is a vein ore (`#test:mine_ores`; standing in a torch, rail or water
+    doesn't count) to the entrance (`mine/rescue`), and sets `ready_at = now + interval × 20`.
     The arena is never checked. Debug menu: `debug/reset_mine` resets the mine you're standing in regardless
     of the interval; `debug/mine_status` lists each mine's state; per-vein placement buttons,
     `debug/remove_vein`, `debug/show_veins {visible}` (name tags within 64), `debug/mine_load`, and
