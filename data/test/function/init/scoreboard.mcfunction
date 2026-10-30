@@ -265,6 +265,10 @@ scoreboard objectives add test.owner dummy
 # しきい値型のイベント(HP低下時など)の枠に中身があれば1。tickで見張る人を絞る(test:equip/proc/watch_recalc)
  scoreboard objectives add test.equip.has_watch dummy
 
+# 機械(マーカー)の残りの燃料(あと何回処理できるか)と、今の処理の進み具合(秒)
+ scoreboard objectives add test.machine.fuel dummy
+ scoreboard objectives add test.machine.progress dummy
+
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy
  scoreboard objectives add test.debug.display dummy

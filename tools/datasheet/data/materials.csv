@@ -11,3 +11,9 @@ chest_pattern,paper,鎧の型紙,型紙,chest
 legs_pattern,paper,脚甲の型紙,型紙,legs
 feet_pattern,paper,靴の型紙,型紙,feet
 accessory_pattern,paper,装飾の型紙,型紙,accessory
+copper_ingot,copper_ingot,銅のインゴット,素材,
+pure_copper,resin_brick,純銅,素材,
+iron_ingot,iron_ingot,鉄のインゴット,素材,
+steel,netherite_scrap,鋼,素材,
+slag,nether_brick,鉱滓,素材,
+stone_dust,clay_ball,石の粉,素材,

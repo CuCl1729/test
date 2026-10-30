@@ -7,7 +7,7 @@ execute if score #ore_give_left test.temporary < #ore_chunk test.temporary run s
 scoreboard players operation #ore_give_left test.temporary -= #ore_chunk test.temporary
 
 scoreboard players set #ore_built test.temporary 0
-$execute store result score #ore_built test.temporary run function test:item/ore/build {id:"$(id)",rare:$(rare)}
+$execute store result score #ore_built test.temporary run function test:item/ore/build {id:"$(id)",rare:$(rare),stage:0}
 execute if score #ore_built test.temporary matches 0 run return 0
 execute store result storage test: loot.item.count int 1 run scoreboard players get #ore_chunk test.temporary
 

@@ -20,3 +20,6 @@ data modify storage test: asset.debug.rng append value {key:"ore_rarity",label:"
 data modify storage test: asset.debug.rng append value {key:"equip_drop_rare",label:"落ちた装備のレア度",range:"3..4",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"equip_effect",label:"セット効果の発動",range:"1..100 (値≦確率で発動)",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"equip_proc_event",label:"自動発動の枠のイベント",range:"0..イベント数-1 (asset.equip.proc_eventsの何番目か)",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"refine_main",label:"精錬の主産物",range:"1..重みの合計 (重みを順に足して当たった行)",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"refine_by",label:"精錬の副産物",range:"1..100 (値≦確率で出る。行ごと)",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"pre_by",label:"前処理の副産物",range:"1..100 (値≦確率で出る。行ごと)",fixable:1b}

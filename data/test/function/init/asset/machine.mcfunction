@@ -43,3 +43,9 @@ data modify storage test: asset.machine.smelter set value {name:"精錬炉",core
   parts:[{block:"minecraft:dropper",l:1,u:0,f:0},{block:"minecraft:dropper",l:-1,u:0,f:0},{block:"minecraft:waxed_cut_copper",l:0,u:1,f:0},{block:"minecraft:waxed_cut_copper",l:0,u:0,f:-1}],\
   input:{l:1,u:0,f:0},fuel:{l:-1,u:0,f:0},output:{l:0,u:1,f:1}}
 data modify storage test: asset.machine_ids append value "smelter"
+
+# 加工途中の原石の名前の頭と見た目: asset.ore_stage.s<段階> = {prefix, model}。前処理の機械の stage_prefix / stage_model から作る
+# (test:item/ore/build {id, rare, stage} が読む)
+data modify storage test: asset.ore_stage set value {}
+data modify storage test: machine_work.index_queue set from storage test: asset.machine_ids
+function test:init/asset/machine/stage_loop

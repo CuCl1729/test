@@ -32,6 +32,7 @@ function test:init/asset/pickaxe/
 
 # 機械(原石を加工するマルチブロック)。形は手書き
 function test:init/asset/machine
+function test:init/asset/refine/
 
 function test:init/asset/station
 

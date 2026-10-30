@@ -27,3 +27,15 @@ data modify storage test: asset.material.feet_pattern set value {item:"paper",na
 data modify storage test: asset.material_ids append value "feet_pattern"
 data modify storage test: asset.material.accessory_pattern set value {item:"paper",name:"装飾の型紙",role:"pattern",data:{pattern:{part:"accessory"}}}
 data modify storage test: asset.material_ids append value "accessory_pattern"
+data modify storage test: asset.material.copper_ingot set value {item:"copper_ingot",name:"銅のインゴット",role:"material",data:{material:{kind:"copper_ingot"}}}
+data modify storage test: asset.material_ids append value "copper_ingot"
+data modify storage test: asset.material.pure_copper set value {item:"resin_brick",name:"純銅",role:"material",data:{material:{kind:"pure_copper"}}}
+data modify storage test: asset.material_ids append value "pure_copper"
+data modify storage test: asset.material.iron_ingot set value {item:"iron_ingot",name:"鉄のインゴット",role:"material",data:{material:{kind:"iron_ingot"}}}
+data modify storage test: asset.material_ids append value "iron_ingot"
+data modify storage test: asset.material.steel set value {item:"netherite_scrap",name:"鋼",role:"material",data:{material:{kind:"steel"}}}
+data modify storage test: asset.material_ids append value "steel"
+data modify storage test: asset.material.slag set value {item:"nether_brick",name:"鉱滓",role:"material",data:{material:{kind:"slag"}}}
+data modify storage test: asset.material_ids append value "slag"
+data modify storage test: asset.material.stone_dust set value {item:"clay_ball",name:"石の粉",role:"material",data:{material:{kind:"stone_dust"}}}
+data modify storage test: asset.material_ids append value "stone_dust"

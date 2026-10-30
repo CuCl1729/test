@@ -42,6 +42,10 @@ $Tabs = [ordered]@{
   mines            = '鉱山'
   veins            = '鉱脈'
   pickaxes         = 'ツルハシ'
+  refine_main      = '精錬の主産物'
+  refine_by        = '精錬の副産物'
+  pre_by           = '前処理の副産物'
+  fuels            = '燃料'
 }
 
 # ---------------------------------------------------------------- 取得
@@ -148,6 +152,10 @@ $RequiredHeaders = @{
   mines            = @('id','名前','範囲','入口','リセット間隔')
   veins            = @('id','鉱石ブロック','原石','必要ランク','レア度の重み','構造物')
   pickaxes         = @('id','名前','アイテム','ランク','採掘速度')
+  refine_main      = @('原石','素材','重み','レア度ごとの重み','個数','段階ごとの個数')
+  refine_by        = @('原石','素材','確率','レア度ごとの確率','段階ごとの確率','個数')
+  pre_by           = @('機械','原石','素材','確率','レア度ごとの確率','個数')
+  fuels            = @('アイテム','回数')
 }
 foreach ($key in $Tabs.Keys) {
   $path = Join-Path $dataDir "$key.csv"
@@ -968,6 +976,98 @@ foreach ($vid in $veins.Keys) {
   if ($veins[$vid].rank -gt $maxRank) { Add-Warn $Tabs.veins $veins[$vid].row "鉱脈「$vid」(必要ランク $($veins[$vid].rank))は、どのツルハシでも掘れません" }
 }
 
+# ---------------------------------------------------------------- 精錬(機械で原石を加工した結果)と燃料
+
+# 前処理の機械のid: 手書きのレジストリ init/asset/machine の asset.machine.<id> のうち kind:"pre" のもの
+$PreMachines = @()
+$machineBody = (Read-Fn 'init\asset\machine.mcfunction') -replace '\\\r?\n\s*', ''
+foreach ($m in [regex]::Matches($machineBody, '(?m)^data modify storage test: asset\.machine\.([a-z0-9_]+) set value \{.*kind:"pre"')) { $PreMachines += $m.Groups[1].Value }
+
+# 精錬の主産物: asset.refine.<原石>.main = [{material, weight, weight_rare, count, count_stage}]。
+#   重み = weight + weight_rare × (レア度 − 1)、個数 = count + count_stage × 段階
+# 精錬の副産物: asset.refine.<原石>.by = [{material, chance, chance_rare, chance_stage, count}]。
+#   確率(%) = chance + chance_rare × (レア度 − 1) + chance_stage × 段階(100で頭打ち)
+$refineMain = [ordered]@{}; $refineBy = [ordered]@{}; $refineBaseWeight = @{}
+foreach ($o in $ores.Keys) { $refineMain[$o] = New-Object System.Collections.Generic.List[string]; $refineBy[$o] = New-Object System.Collections.Generic.List[string]; $refineBaseWeight[$o] = 0 }
+foreach ($r in $data.refine_main) {
+  $tab = $Tabs.refine_main; $n = $r.__row
+  $ore = Cell $r '原石'; $mat = Cell $r '素材'
+  $w = Cell $r '重み'; $wr = Cell $r 'レア度ごとの重み'; $c = Cell $r '個数'; $cs = Cell $r '段階ごとの個数'
+  if ($wr -eq '') { $wr = '0' }; if ($cs -eq '') { $cs = '0' }
+  $ok = $true
+  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「原石」タブにありません"; $ok = $false }
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
+  if (-not (Check-Int $tab $n '重み' $w 0)) { $ok = $false }
+  if (-not (Check-Int $tab $n 'レア度ごとの重み' $wr 0)) { $ok = $false }
+  if (-not (Check-Int $tab $n '個数' $c 1)) { $ok = $false }
+  if (-not (Check-Int $tab $n '段階ごとの個数' $cs 0)) { $ok = $false }
+  if (-not $ok) { continue }
+  $refineMain[$ore].Add("{material:`"$mat`",weight:$w,weight_rare:$wr,count:$c,count_stage:$cs}")
+  $refineBaseWeight[$ore] += [int]$w
+}
+foreach ($o in $ores.Keys) {
+  if ($refineMain[$o].Count -eq 0) { Add-Err $Tabs.refine_main 0 "原石「$o」の行がありません(精錬炉に入れても何も出なくなるため、1行以上書いてください)" }
+  elseif ($refineBaseWeight[$o] -lt 1) { Add-Err $Tabs.refine_main 0 "原石「$o」の「重み」の合計を1以上にしてください(レア度1のときに、何も選べなくなるため)" }
+}
+foreach ($r in $data.refine_by) {
+  $tab = $Tabs.refine_by; $n = $r.__row
+  $ore = Cell $r '原石'; $mat = Cell $r '素材'
+  $ch = Cell $r '確率'; $chr = Cell $r 'レア度ごとの確率'; $chs = Cell $r '段階ごとの確率'; $c = Cell $r '個数'
+  if ($chr -eq '') { $chr = '0' }; if ($chs -eq '') { $chs = '0' }
+  $ok = $true
+  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「原石」タブにありません"; $ok = $false }
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
+  if (-not (Check-Int $tab $n '確率' $ch 0)) { $ok = $false }
+  if (-not (Check-Int $tab $n 'レア度ごとの確率' $chr 0)) { $ok = $false }
+  if (-not (Check-Int $tab $n '段階ごとの確率' $chs 0)) { $ok = $false }
+  if (-not (Check-Int $tab $n '個数' $c 1)) { $ok = $false }
+  if (-not $ok) { continue }
+  $refineBy[$ore].Add("{material:`"$mat`",chance:$ch,chance_rare:$chr,chance_stage:$chs,count:$c}")
+}
+$refineDecls = New-Object System.Collections.Generic.List[string]
+foreach ($o in $ores.Keys) {
+  $refineDecls.Add("data modify storage test: asset.refine.$o set value {main:[$($refineMain[$o] -join ',')],by:[$($refineBy[$o] -join ',')]}")
+}
+
+# 前処理の副産物: asset.pre_by.<機械>.<原石> = [{material, chance, chance_rare, count}]。
+#   確率(%) = chance + chance_rare × (レア度 − 1)(100で頭打ち)。行の無い機械と原石の組み合わせは、副産物が出ないだけ
+$preBy = [ordered]@{}
+foreach ($r in $data.pre_by) {
+  $tab = $Tabs.pre_by; $n = $r.__row
+  $mc = Cell $r '機械'; $ore = Cell $r '原石'; $mat = Cell $r '素材'
+  $ch = Cell $r '確率'; $chr = Cell $r 'レア度ごとの確率'; $c = Cell $r '個数'
+  if ($chr -eq '') { $chr = '0' }
+  $ok = $true
+  if ($PreMachines -notcontains $mc) { Add-Err $tab $n "機械「$mc」は前処理の機械ではありません(init/asset/machine の kind:`"pre`" の機械: $($PreMachines -join ' / '))"; $ok = $false }
+  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「原石」タブにありません"; $ok = $false }
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
+  if (-not (Check-Int $tab $n '確率' $ch 0)) { $ok = $false }
+  if (-not (Check-Int $tab $n 'レア度ごとの確率' $chr 0)) { $ok = $false }
+  if (-not (Check-Int $tab $n '個数' $c 1)) { $ok = $false }
+  if (-not $ok) { continue }
+  $key = "$mc.$ore"
+  if (-not $preBy.Contains($key)) { $preBy[$key] = New-Object System.Collections.Generic.List[string] }
+  $preBy[$key].Add("{material:`"$mat`",chance:$ch,chance_rare:$chr,count:$c}")
+}
+foreach ($key in $preBy.Keys) {
+  $refineDecls.Add("data modify storage test: asset.pre_by.$key set value [$($preBy[$key] -join ',')]")
+}
+
+# 燃料: asset.fuel."<アイテムid>" = {count}(1個で何回処理できるか)。アイテムのidだけで判定する
+$fuels = @{}
+$fuelDecls = New-Object System.Collections.Generic.List[string]
+foreach ($r in $data.fuels) {
+  $tab = $Tabs.fuels; $n = $r.__row
+  $item = Cell $r 'アイテム'; $c = Cell $r '回数'
+  if ($item -notmatch $ItemPattern) { Add-Err $tab $n "「アイテム」($item) がアイテムidの形ではありません"; continue }
+  $fid = if ($item -match ':') { $item } else { "minecraft:$item" }
+  if ($fuels.ContainsKey($fid)) { Add-Err $tab $n "アイテム「$fid」が重複しています"; continue }
+  if (-not (Check-Int $tab $n '回数' $c 1)) { continue }
+  $fuels[$fid] = $true
+  $fuelDecls.Add("data modify storage test: asset.fuel.`"$fid`" set value {count:$c}")
+}
+if ($fuels.Count -eq 0) { Add-Warn $Tabs.fuels 0 '燃料が1つもありません(機械が動かなくなります)' }
+
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
 foreach ($w in $Warnings) { Write-Host "  警告: $w" -ForegroundColor Yellow }
@@ -1100,7 +1200,7 @@ $outputs[$rel] = $lines
 $rel = 'init\asset\ore\generated\ores.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
   "# 原石の種類(スプレッドシートの「原石」タブ)。asset.ore.<id> = {item, model, name}。item は全種類 $OreBaseItem(かまどで焼けないもの)、",
-  '# 見た目は model(item_model)で変える。作るのは test:item/ore/build {id, rare}。',
+  '# 見た目は model(item_model)で変える。作るのは test:item/ore/build {id, rare, stage}。',
   '# asset.ore_ids は全種類のidの一覧(デバッグで配るときに使う)', '')
 $outputs[$rel] = $lines + $oreDecls
 
@@ -1124,10 +1224,25 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# blocks は必要ランクがこのランク以下の鉱脈の鉱石ブロック(生成時に計算)。作るのは test:item/pickaxe/build {id}', '')
 $outputs[$rel] = $lines + $pickaxeDecls
 
+$rel = 'init\asset\refine\generated\refine.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 機械で原石を加工した結果(スプレッドシートの「精錬の主産物」「精錬の副産物」「前処理の副産物」タブ)。',
+  '#   asset.refine.<原石> = {main:[{material, weight, weight_rare, count, count_stage}], by:[{material, chance, chance_rare, chance_stage, count}]}',
+  '#     main は精錬炉で必ず1つ重みで選ぶ(重み = weight + weight_rare × (レア度−1)、個数 = count + count_stage × 段階)。',
+  '#     by は行ごとに確率(%) = chance + chance_rare × (レア度−1) + chance_stage × 段階 で出る',
+  '#   asset.pre_by.<前処理の機械>.<原石> = [{material, chance, chance_rare, count}]: 前処理の副産物(確率 = chance + chance_rare × (レア度−1))', '')
+$outputs[$rel] = $lines + $refineDecls
+
+$rel = 'init\asset\refine\generated\fuels.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 機械の燃料(スプレッドシートの「燃料」タブ)。asset.fuel."<アイテムid>" = {count}(1個で何回処理できるか)。',
+  '# アイテムのidだけで判定する(custom_data は見ない)', '')
+$outputs[$rel] = $lines + $fuelDecls
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
-  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated')
+  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d

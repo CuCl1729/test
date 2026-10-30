@@ -37,6 +37,7 @@ tellraw @s {text:"― 機械 ―",color:gold}
 tellraw @s [{text:"[部品×64]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:machine_part,count:64}"}},{text:" "},{text:"[入れ物×16]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:machine_container,count:16}"}},{text:" "},{text:"[ホッパー×16]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:machine_hopper,count:16}"}},{text:" "},{text:"[レンチ]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:wrench,count:1}"}}]
 data modify storage test: debug_work.machine_queue set from storage test: asset.machine_ids
 function test:debug/menu/machine_loop
+tellraw @s [{text:"[石炭×16]",color:aqua,click_event:{action:"run_command",command:"/give @s minecraft:coal 16"}},{text:" "},{text:"[近くの機械の状態]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/machine_status"}},{text:" (形・燃料・処理中のもの)",color:dark_gray}]
 
 tellraw @s {text:"― 敵 ―",color:gold}
 data modify storage test: debug_work.enemy_queue set from storage test: asset.enemy_ids

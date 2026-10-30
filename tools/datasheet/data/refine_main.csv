@@ -1,0 +1,5 @@
+﻿原石,素材,重み,レア度ごとの重み,個数,段階ごとの個数
+copper,copper_ingot,90,0,1,1
+copper,pure_copper,10,20,1,0
+iron,iron_ingot,90,0,1,1
+iron,steel,10,20,1,0
