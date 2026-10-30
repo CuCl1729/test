@@ -205,7 +205,14 @@ generic driver — it means adding a declaration plus a small per-id handler fun
 
     So adding a stat type, an effect kind or a skill kind needs no script change. Columns are documented in
     `tools/datasheet/README.md`; `tools/` is outside `data/`, so the game ignores it.
-  - Materials (`asset.material.<id> = {item, name, role, data}`, roles material/catalyst/special/pattern)
+  - **Items that vanilla mechanics must not use (materials, ores, staged ores, ore tokens) all share one base
+    item and get their look from `minecraft:item_model`.** Vanilla crafting, smelting, fuel, composting,
+    brewing and dispensers look only at the item id, never at `custom_data`, so a material on `copper_ingot` or
+    `bone` would craft into nuggets or bone meal. The base is the script's `$CommonBaseItem`
+    (`minecraft:recovery_compass`, checked against the 26.3 jar: no recipe uses it, its only tag `compasses`
+    is used by no data, and it isn't fuel/compostable/brewable/usable/placeable and stacks to 64). The 素材
+    tab's 元アイテム and the 原石 tab's アイテム columns only choose the look.
+  - Materials (`asset.material.<id> = {item, model, name, role, data}`, roles material/catalyst/special/pattern)
     are built by `test:item/material/build {id}` and handed out by `test:item/material/give {id,count}`
     (straight into the inventory, not through `test:loot/give`, whose `tooltip_display` would stop them
     stacking). Enemy drops and the debug menu both use it, so dropped and given materials stack.
@@ -314,9 +321,9 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - **Each vein's ore block is used only for that vein, inside its mine.** The script overwrites that block's
     loot table for the whole map with one token item (`custom_data.test.ore_token:"<vein id>"`, the ore's look
     and name).
-  - Ores and tokens are all `minecraft:paper` (`asset.ore.<id>.item`), which has no smelting recipe and isn't
-    fuel: vanilla furnaces match recipes by item id only, so `raw_copper` would smelt into a vanilla ingot. The
-    look comes from `minecraft:item_model` = the 原石 tab's アイテム column (`asset.ore.<id>.model`).
+  - Ores, staged ores and tokens use the common base item (`asset.ore.<id>.item` = `minecraft:recovery_compass`,
+    see Materials); the look comes from `minecraft:item_model` = the 原石 tab's アイテム column
+    (`asset.ore.<id>.model`).
   - Token → ore: `cache/update` runs `mine/token/convert` **before** copying `player_data` (so `equip/recalc`
     sees the result). Per vein id it `clear`s the tokens, rolls each one's rarity (rng key `ore_rarity`,
     1..`weight_total`, walking `weights`), and gives the ores per rarity with `item/ore/give {id,rare,count}`.

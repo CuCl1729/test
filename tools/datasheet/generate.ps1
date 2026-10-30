@@ -200,6 +200,11 @@ $Parts = @('head','chest','legs','feet','accessory')
 
 $IdPattern = '^[a-z0-9_]+$'
 $ItemPattern = '^([a-z0-9_.-]+:)?[a-z0-9_./-]+$'
+# 素材・原石・加工途中の原石・目印の元のアイテム(全部これ1種類に揃え、見た目は item_model で付ける)。
+# バニラのクラフト・かまど・ディスペンサーなどはアイテムのidだけを見るので、素材がバニラのアイテムとして使われないようにする。
+# 回復コンパスは 26.3 の jar で確かめた: どのレシピの材料にもならず(タグは compasses だけで、データでは使われていない)、
+# 燃料・コンポスター・醸造・ディスペンサーの特別な動き・右クリック・設置のどれにも当たらず、64個まで重なる
+$CommonBaseItem = 'minecraft:recovery_compass'
 $NumPattern = '^-?\d+(\.\d+)?$'
 
 function Esc([string]$s) { return $s.Replace('\', '\\').Replace('"', '\"') }
@@ -303,8 +308,10 @@ foreach ($r in $data.materials) {
   }
   # 特殊素材の効果はコードにある(鍛冶場が kind で探し、asset/weapon/ が効果を付ける)
   if ($role -eq 'special' -and $forgeCraftBody -notmatch "kind:`"$id`"") { Add-Err $tab $n "特殊素材「$id」の効果がコード(craft/weapon/forge/craft)にありません" }
-  $materials[$id] = @{ role = $role; item = $item; name = $name }
-  $materialDecls.Add("data modify storage test: asset.material.$id set value {item:`"$item`",name:`"$(Esc $name)`",role:`"$role`",data:{$snbt}}")
+  # 元のアイテムは全素材 $CommonBaseItem。「元アイテム」列は見た目(item_model)に使う
+  $model = if ($item -match ':') { $item } else { "minecraft:$item" }
+  $materials[$id] = @{ role = $role; model = $model; name = $name }
+  $materialDecls.Add("data modify storage test: asset.material.$id set value {item:`"$CommonBaseItem`",model:`"$model`",name:`"$(Esc $name)`",role:`"$role`",data:{$snbt}}")
   $materialDecls.Add("data modify storage test: asset.material_ids append value `"$id`"")
 }
 
@@ -822,10 +829,8 @@ function Parse-Ints($tab, $row, $col, [string]$text, [int]$count, [string]$examp
   return ,([long[]]$parts)
 }
 
-# 原石: asset.ore.<id> = {item, model, name}。元のアイテム(item)は全種類 $OreBaseItem に揃え、見た目だけを item_model で変える。
-# バニラのかまどの焼くレシピはアイテムのidだけで判定するので、raw_copper などのままだとかまどでインゴットになってしまうため。
+# 原石: asset.ore.<id> = {item, model, name}。元のアイテム(item)は素材と同じく $CommonBaseItem に揃え、見た目だけを item_model で変える。
 # 目印(鉱石ブロックのルートテーブル)も同じ形にする。「アイテム」列は見た目(item_model)に使うアイテム
-$OreBaseItem = 'minecraft:paper'
 $ores = [ordered]@{}
 $oreDecls = New-Object System.Collections.Generic.List[string]
 foreach ($r in $data.ores) {
@@ -838,7 +843,7 @@ foreach ($r in $data.ores) {
   if ($item -notmatch $ItemPattern) { Add-Err $tab $n "「アイテム」($item) がアイテムidの形ではありません" }
   $model = if ($item -match ':') { $item } else { "minecraft:$item" }
   $ores[$id] = @{ name = $name; model = $model }
-  $oreDecls.Add("data modify storage test: asset.ore.$id set value {item:`"$OreBaseItem`",model:`"$model`",name:`"$(Esc $name)`"}")
+  $oreDecls.Add("data modify storage test: asset.ore.$id set value {item:`"$CommonBaseItem`",model:`"$model`",name:`"$(Esc $name)`"}")
   $oreDecls.Add("data modify storage test: asset.ore_ids append value `"$id`"")
 }
 
@@ -999,7 +1004,7 @@ foreach ($r in $data.veins) {
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "$OreBaseItem",
+          "name": "$CommonBaseItem",
           "modifier": [
             {
               "type": "minecraft:set_components",
@@ -1225,7 +1230,7 @@ $outputs[$rel] = $lines
 
 $rel = 'init\asset\material\generated\materials.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  '# 素材の宣言(スプレッドシートの「素材」タブ)。asset.material.<id> = {item, name, role, data}。',
+  "# 素材の宣言(スプレッドシートの「素材」タブ)。asset.material.<id> = {item, model, name, role, data}。item は全素材 $CommonBaseItem、見た目は model(item_model)。",
   '# data はアイテムの custom_data.test に入る({material:{kind}} か、型紙なら {pattern:{part}})。作るのは test:item/material/build {id}', '')
 $outputs[$rel] = $lines + $materialDecls
 
@@ -1269,7 +1274,7 @@ $outputs[$rel] = $lines
 
 $rel = 'init\asset\ore\generated\ores.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  "# 原石の種類(スプレッドシートの「原石」タブ)。asset.ore.<id> = {item, model, name}。item は全種類 $OreBaseItem(かまどで焼けないもの)、",
+  "# 原石の種類(スプレッドシートの「原石」タブ)。asset.ore.<id> = {item, model, name}。item は全種類 $CommonBaseItem(バニラの仕組みで使われないもの)、",
   '# 見た目は model(item_model)で変える。作るのは test:item/ore/build {id, rare, stage}。',
   '# asset.ore_ids は全種類のidの一覧(デバッグで配るときに使う)', '')
 $outputs[$rel] = $lines + $oreDecls
