@@ -55,6 +55,8 @@ There isn't any — verification is manual, in-game:
   this launcher setup keeps a separate log dir per version at
   `.minecraft/versions/1.20.5/logs/latest.log` (and `.../saves/<world>/...` for world data). Check
   that path, not the top-level one, when asked to read what happened in-game.
+- **Test in creative mode.** `tick` switches anyone in survival outside the factory (`test:factory`) to
+  adventure, and anyone in adventure inside it to survival; creative and spectator are left alone.
 - There's no automated equivalent of unit tests; when a fix is non-obvious, ask for the actual
   in-game/log result rather than guessing twice. Have the user turn on the relevant debug log or watch,
   or fix/replay the roll involved; add debug output only when those don't cover it.
@@ -77,7 +79,7 @@ There isn't any — verification is manual, in-game:
 
 ## Dimensions
 
-Three custom flat dimensions under `data/test/dimension/`, each a distinct game area:
+Four custom flat dimensions under `data/test/dimension/`, each a distinct game area:
 
 - `test:turn` — the explorable field map. Enemies with `data.ai_field_enabled` wander/chase here
   (`battle/field_ai/`) and trigger `test:battle/start` on contact.
@@ -88,6 +90,8 @@ Three custom flat dimensions under `data/test/dimension/`, each a distinct game 
   per-battle loop.
 - `test:action` — the other player-controlled real-time area (weapon/skill use outside turn-based
   battle).
+- `test:factory` — 工場: per-player plots, always forceloaded, where players build machines in survival
+  (see "Factory" below). Everywhere else players are in adventure.
 
 ## The core idiom: declarations + a generic driver
 
@@ -172,17 +176,17 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
     `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine}/generated/*`.
     Stale generated `.mcfunction` files in those folders are deleted. The only generated loot tables are the
-    veins' ore blocks (a fixed single token, no rolls) and the machine casings' blocks (the casing item),
-    `data/minecraft/loot_table/blocks/<block>.json`. JSON can't carry the header, so **stale ones are not
-    deleted: remove them by hand** when a vein or casing is removed or its block changes (the script lists the
-    ones it wrote). Never touch the hand-written `red_shulker_box.json` or the machines' hand-written ones
-    (dropper, dispenser, hopper, cores; see "Machines"); the script refuses a vein ore or casing block that is
-    one of the machine blocks. The block tags `data/test/tags/block/mine_ores.json` (`#test:mine_ores`, every
+    veins' ore blocks (a fixed single token, no rolls) and the machine casings' blocks (the casing item inside
+    the factory, vanilla elsewhere), `data/minecraft/loot_table/blocks/<block>.json`. JSON can't carry the
+    header, so **stale ones are not deleted: remove them by hand** when a vein or casing is removed or its block
+    changes (the script lists the ones it wrote). Never touch the hand-written `red_shulker_box.json` or the
+    machines' hand-written ones (dropper, dispenser, cores; see "Machines"); the script refuses a vein ore or
+    casing block that is one of the machine blocks. The block tags `data/test/tags/block/mine_ores.json` (`#test:mine_ores`, every
     vein's ore block) and `machine_casings.json` (`#test:machine_casings`) are also generated, but rewritten
     whole on every run, so they never go stale.
   - Registries that keep their structure hand-written and only get numbers merged in from the sheet:
     `init/asset/magic/{types,effects}` (+ `magic/generated/values`), `init/asset/buff/buffs`
-    (+ `buff/generated/values`). Constants are `asset.config.{turn_time,turn_warn,enemy_delay,accessory_limit,machine_fuel_max}`.
+    (+ `buff/generated/values`). Constants are `asset.config.{turn_time,turn_warn,enemy_delay,accessory_limit,machine_fuel_max,factory_*}`.
     Player base stats are set by `init/asset/status/generated/base` (from `vanilla` on first join, and for
     everyone online on every `/reload`).
   - The script validates everything before writing anything:
@@ -345,41 +349,44 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     `debug/check_veins`, which compares each mine's markers between the two maps (same selection as
     `place_veins`) and lists those present on one side only or with a different vein at the same spot, with
     buttons to fix each line (`debug/vein_fix_place` / `vein_fix_remove`).
-- **Machines** (3×3×3 multiblock ore processing; `machine/`). Players build them in adventure mode, feed them with
-  hoppers, and they turn ores into materials. Each map (`test:action`, `test:turn`) has its own machines; they
-  never run in `test:arena`, and only while their chunk is loaded (like a vanilla furnace).
+- **Machines** (3×3×3 multiblock ore processing; `machine/`). Players build them in their factory plot (see
+  "Factory"; survival there), feed them with hoppers, and they turn ores into materials. They never run in
+  `test:arena`, and only while their chunk is loaded (factory plots are always forceloaded; machines built
+  elsewhere before the factory existed keep running but no new ones can be placed outside it).
   - Shape: the core is the center of a 3×3×3 cube; each of the 26 shell positions (`asset.machine_shell`,
     offsets `{x,y,z}` from the core, checked with `positioned ~x ~y ~z`, no facing) must be a casing, an input
     port or an output port. All casings must be the same kind; at least one input and one valid output port.
-  - Blocks (tags in `data/test/tags/block/`): floor `#test:machine_floor` (**machines can be built only on a
-    floor block**: the block two below the core), input ports `#test:machine_inputs` (dropper; hoppers feed
+  - Blocks (tags in `data/test/tags/block/`): input ports `#test:machine_inputs` (dropper; hoppers feed
     them), output ports `#test:machine_outputs` (dispenser; its own inventory is the buffer, and it pushes
-    into the container its `facing` points at, set when placed; a port facing into the machine doesn't count), cores `#test:machine_cores` (never a
-    furnace-like or hopper-fed block), and casings `#test:machine_casings` (generated). **Casing, port, core and
-    hopper blocks must not be used anywhere else on the map** (decorations included): the wrench can break
-    them, and their loot tables are overridden for the whole map. Floor blocks shouldn't be used elsewhere.
+    into the container its `facing` points at, set when placed; a port facing into the machine doesn't
+    count), cores `#test:machine_cores` (never a furnace-like or hopper-fed block), and casings
+    `#test:machine_casings` (generated). **Machine blocks may be used anywhere on the maps** (decorations
+    included): the action/turn maps are adventure, and the casing/port loot tables only drop the named part
+    when broken inside the factory (`location_check` on `dimension: test:factory`; vanilla drop elsewhere).
+    **Only the cores' loot tables are overridden for the whole map** (they drop nothing, even when blown up),
+    because breaking a core is how a machine returns its egg.
   - Casings (sheet tab 筐体, generated `init/asset/machine/generated/casings`):
     `asset.casing.<id> = {block, name, speed, by_bonus, fuel_use}` + `asset.casing_ids`, and the item
     `asset.machine_item.casing_<id>`. `speed` = progress per second in % (100 = the machine's `time` seconds),
     `by_bonus` = % added to every by-product chance, `fuel_use` = fuel per process in % (100 = one use).
   - Items: `asset.machine_item.<id> = {item, name, kind}` (`init/asset/machine`: port_in 搬入口, port_out 搬出口,
-    machine_hopper, wrench; casings are added by the generated file), built by `item/machine/build {id}` and
-    given directly by `item/machine/give {id,count}` (not `loot/give`). `place` items get `can_place_on
-    {blocks:"#test:machine_placeable"}` (floor, casings, ports, cores and hoppers). Their blocks' loot tables
-    (hand-written `dropper`/`dispenser`/`hopper`, generated for casings) drop the same item with **exactly**
-    the same components (custom_data, name, can_place_on, tooltip_display), or they won't stack — change
-    both together. Cores' loot tables drop nothing. The wrench has `can_break`/`tool`
-    (`#test:machine_breakable`, `correct_for_drops`, needed for droppers to drop) and is unbreakable.
+    wrench; casings are added by the generated file; hoppers are plain vanilla), built by
+    `item/machine/build {id}` and given directly by `item/machine/give {id,count}` (not `loot/give`). `place`
+    items carry only custom_data and a name (no `can_place_on`: the factory is survival). Their blocks' loot
+    tables (hand-written `dropper`/`dispenser`, generated for casings) drop, inside the factory, the same item
+    with **exactly** the same components, or they won't stack — change both together. The wrench has `tool`
+    (`#test:machine_breakable`, `correct_for_drops`: in survival, droppers and metal blocks drop nothing
+    without the right tool) and is unbreakable; no `can_break`.
   - Registry (hand-written, `init/asset/machine`): `asset.machine.<id> = {name, core, kind:"pre"|"smelt",
     stage?, stage_prefix?, stage_model?, time}`; the machine kind is decided by the core block only.
     `init/asset/machine/stage_*` builds `asset.ore_stage.s<stage> = {prefix, model}` from the `pre`
     machines. The script reads the `kind:"pre"` ids from this file to validate the 前処理の副産物 tab.
-  - Placing: `machine/give_egg {id}` (like `station/give_egg`; the egg has `can_place_on` the floor, since in
-    adventure mode an item can't be used on a block without it) → `trigger/place` → `machine/place`: the egg's
+  - Placing: `machine/give_egg {id}` (like `station/give_egg`) → `trigger/place` → `machine/place`: the egg's
     spot is the bottom center, so the marker (armor_stand, `tag=machine`,
     `data.machine = {id, processing?, label, casing, ghost}`, number `test.machine.id`) moves one block up to
-    the core's center, and the core is placed if the block two below is floor and its own block is air;
-    otherwise the egg is returned. A `text_display` passenger (`machine_label`) shows
+    the core's center, and the core is placed if it is in `test:factory` and its own block is air; otherwise
+    the egg is returned (機械は工場の中の空いた所に置く). Outside the factory (adventure) the egg can't even be
+    used on a block. A `text_display` passenger (`machine_label`) shows
     `<name> [<state>] 燃料 <n>`.
   - Every second (`tick` → `machine/tick_second`): no core (broken with the wrench) → drop the egg and the
     item being processed and `pending`, remove the ghosts, disappear. Then `machine/shape/check` walks the shell (missing
@@ -417,6 +424,31 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - Debug menu 機械: one button per casing, ports/hoppers/wrench, each machine's egg and
     `debug/spawn_machine {id}` (core one block above your feet), coal, and `debug/machine_status`
     (label with state and fuel, casing, progress, item being processed for machines within 16).
+- **Factory** (`test:factory`, 工場; `factory/`): a void dimension (`data/test/dimension/factory.json`: flat,
+  one bedrock layer at y=-64, biome `minecraft:the_void` so nothing spawns, no structures) where each player
+  has their own plot to build machines in survival.
+  - Plots: a player's number is `test.factory.plot` (1, 2, …; `factory/assign` takes `#factory_next` on the
+    first visit and never changes it). `factory/plot_area {n}` → `factory_work.plot = {n, x0, z0, x1, z1,
+    floor, wall, ceil, cx, cz}`: plot n's corner is (n × `factory_plot_spacing`, 0), size `factory_plot_size`
+    (a multiple of 16, so a plot is whole chunks), floor `factory_floor_y`, buildable up to `factory_top_y`
+    (all in `asset.config`, sheet tab 定数).
+  - `factory/ensure_built` (macro on the plot) forceloads the plot's chunks in `test:factory` (kept forever,
+    so machines and hoppers run while nobody is there), and once they are loaded (`execute if loaded`; not in
+    the same tick as the forceload) fills the bedrock floor and the barrier walls (the plot's outermost ring,
+    so 46×46 inside) and ceiling, recording `storage test: factory_state.built.p<n>` (never wiped by init).
+    Returns 1 when built, 0 when still waiting.
+  - Key 工場の鍵: a clock with `custom_data.test {right_click:true, factory_key:1b}`, `consumable` (as the
+    status check item) and `item_model` trial_key (`debug/give_factory_key`). `trigger/right_click/mainhand` →
+    `factory/key` (ignores repeats within 20 ticks via `test.factory.cooldown`, since holding right-click fires
+    every tick) → `factory/use`: refused in battle, while downed, in `test:arena`; in the factory →
+    `factory/leave` (back to the position/rotation/dimension saved in the player's oh_my_dat
+    `factory_return`, or `factory_return_x/y/z` in `test:action` if none); elsewhere → `factory/enter` (save
+    the position, assign, tag `factory_going`, `factory/go_try`; `tick` retries `go_try` every tick until the
+    plot is built, so nobody lands in empty air).
+  - Game mode: `tick` sets adventure → survival inside `test:factory` and survival → adventure everywhere
+    else (creative/spectator untouched), so respawning or relogging elsewhere also switches back.
+  - Debug menu 工場: key, `factory/use` (go / return), `debug/factory_info` (number, corners, built,
+    `forceload query`), `debug/factory_goto {n}` (any plot, for creative).
 - **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
   `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
   craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:
