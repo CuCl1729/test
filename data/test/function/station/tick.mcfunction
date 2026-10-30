@@ -7,6 +7,8 @@ execute unless block ~ ~ ~ barrel run return run function test:station/no_barrel
 
 # 飾り(名前・目印・GUIタイトル)が付いていないステーションに付ける(移行したものにも効くよう毎tick確認)
 execute unless entity @s[tag=station_decorated] run function test:station/decorate_by_id with entity @s data.station
+# 明るさを固定する前に付けた飾りを、一度だけ直す(飾りは樽の中にいるので、固定しないと真っ暗に描かれる)
+execute unless entity @s[tag=station_bright] run function test:station/brighten
 
 # 設置した直後・移行した直後は、まだモードに入っていない
 execute unless data entity @s data.station.main unless data entity @s data.station.craft run function test:station/enter_mode

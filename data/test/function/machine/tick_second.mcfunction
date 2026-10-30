@@ -7,6 +7,7 @@
 # 4. 揃っていれば動かす(test:machine/run)
 
 execute unless score @s test.machine.id matches 1.. run function test:machine/assign_id
+execute unless entity @s[tag=machine_bright] run function test:machine/brighten
 scoreboard players add @s test.machine.fuel 0
 scoreboard players add @s test.machine.progress 0
 scoreboard players add @s test.machine.out_rr 0

@@ -13,7 +13,7 @@ scoreboard players set @s test.machine.out_rr 0
 # 前の表示を消してから付け直す(debug/spawn_machine で同じ所に置き直したときなど)。
 # 高さは核の中心から。機械の上面は +1.5
 execute on passengers run kill @s
-execute at @s run summon text_display ~ ~ ~ {Tags:["machine_label","machine_label_new"],billboard:"vertical",transformation:{translation:[0.0f,1.9f,0.0f],scale:[1.0f,1.0f,1.0f],left_rotation:[0.0f,0.0f,0.0f,1.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f]},text:{text:""}}
+execute at @s run summon text_display ~ ~ ~ {Tags:["machine_label","machine_label_new"],billboard:"vertical",brightness:{sky:15,block:15},transformation:{translation:[0.0f,1.9f,0.0f],scale:[1.0f,1.0f,1.0f],left_rotation:[0.0f,0.0f,0.0f,1.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f]},text:{text:""}}
 tag @s add machine_placing
 execute as @e[tag=machine_label_new] run ride @s mount @n[tag=machine_placing]
 tag @e[tag=machine_label_new] remove machine_label_new

@@ -15,8 +15,8 @@ execute align xyz run teleport @s ~0.5 ~0.5 ~0.5
 execute on passengers run kill @s
 
 # 高さはバレルの中心からの距離(バレルの上面は+0.5)。名前は上から覗き込んでも寝ないようverticalにする
-$summon text_display ~ ~ ~ {Tags:[station_label,station_label_new],billboard:"vertical",transformation:{translation:[0.0f,1.9f,0.0f],scale:[1.0f,1.0f,1.0f],left_rotation:[0.0f,0.0f,0.0f,1.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f]},text:{text:"$(name)",color:"$(color)"}}
-$summon item_display ~ ~ ~ {Tags:[station_label,station_label_new],billboard:"vertical",item:{id:"$(icon)",count:1},transformation:{translation:[0.0f,1.1f,0.0f],scale:[0.5f,0.5f,0.5f],left_rotation:[0.0f,0.0f,0.0f,1.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f]}}
+$summon text_display ~ ~ ~ {Tags:[station_label,station_label_new],billboard:"vertical",brightness:{sky:15,block:15},transformation:{translation:[0.0f,1.9f,0.0f],scale:[1.0f,1.0f,1.0f],left_rotation:[0.0f,0.0f,0.0f,1.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f]},text:{text:"$(name)",color:"$(color)"}}
+$summon item_display ~ ~ ~ {Tags:[station_label,station_label_new],billboard:"vertical",brightness:{sky:15,block:15},item:{id:"$(icon)",count:1},transformation:{translation:[0.0f,1.1f,0.0f],scale:[0.5f,0.5f,0.5f],left_rotation:[0.0f,0.0f,0.0f,1.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f]}}
 
 tag @s add station_decorating
 execute as @e[tag=station_label_new] run ride @s mount @n[tag=station_decorating]
