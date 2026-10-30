@@ -1,14 +1,16 @@
 #> test:mine/reset
 # @macro id/dim: 鉱山のidとマップ(action / turn)。そのマップの鉱山を元に戻す
-# 1. 構造物を全部置き直す  2. 範囲の中で足元か頭がブロックに埋まった人を入口へ移す
+# 1. 範囲の中の鉱脈のアマスタ(tag=mine_vein)が、それぞれ自分の鉱脈の構造物を自分の位置に置き直す
+# 2. 範囲の中で足元か頭がブロックに埋まった人を入口へ移す
 # 3. 次にリセットできる時刻を「今 + リセット間隔」にする  4. デバッグ表示に出す
 # (test:mine/check_area と、間隔を無視する test:debug/reset_mine から呼ぶ)
 
 execute store result score #mine_now test.temporary run time query gametime
 $data modify storage test: mine_work.reset set from storage test: asset.mine.$(id)
 
-data modify storage test: mine_work.struct_queue set from storage test: mine_work.reset.structures
-$function test:mine/place_loop {dim:"$(dim)"}
+data modify storage test: mine_work.veins_arg set from storage test: mine_work.reset.area
+$data modify storage test: mine_work.veins_arg.dim set value "$(dim)"
+function test:mine/place_veins with storage test: mine_work.veins_arg
 
 data modify storage test: mine_work.rescue set from storage test: mine_work.reset.area
 data modify storage test: mine_work.rescue.ex set from storage test: mine_work.reset.entrance.x

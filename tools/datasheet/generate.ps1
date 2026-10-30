@@ -40,6 +40,7 @@ $Tabs = [ordered]@{
   config           = '定数'
   ores             = '原石'
   mines            = '鉱山'
+  veins            = '鉱脈'
   pickaxes         = 'ツルハシ'
 }
 
@@ -144,7 +145,8 @@ $RequiredHeaders = @{
   runes            = @('id','元アイテム','名前','能力')
   consumables      = @('id','元アイテム','名前','every','効果','params')
   ores             = @('id','名前','アイテム')
-  mines            = @('id','名前','鉱石ブロック','原石','必要ランク','レア度の重み','範囲','入口','構造物','リセット間隔')
+  mines            = @('id','名前','範囲','入口','リセット間隔')
+  veins            = @('id','鉱石ブロック','原石','必要ランク','レア度の重み','構造物')
   pickaxes         = @('id','名前','アイテム','ランク','採掘速度')
 }
 foreach ($key in $Tabs.Keys) {
@@ -826,34 +828,60 @@ foreach ($r in $data.ores) {
   $oreDecls.Add("data modify storage test: asset.ore_ids append value `"$id`"")
 }
 
-# 鉱山: asset.mine.<id>。鉱石ブロックは鉱山ごとに別のもの(そのブロックのルートテーブルを上書きするため、マップ全体に効く)
-$BlockPattern = '^(minecraft:)?[a-z0-9_]+$'
-$StructurePattern = '^([a-z0-9_.-]+:[a-z0-9_./-]+)@\s*(-?\d+)\s+(-?\d+)\s+(-?\d+)$'
+# 鉱山: asset.mine.<id> = {name, area, entrance, interval}。鉱山は場所(範囲・入口・リセット間隔)だけを持つ。
+# 中で掘れるものは、範囲の中に置いた鉱脈のアマスタ(tag=mine_vein, data.vein)が決め、リセットでその位置に鉱脈を置き直す
 $mines = [ordered]@{}
 $mineDecls = New-Object System.Collections.Generic.List[string]
-$blockOwner = @{}
-$blockLoot = [ordered]@{}   # data/minecraft 配下の相対パス => JSON
 foreach ($r in $data.mines) {
   $tab = $Tabs.mines; $n = $r.__row
   $errBefore = $Errors.Count
   $id = Cell $r 'id'
   if (-not (Check-Id $tab $n 'id' $id)) { continue }
   if ($mines.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
-  $name = Cell $r '名前'; $block = Cell $r '鉱石ブロック'; $ore = Cell $r '原石'
-  $rank = Cell $r '必要ランク'; $iv = Cell $r 'リセット間隔'; if ($iv -eq '') { $iv = '0' }
+  $name = Cell $r '名前'; $iv = Cell $r 'リセット間隔'; if ($iv -eq '') { $iv = '0' }
   if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
+  [void](Check-Int $tab $n 'リセット間隔' $iv 0)
+
+  $area = Parse-Ints $tab $n '範囲' (Cell $r '範囲') 6 '100 30 200 140 70 240'
+  $ent = Parse-Ints $tab $n '入口' (Cell $r '入口') 3 '98 40 220'
+
+  if ($Errors.Count -gt $errBefore) { continue }
+  # 範囲は小さい方の角と、そこからの幅(セレクターの dx/dy/dz)にしておく
+  $x1 = [Math]::Min($area[0], $area[3]); $y1 = [Math]::Min($area[1], $area[4]); $z1 = [Math]::Min($area[2], $area[5])
+  $dx = [Math]::Abs($area[3] - $area[0]); $dy = [Math]::Abs($area[4] - $area[1]); $dz = [Math]::Abs($area[5] - $area[2])
+  $mines[$id] = $true
+  $mineDecls.Add("data modify storage test: asset.mine.$id set value {name:`"$(Esc $name)`",area:{x1:$x1,y1:$y1,z1:$z1,dx:$dx,dy:$dy,dz:$dz},entrance:{x:$($ent[0]),y:$($ent[1]),z:$($ent[2])},interval:$iv}")
+  $mineDecls.Add("data modify storage test: asset.mine_ids append value `"$id`"")
+}
+
+# 鉱脈: asset.vein.<id> = {block, ore, rank, weights:[{rare,weight}], weight_total, structure}。どの鉱山にでも、いくつでも置ける
+# (置くのは鉱脈のアマスタ。鉱山をリセットすると、アマスタの位置に structure を置き直す)。
+# 鉱石ブロックは鉱脈ごとに別のもの(そのブロックのルートテーブルを上書きするため、マップ全体に効く)
+$BlockPattern = '^(minecraft:)?[a-z0-9_]+$'
+$StructurePattern = '^[a-z0-9_.-]+:[a-z0-9_./-]+$'
+$veins = [ordered]@{}
+$veinDecls = New-Object System.Collections.Generic.List[string]
+$blockOwner = @{}
+$blockLoot = [ordered]@{}   # data/minecraft 配下の相対パス => JSON
+foreach ($r in $data.veins) {
+  $tab = $Tabs.veins; $n = $r.__row
+  $errBefore = $Errors.Count
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($veins.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $block = Cell $r '鉱石ブロック'; $ore = Cell $r '原石'; $rank = Cell $r '必要ランク'; $struct = Cell $r '構造物'
+  if ($struct -notmatch $StructurePattern) { Add-Err $tab $n "「構造物」($struct) は <名前空間>:<パス> の形で書いてください(例: test:vein/copper_vein)" }
 
   $bid = ''
   if ($block -notmatch $BlockPattern) { Add-Err $tab $n "「鉱石ブロック」($block) はバニラのブロックのid(例: deepslate_copper_ore)にしてください" }
   else {
     $bid = $block -replace '^minecraft:', ''
     if ($bid -eq 'red_shulker_box') { Add-Err $tab $n '「鉱石ブロック」に red_shulker_box は使えません(アイテムを渡す仕組みで使っているため)' }
-    elseif ($blockOwner.ContainsKey($bid)) { Add-Err $tab $n "鉱石ブロック「$bid」は鉱山「$($blockOwner[$bid])」でも使われています(1つのブロックは1つの鉱山だけ)" }
+    elseif ($blockOwner.ContainsKey($bid)) { Add-Err $tab $n "鉱石ブロック「$bid」は鉱脈「$($blockOwner[$bid])」でも使われています(1つのブロックは1つの鉱脈だけ)" }
     else { $blockOwner[$bid] = $id }
   }
   if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「原石」タブにありません" }
   [void](Check-Int $tab $n '必要ランク' $rank 1)
-  [void](Check-Int $tab $n 'リセット間隔' $iv 0)
 
   # レア度の重み: 「レア度=重み; …」(レア度は1〜5)
   $weights = New-Object System.Collections.Generic.List[string]
@@ -866,21 +894,9 @@ foreach ($r in $data.mines) {
   }
   if ($total -lt 1) { Add-Err $tab $n '「レア度の重み」の合計を1以上にしてください(例: 1=60; 2=25; 3=10; 4=4; 5=1)' }
 
-  $area = Parse-Ints $tab $n '範囲' (Cell $r '範囲') 6 '100 30 200 140 70 240'
-  $ent = Parse-Ints $tab $n '入口' (Cell $r '入口') 3 '98 40 220'
-
-  # 構造物: 「<名前空間>:<パス>@x y z; …」
-  $structs = New-Object System.Collections.Generic.List[string]
-  foreach ($part in ((Cell $r '構造物') -split ';')) {
-    $p = $part.Trim(); if ($p -eq '') { continue }
-    if ($p -notmatch $StructurePattern) { Add-Err $tab $n "「構造物」の「$p」は <名前空間>:<パス>@x y z の形で書いてください(例: test:mine/copper_0@100 30 200)"; continue }
-    $structs.Add("{id:`"$($Matches[1])`",x:$($Matches[2]),y:$($Matches[3]),z:$($Matches[4])}")
-  }
-  if ($structs.Count -eq 0) { Add-Err $tab $n '「構造物」が空です' }
-
   if ($Errors.Count -gt $errBefore) { continue }
   # 鉱石ブロックのルートテーブル(data/minecraft/loot_table/blocks/<ブロック>.json)。抽選はせず、目印を1個だけ落とす。
-  # 目印は custom_data に鉱山のidを持ち、見た目と名前は原石と同じ。持ち物に入ると test:mine/token/convert が原石に変える
+  # 目印は custom_data に鉱脈のidを持ち、見た目と名前は原石と同じ。持ち物に入ると test:mine/token/convert が原石に変える
   $o = $ores[$ore]
   $oreItem = if ($o.item -match ':') { $o.item } else { "minecraft:$($o.item)" }
   $blockLoot["loot_table\blocks\$bid.json"] = @"
@@ -908,15 +924,12 @@ foreach ($r in $data.mines) {
   ]
 }
 "@ -replace "`r", ''
-  # 範囲は小さい方の角と、そこからの幅(セレクターの dx/dy/dz)にしておく
-  $x1 = [Math]::Min($area[0], $area[3]); $y1 = [Math]::Min($area[1], $area[4]); $z1 = [Math]::Min($area[2], $area[5])
-  $dx = [Math]::Abs($area[3] - $area[0]); $dy = [Math]::Abs($area[4] - $area[1]); $dz = [Math]::Abs($area[5] - $area[2])
-  $mines[$id] = @{ row = $n; block = $bid; ore = $ore; rank = [int]$rank }
-  $mineDecls.Add("data modify storage test: asset.mine.$id set value {name:`"$(Esc $name)`",block:`"minecraft:$bid`",ore:`"$ore`",rank:$rank,weights:[$($weights -join ',')],weight_total:$total,area:{x1:$x1,y1:$y1,z1:$z1,dx:$dx,dy:$dy,dz:$dz},entrance:{x:$($ent[0]),y:$($ent[1]),z:$($ent[2])},structures:[$($structs -join ',')],interval:$iv}")
-  $mineDecls.Add("data modify storage test: asset.mine_ids append value `"$id`"")
+  $veins[$id] = @{ row = $n; block = $bid; rank = [int]$rank }
+  $veinDecls.Add("data modify storage test: asset.vein.$id set value {block:`"minecraft:$bid`",ore:`"$ore`",rank:$rank,weights:[$($weights -join ',')],weight_total:$total,structure:`"$struct`"}")
+  $veinDecls.Add("data modify storage test: asset.vein_ids append value `"$id`"")
 }
 
-# ツルハシ: asset.pickaxe.<id> = {item, name, rank, speed, blocks}。blocks は必要ランクがこのランク以下の鉱山の鉱石ブロック
+# ツルハシ: asset.pickaxe.<id> = {item, name, rank, speed, blocks}。blocks は必要ランクがこのランク以下の鉱脈の鉱石ブロック
 $pickaxes = [ordered]@{}
 $pickaxeDecls = New-Object System.Collections.Generic.List[string]
 foreach ($r in $data.pickaxes) {
@@ -929,16 +942,16 @@ foreach ($r in $data.pickaxes) {
   if ($item -notmatch $ItemPattern) { Add-Err $tab $n "「アイテム」($item) がアイテムidの形ではありません" }
   if (-not (Check-Int $tab $n 'ランク' $rank 1)) { continue }
   if ($speed -notmatch '^\d+(\.\d+)?$' -or [double]::Parse($speed, [Globalization.CultureInfo]::InvariantCulture) -le 0) { Add-Err $tab $n "「採掘速度」($speed) は0より大きい数にしてください"; continue }
-  $blocks = @($mines.Values | Where-Object { $_.rank -le [int]$rank } | ForEach-Object { "`"minecraft:$($_.block)`"" })
-  if ($blocks.Count -eq 0) { Add-Err $tab $n "このツルハシ(ランク $rank)で掘れる鉱山がありません"; continue }
+  $blocks = @($veins.Values | Where-Object { $_.rank -le [int]$rank } | ForEach-Object { "`"minecraft:$($_.block)`"" })
+  if ($blocks.Count -eq 0) { Add-Err $tab $n "このツルハシ(ランク $rank)で掘れる鉱脈がありません"; continue }
   $pickaxes[$id] = @{ rank = [int]$rank }
   $pickaxeDecls.Add("data modify storage test: asset.pickaxe.$id set value {item:`"$item`",name:`"$(Esc $name)`",rank:$rank,speed:$($speed)f,blocks:[$($blocks -join ',')]}")
   $pickaxeDecls.Add("data modify storage test: asset.pickaxe_ids append value `"$id`"")
 }
-# どのツルハシでも掘れない鉱山は警告(生成は止めない)
+# どのツルハシでも掘れない鉱脈は警告(生成は止めない)
 $maxRank = 0; foreach ($p in $pickaxes.Values) { if ($p.rank -gt $maxRank) { $maxRank = $p.rank } }
-foreach ($mid in $mines.Keys) {
-  if ($mines[$mid].rank -gt $maxRank) { Add-Warn $Tabs.mines $mines[$mid].row "鉱山「$mid」(必要ランク $($mines[$mid].rank))は、どのツルハシでも掘れません" }
+foreach ($vid in $veins.Keys) {
+  if ($veins[$vid].rank -gt $maxRank) { Add-Warn $Tabs.veins $veins[$vid].row "鉱脈「$vid」(必要ランク $($veins[$vid].rank))は、どのツルハシでも掘れません" }
 }
 
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
@@ -1078,15 +1091,22 @@ $outputs[$rel] = $lines + $oreDecls
 
 $rel = 'init\asset\mine\generated\mines.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  '# 鉱山(スプレッドシートの「鉱山」タブ)。asset.mine.<id> = {name, block, ore, rank, weights:[{rare,weight}], weight_total,',
-  '#   area:{x1,y1,z1,dx,dy,dz}(小さい方の角とセレクターの幅), entrance:{x,y,z}, structures:[{id,x,y,z}], interval(秒)}。',
+  '# 鉱山(スプレッドシートの「鉱山」タブ)。asset.mine.<id> = {name, area:{x1,y1,z1,dx,dy,dz}(小さい方の角とセレクターの幅),',
+  '#   entrance:{x,y,z}, interval(秒)}。中で掘れるものは、範囲の中に置いた鉱脈のアマスタ(tag=mine_vein)が決める。',
   '# asset.mine_ids は全鉱山のidの一覧(test:mine/tick_second が毎秒見回る)', '')
 $outputs[$rel] = $lines + $mineDecls
+
+$rel = 'init\asset\mine\generated\veins.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 鉱脈(スプレッドシートの「鉱脈」タブ)。asset.vein.<id> = {block, ore, rank, weights:[{rare,weight}], weight_total, structure}。',
+  '# 鉱山をリセットすると、範囲の中の鉱脈のアマスタ(data.vein)の位置に structure を置き直す(test:mine/place_vein)。',
+  '# 鉱石ブロック(block)を掘ると、鉱脈のidを持つ目印が落ちる(生成したブロックのルートテーブル)。asset.vein_ids は全鉱脈のid', '')
+$outputs[$rel] = $lines + $veinDecls
 
 $rel = 'init\asset\pickaxe\generated\pickaxes.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
   '# ツルハシ(スプレッドシートの「ツルハシ」タブ)。asset.pickaxe.<id> = {item, name, rank, speed, blocks}。',
-  '# blocks は必要ランクがこのランク以下の鉱山の鉱石ブロック(生成時に計算)。作るのは test:item/pickaxe/build {id}', '')
+  '# blocks は必要ランクがこのランク以下の鉱脈の鉱石ブロック(生成時に計算)。作るのは test:item/pickaxe/build {id}', '')
 $outputs[$rel] = $lines + $pickaxeDecls
 
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す

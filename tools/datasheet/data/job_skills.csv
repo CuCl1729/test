@@ -3,4 +3,4 @@ warrior,cleave,回し斬り,3,,1,damage_cone,angle=60; multiplier=150; mp_cost=1
 warrior,iron_wall,鉄壁の構え,6,cleave,2,self_buff,buff_id=guard; stacks=1
 paladin,smite,聖なる一撃,3,,1,damage_cone,angle=40; multiplier=180; mp_cost=15; reach=4
 paladin,blessing,祝福,5,smite,2,self_buff,buff_id=atk_up; stacks=1
-paladin,resurrection,蘇生の祈り,8,blessing,2,revive,mp_cost=30; percent=30; radius=8
+paladin,resurrection,蘇生の祈り,8,blessing,2,revive,mp_cost=30; percent=30; radius= 8

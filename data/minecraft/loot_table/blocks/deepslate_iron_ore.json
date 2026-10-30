@@ -11,7 +11,7 @@
             {
               "type": "minecraft:set_components",
               "components": {
-                "minecraft:custom_data": {"test": {"ore_token": "iron_mine"}},
+                "minecraft:custom_data": {"test": {"ore_token": "iron_vein"}},
                 "minecraft:custom_name": {"text": "鉄の原石", "italic": false}
               }
             }

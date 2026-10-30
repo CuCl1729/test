@@ -1,14 +1,14 @@
 #> test:mine/token/convert_one
-# @s = プレイヤー。@macro id: 鉱山のid。その鉱山の目印を全部消し、消した個数ぶん原石のレア度を抽選して
-# (rng のキー ore_rarity。重みは asset.mine.<id>.weights)、レア度ごとにまとめて原石を渡す
+# @s = プレイヤー。@macro id: 鉱脈のid。その鉱脈の目印を全部消し、消した個数ぶん原石のレア度を抽選して
+# (rng のキー ore_rarity。重みは asset.vein.<id>.weights)、レア度ごとにまとめて原石を渡す
 
-$execute unless data storage test: asset.mine.$(id) run return run function test:debug/log {msg:"目印: 鉱山「$(id)」の定義がありません"}
+$execute unless data storage test: asset.vein.$(id) run return run function test:debug/log {msg:"目印: 鉱脈「$(id)」の定義がありません"}
 
 scoreboard players set #token_count test.temporary 0
 $execute store result score #token_count test.temporary run clear @s *[custom_data~{test:{ore_token:"$(id)"}}]
 execute if score #token_count test.temporary matches ..0 run return 0
 
-$data modify storage test: mine_work.mine set from storage test: asset.mine.$(id)
+$data modify storage test: mine_work.mine set from storage test: asset.vein.$(id)
 scoreboard players set #ore_r1 test.temporary 0
 scoreboard players set #ore_r2 test.temporary 0
 scoreboard players set #ore_r3 test.temporary 0

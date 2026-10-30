@@ -160,7 +160,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   values, add them to a tab (or `params`) and read them via macro args/storage.
   - Tabs: stats, materials, weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop
     recipes, runes, consumables, enemies (+ gimmicks, drops), jobs (+ skills), magic values, buff values,
-    player base stats, constants, ores, mines, pickaxes. A tab without a gid in `config.json` is not
+    player base stats, constants, ores, mines, veins, pickaxes. A tab without a gid in `config.json` is not
     downloaded; its local CSV is used.
   - **Units**: status values (enemy HP/atk/def/…, job growth, buff params, player base stats) are written in
     display units (as in item lore) and the script multiplies by 100; resist %, exp, chance %, counts are
@@ -188,10 +188,10 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     - cross-references (series, recipe materials by role, drops, enemy buffs/equip drops, job prerequisites)
     - enemy `攻撃属性` (物理/火/水/木/金/土), gimmick `params` against the gimmick file's `$(…)` (and `buff`,
       `element`, `target` values); consumable `revive` `percent` 1–100
-    - mines: ore block unique per mine (and not `red_shulker_box`), ore exists, rank ≥ 1, interval ≥ 0,
-      weights (rarity 1–5, weight ≥ 0, total ≥ 1), area 6 / entrance 3 integers, structures `ns:path@x y z`;
-      a pickaxe that can mine nothing is an error, a mine no pickaxe can mine is only a warning
-      (`Add-Warn`: printed in yellow, generation continues)
+    - mines: interval ≥ 0, area 6 / entrance 3 integers; veins: ore block unique per vein (and not
+      `red_shulker_box`), ore exists, rank ≥ 1, weights (rarity 1–5, weight ≥ 0, total ≥ 1), structure
+      `ns:path`; a pickaxe that can mine nothing is an error, while a vein no pickaxe can mine is only a
+      warning (`Add-Warn`: printed in yellow, generation continues)
     - every magic element, buff, base stat and constant has a row; job `exp_coefficient` ≥ 1 (0 would
       level up forever); gimmick `hp_below` defaults to 100 (a missing value would read as 0)
     - consumables: `every` ≥ 1; `heal_hp`/`heal_mp` take `percent`/`flat` as non-negative integers (a
@@ -285,21 +285,27 @@ generic driver — it means adding a declaration plus a small per-id handler fun
       slot and sets `test.equip.has_watch`; `tick` → `equip/proc/watch_check` → `watch_below` compares
       every tick (HP also drops from poison etc., so not inside `damage/`). The tag `equip_below.<id>`
       blocks repeats while below the line.
-- **Mining** (pickaxes, mines, ores). Players are in adventure mode, so terrain can't be broken; only the
-  mines' ore blocks can, through the pickaxe's `can_break`.
-  - Registries (generated from the 原石 / 鉱山 / ツルハシ tabs): `asset.ore.<id> = {item, name}`,
-    `asset.mine.<id> = {name, block, ore, rank, weights:[{rare,weight}], weight_total, area:{x1,y1,z1,dx,dy,dz},
-    entrance:{x,y,z}, structures:[{id,x,y,z}], interval}`, `asset.pickaxe.<id> = {item, name, rank, speed, blocks}`
-    (`blocks` = the ore blocks of every mine whose rank ≤ the pickaxe's, computed by the script), plus
-    `asset.{ore,mine,pickaxe}_ids`.
+- **Mining** (pickaxes, mines, veins, ores). Players are in adventure mode, so terrain can't be broken; only
+  the veins' ore blocks can, through the pickaxe's `can_break`. A mine is only a place (area, entrance, reset
+  interval). A vein is a reusable kind (one ore block → one ore kind, required rank, rarity weights, and a
+  shape structure) placed anywhere by **vein markers**: invisible marker armor stands tagged `mine_vein` with
+  `data.vein = "<vein id>"` (`debug/spawn_vein {id}` puts one at the block corner under you, in the current
+  map only — place them in both `test:action` and `test:turn`). A marker belongs to whichever mine's area
+  contains it.
+  - Registries (generated from the 原石 / 鉱山 / 鉱脈 / ツルハシ tabs): `asset.ore.<id> = {item, name}`,
+    `asset.mine.<id> = {name, area:{x1,y1,z1,dx,dy,dz}, entrance:{x,y,z}, interval}`,
+    `asset.vein.<id> = {block, ore, rank, weights:[{rare,weight}], weight_total, structure}`,
+    `asset.pickaxe.<id> = {item, name, rank, speed, blocks}` (`blocks` = the ore blocks of every vein whose
+    rank ≤ the pickaxe's, computed by the script), plus `asset.{ore,mine,vein,pickaxe}_ids`.
   - Pickaxe: `item/pickaxe/build {id}` sets `custom_data.test.pickaxe {id,rank}`, `can_break {blocks}`,
     `tool {rules:[{blocks,speed,correct_for_drops:true}]}` (needed: vanilla ores drop nothing without the right
     tool tier, whatever the base item is), `unbreakable`, and hides those in `tooltip_display`. Given by
     `item/pickaxe/give {id}`.
-  - **Each mine's ore block is used only inside that mine.** The script overwrites that block's loot table
-    for the whole map with one token item (`custom_data.test.ore_token:"<mine id>"`, the ore's look and name).
+  - **Each vein's ore block is used only for that vein, inside its mine.** The script overwrites that block's
+    loot table for the whole map with one token item (`custom_data.test.ore_token:"<vein id>"`, the ore's look
+    and name).
   - Token → ore: `cache/update` runs `mine/token/convert` **before** copying `player_data` (so `equip/recalc`
-    sees the result). Per mine id it `clear`s the tokens, rolls each one's rarity (rng key `ore_rarity`,
+    sees the result). Per vein id it `clear`s the tokens, rolls each one's rarity (rng key `ore_rarity`,
     1..`weight_total`, walking `weights`), and gives the ores per rarity with `item/ore/give {id,rare,count}`.
     Ores are `custom_data.test.ore = {kind, rare}` only (`item/ore/build`; name color = rarity, 3–5 like
     equipment), so equal ones stack. `item/ore/give` inserts directly (not `loot/give`, whose
@@ -308,10 +314,13 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - Reset: every second `mine/tick_second` checks each mine in `test:action` and `test:turn` separately
     (`storage test: mine_state.<action|turn>.<id> = {occupied, ready_at}`; `ready_at` is game time in ticks
     from `time query gametime`). When a mine goes from empty to occupied and `ready_at` has passed,
-    `mine/reset {id,dim}` places every structure (`place template`), moves players whose feet or head
-    block isn't air to the entrance, and sets `ready_at = now + interval × 20`. The arena is never checked.
-    `debug/reset_mine` resets the mine you're standing in regardless of the interval; `debug/mine_status`
-    lists each mine's state.
+    `mine/reset {id,dim}` makes every vein marker inside the area place its vein's structure at its own
+    position (`mine/place_veins` → `place_vein` → `place template <structure> ~ ~ ~`; files live in
+    `data/test/structure/vein/`, saved with structure voids around the ore so tunnels aren't filled), moves
+    players whose feet or head block isn't air to the entrance, and sets `ready_at = now + interval × 20`.
+    The arena is never checked. Debug menu: `debug/reset_mine` resets the mine you're standing in regardless
+    of the interval; `debug/mine_status` lists each mine's state; per-vein placement buttons,
+    `debug/remove_vein` (markers within 2 blocks) and `debug/show_veins {visible}` (name tags within 64).
 - **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
   `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
   craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:

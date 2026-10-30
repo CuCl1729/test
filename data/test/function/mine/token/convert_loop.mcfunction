@@ -1,6 +1,6 @@
 #> test:mine/token/convert_loop
-# mine_work.token_queue(目印の鉱山のid。重なっていてもよい)を先頭から1件ずつ変える。
-# 同じ鉱山の2件目以降は、1件目で目印を全部消しているので何もしない
+# mine_work.token_queue(目印の鉱脈のid。重なっていてもよい)を先頭から1件ずつ変える。
+# 同じ鉱脈の2件目以降は、1件目で目印を全部消しているので何もしない
 
 execute unless data storage test: mine_work.token_queue[0] run return 0
 
