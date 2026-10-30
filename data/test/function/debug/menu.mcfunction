@@ -34,7 +34,9 @@ tellraw @s [{text:"[鉱脈のずれを調べる]",color:aqua,click_event:{action
 tellraw @s [{text:"[近くの鉱脈を消す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/remove_vein"}},{text:" "},{text:"[鉱脈の名前を表示]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/show_veins {visible:1b}"}},{text:" "},{text:"[隠す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/show_veins {visible:0b}"}}]
 
 tellraw @s {text:"― 機械 ―",color:gold}
-tellraw @s [{text:"[部品×64]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:machine_part,count:64}"}},{text:" "},{text:"[入れ物×16]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:machine_container,count:16}"}},{text:" "},{text:"[ホッパー×16]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:machine_hopper,count:16}"}},{text:" "},{text:"[レンチ]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:wrench,count:1}"}}]
+data modify storage test: debug_work.casing_queue set from storage test: asset.casing_ids
+function test:debug/menu/casing_loop
+tellraw @s [{text:"[搬入口×8]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:port_in,count:8}"}},{text:" "},{text:"[搬出口×8]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:port_out,count:8}"}},{text:" "},{text:"[ホッパー×16]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:machine_hopper,count:16}"}},{text:" "},{text:"[レンチ]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:wrench,count:1}"}}]
 data modify storage test: debug_work.machine_queue set from storage test: asset.machine_ids
 function test:debug/menu/machine_loop
 tellraw @s [{text:"[石炭×16]",color:aqua,click_event:{action:"run_command",command:"/give @s minecraft:coal 16"}},{text:" "},{text:"[近くの機械の状態]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/machine_status"}},{text:" (形・燃料・処理中のもの)",color:dark_gray}]

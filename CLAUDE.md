@@ -161,7 +161,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - Tabs: stats, materials, weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop
     recipes, runes, consumables, enemies (+ gimmicks, drops), jobs (+ skills), magic values, buff values,
     player base stats, constants, ores, mines, veins, pickaxes, refining (main products, by-products,
-    pre-processing by-products), fuels. A tab without a gid in `config.json` is not
+    pre-processing by-products), fuels, machine casings. A tab without a gid in `config.json` is not
     downloaded; its local CSV is used.
   - **Units**: status values (enemy HP/atk/def/…, job growth, buff params, player base stats) are written in
     display units (as in item lore) and the script multiplies by 100; resist %, exp, chance %, counts are
@@ -170,18 +170,19 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
   - Generated files: `init/asset/generated/{weapons,stats,config}`, `init/asset/equip/generated/{items,sets}`,
     `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
-    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine}/generated/*`. Stale
-    generated `.mcfunction` files in those folders are deleted. The only generated loot tables are the mines'
-    ore blocks, `data/minecraft/loot_table/blocks/<block>.json` (a fixed single token, no rolls). JSON can't
-    carry the header, so **stale ones are not deleted: remove them by hand** when a mine is removed or its
-    block changes (the script lists the ones it wrote). Never touch the hand-written `red_shulker_box.json`
-    or the machines' hand-written ones (parts, containers, hopper, cores; see "Machines"); the script refuses a
-    vein ore block that is one of the machine blocks.
-    The block tag `data/test/tags/block/mine_ores.json` (`#test:mine_ores`, every vein's ore block) is also
-    generated, but rewritten whole on every run (empty when there are no veins), so it never goes stale.
+    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine}/generated/*`.
+    Stale generated `.mcfunction` files in those folders are deleted. The only generated loot tables are the
+    veins' ore blocks (a fixed single token, no rolls) and the machine casings' blocks (the casing item),
+    `data/minecraft/loot_table/blocks/<block>.json`. JSON can't carry the header, so **stale ones are not
+    deleted: remove them by hand** when a vein or casing is removed or its block changes (the script lists the
+    ones it wrote). Never touch the hand-written `red_shulker_box.json` or the machines' hand-written ones
+    (dropper, dispenser, hopper, cores; see "Machines"); the script refuses a vein ore or casing block that is
+    one of the machine blocks. The block tags `data/test/tags/block/mine_ores.json` (`#test:mine_ores`, every
+    vein's ore block) and `machine_casings.json` (`#test:machine_casings`) are also generated, but rewritten
+    whole on every run, so they never go stale.
   - Registries that keep their structure hand-written and only get numbers merged in from the sheet:
     `init/asset/magic/{types,effects}` (+ `magic/generated/values`), `init/asset/buff/buffs`
-    (+ `buff/generated/values`). Constants are `asset.config.{turn_time,turn_warn,enemy_delay,accessory_limit}`.
+    (+ `buff/generated/values`). Constants are `asset.config.{turn_time,turn_warn,enemy_delay,accessory_limit,machine_fuel_max}`.
     Player base stats are set by `init/asset/status/generated/base` (from `vanilla` on first join, and for
     everyone online on every `/reload`).
   - The script validates everything before writing anything:
@@ -337,58 +338,78 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     `debug/check_veins`, which compares each mine's markers between the two maps (same selection as
     `place_veins`) and lists those present on one side only or with a different vein at the same spot, with
     buttons to fix each line (`debug/vein_fix_place` / `vein_fix_remove`).
-- **Machines** (multiblock ore processing; `machine/`). Players build them in adventure mode, connect them with
+- **Machines** (3×3×3 multiblock ore processing; `machine/`). Players build them in adventure mode, feed them with
   hoppers, and they turn ores into materials. Each map (`test:action`, `test:turn`) has its own machines; they
   never run in `test:arena`, and only while their chunk is loaded (like a vanilla furnace).
-  - Blocks (hand-written tags in `data/test/tags/block/`): floor `#test:machine_floor` (machines can be built
-    **only on top of a floor block**), parts `#test:machine_parts`, containers `#test:machine_containers`
-    (dropper; hoppers can feed them), cores `#test:machine_cores` (one per machine; never a furnace-like or
-    hopper-fed block, which vanilla would also process). **Part, container, core and hopper blocks must not be
-    used anywhere else on the map** (decorations included): the wrench can break them, and their loot tables
-    are overridden for the whole map. Floor blocks shouldn't be used elsewhere either (machines could be placed
-    there).
-  - Items: `asset.machine_item.<id> = {item, name, kind}` (`init/asset/machine`), built by
-    `item/machine/build {id}` and given directly by `item/machine/give {id,count}` (not `loot/give`). `place`
-    items (part, container, hopper) get `can_place_on {blocks:"#test:machine_placeable"}` (floor, parts,
-    containers, cores and hoppers, so hopper lines can be chained). Their blocks' loot tables
-    (`data/minecraft/loot_table/blocks/{waxed_cut_copper,dropper,hopper}.json`) drop the same item with
-    **exactly** the same components (custom_data, name, can_place_on, tooltip_display), or they won't stack —
-    change both together. Cores' loot tables drop nothing. The wrench has `can_break`/`tool`
+  - Shape: the core is the center of a 3×3×3 cube; each of the 26 shell positions (`asset.machine_shell`,
+    offsets `{x,y,z}` from the core, checked with `positioned ~x ~y ~z`, no facing) must be a casing, an input
+    port or an output port. All casings must be the same kind; at least one input and one valid output port.
+  - Blocks (tags in `data/test/tags/block/`): floor `#test:machine_floor` (**machines can be built only on a
+    floor block**: the block two below the core), input ports `#test:machine_inputs` (dropper; hoppers feed
+    them), output ports `#test:machine_outputs` (dispenser; its own inventory is the buffer, and it pushes
+    into the container its `facing` points at, set when placed; a port facing into the machine doesn't count), cores `#test:machine_cores` (never a
+    furnace-like or hopper-fed block), and casings `#test:machine_casings` (generated). **Casing, port, core and
+    hopper blocks must not be used anywhere else on the map** (decorations included): the wrench can break
+    them, and their loot tables are overridden for the whole map. Floor blocks shouldn't be used elsewhere.
+  - Casings (sheet tab 筐体, generated `init/asset/machine/generated/casings`):
+    `asset.casing.<id> = {block, name, speed, by_bonus, fuel_use}` + `asset.casing_ids`, and the item
+    `asset.machine_item.casing_<id>`. `speed` = progress per second in % (100 = the machine's `time` seconds),
+    `by_bonus` = % added to every by-product chance, `fuel_use` = fuel per process in % (100 = one use).
+  - Items: `asset.machine_item.<id> = {item, name, kind}` (`init/asset/machine`: port_in 搬入口, port_out 搬出口,
+    machine_hopper, wrench; casings are added by the generated file), built by `item/machine/build {id}` and
+    given directly by `item/machine/give {id,count}` (not `loot/give`). `place` items get `can_place_on
+    {blocks:"#test:machine_placeable"}` (floor, casings, ports, cores and hoppers). Their blocks' loot tables
+    (hand-written `dropper`/`dispenser`/`hopper`, generated for casings) drop the same item with **exactly**
+    the same components (custom_data, name, can_place_on, tooltip_display), or they won't stack — change
+    both together. Cores' loot tables drop nothing. The wrench has `can_break`/`tool`
     (`#test:machine_breakable`, `correct_for_drops`, needed for droppers to drop) and is unbreakable.
   - Registry (hand-written, `init/asset/machine`): `asset.machine.<id> = {name, core, kind:"pre"|"smelt",
-    stage?, stage_prefix?, stage_model?, time, parts:[{block,l,u,f}], input:{l,u,f}, fuel:{l,u,f},
-    output:{l,u,f}}`, positions as `^left ^up ^front` from the core with the marker's rotation, so any facing
-    matches. `init/asset/machine/stage_*` builds `asset.ore_stage.s<stage> = {prefix, model}` from the `pre`
+    stage?, stage_prefix?, stage_model?, time}`; the machine kind is decided by the core block only.
+    `init/asset/machine/stage_*` builds `asset.ore_stage.s<stage> = {prefix, model}` from the `pre`
     machines. The script reads the `kind:"pre"` ids from this file to validate the 前処理の副産物 tab.
   - Placing: `machine/give_egg {id}` (like `station/give_egg`; the egg has `can_place_on` the floor, since in
-    adventure mode an item can't be used on a block without it) → `trigger/place` → `machine/place`: centers
-    the marker (armor_stand, `tag=machine`, `data.machine = {id, processing?, label}`), faces it toward the
-    placer rounded to 90°, and places the core if the block below is floor and its own block is air; otherwise
-    returns the egg. A `text_display` passenger (`machine_label`) shows `<name> [<state>]`.
+    adventure mode an item can't be used on a block without it) → `trigger/place` → `machine/place`: the egg's
+    spot is the bottom center, so the marker (armor_stand, `tag=machine`,
+    `data.machine = {id, processing?, label, casing, ghost}`, number `test.machine.id`) moves one block up to
+    the core's center, and the core is placed if the block two below is floor and its own block is air;
+    otherwise the egg is returned. A `text_display` passenger (`machine_label`) shows
+    `<name> [<state>] 燃料 <n>`.
   - Every second (`tick` → `machine/tick_second`): no core (broken with the wrench) → drop the egg and the
-    item being processed, then disappear. Then check `parts`; if any is missing the state is 未完成 (progress
-    is kept) and, when a player is within 16 blocks, a `block_marker` particle of the missing block is shown
-    at its spot. Otherwise `machine/run`:
-    1. eject (to the output) everything the containers won't take: non-fuel from the fuel container, and from
-       the input container anything that isn't an ore (`custom_data.test.ore`; tokens included) or, for `pre`
-       machines, an ore whose stage isn't exactly `stage − 1`. Hopper lines therefore never clog.
-    2. if processing, advance `test.machine.progress`; at `time` seconds finish.
-    3. if idle and the input has something, spend one fuel use (`test.machine.fuel`; when 0, take one fuel item
-       and add `asset.fuel."<id>".count`; none → 燃料切れ) and move one ore into `data.machine.processing`.
-    4. drop everything produced at the output with `item/drop_at` (builds `loot.item` at overworld
-       `0 -64 0`, moves it to the execution position, `Motion` 0, so a hopper right below collects it).
+    item being processed and `pending`, remove the ghosts, disappear. Then `machine/shape/check` walks the shell (missing
+    positions, mixed casings, input ports, output targets) and `machine/ghost/update` shows ghosts:
+    `block_display`s (`tag=machine_ghost`, owner in `test.machine.id`, block state written as `{id:"…"}` —
+    `{Name:…}` doesn't parse in 26.3) of the found casing (else the first casing) at missing spots while a
+    player is within 16 blocks. States: 未完成 / 筐体が混在 / 搬入口なし / 搬出口なし (progress kept), else
+    `machine/run`:
+    1. sort every input port (`port/sort*`): fuel (`asset.fuel`) is absorbed at once into `test.machine.fuel`
+       (×100; up to `asset.config.machine_fuel_max` × 100, the rest stays in the port); ores the machine takes
+       stay; anything else (non-ores, tokens, an ore whose stage isn't exactly `stage − 1` for `pre`) goes to
+       the outputs, so hopper lines never clog.
+    2. if processing, add the casing's `speed` to `test.machine.progress` (×100); at `time × 100` finish.
+    3. if idle and an input port holds an ore: needs `fuel_use` stored fuel (else 燃料切れ), subtracts it and
+       moves one ore into `data.machine.processing`.
+    4. everything produced (and ejected) is put into the output ports' own inventories (`port/out/place_all`,
+       starting port rotated by `test.machine.out_rr`, next port when full). What fits nowhere is kept in
+       `data.machine.pending`; while it exists the machine doesn't progress or start (搬出口がいっぱい).
+    5. each output port pushes its contents into the block its `facing` points at, if that is a container
+       (`port/out/push_all`, up to 16 items per port per second); otherwise they stay in the port.
+    Items are inserted one at a time with `loot insert ~ ~ ~ loot {pools:[…set_components…]}` (`port/out/insert_one`):
+    an inline loot table works in any dimension, and one item at a time tells via the result whether it fit
+    (`loot insert` silently discards what doesn't).
   - Stages: `pre` machines output the same ore with `stage + 1` (`item/ore/build {id,rare,stage}` → name
     `<stage_prefix><ore name>`, look `stage_model`; `custom_data.test.ore = {kind, rare, stage}`), always one,
     plus by-products from `asset.pre_by.<machine>.<ore>` (rng key `pre_by`). A pre machine accepts only stage
     `its stage − 1`, so passes can't be repeated; add a 3rd-stage machine with `stage:2`. The smelter
     (`smelt`) accepts any stage and rolls `asset.refine.<ore>`: one main product by weight
     (`weight + weight_rare × (rare − 1)`, rng `refine_main`, count `count + count_stage × stage`) and each
-    by-product row independently (`chance + chance_rare × (rare − 1) + chance_stage × stage` %, rng
-    `refine_by`). Results are logged with `debug/log`. Materials come from `item/material/build`.
+    by-product row independently (`chance + chance_rare × (rare − 1) + chance_stage × stage` % + the casing's
+    `by_bonus`, rng `refine_by`). Results are logged with `debug/log`. Materials come from
+    `item/material/build`.
   - Generated (sheet tabs 精錬の主産物 / 精錬の副産物 / 前処理の副産物 / 燃料): `init/asset/refine/generated/{refine,fuels}`.
     Fuel is matched by item id only.
-  - Debug menu 機械: parts/containers/hoppers/wrench, each machine's egg and `debug/spawn_machine {id}`, coal,
-    and `debug/machine_status` (state, fuel left, progress, item being processed for machines within 16).
+  - Debug menu 機械: one button per casing, ports/hoppers/wrench, each machine's egg and
+    `debug/spawn_machine {id}` (core one block above your feet), coal, and `debug/machine_status`
+    (label with state and fuel, casing, progress, item being processed for machines within 16).
 - **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
   `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
   craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:

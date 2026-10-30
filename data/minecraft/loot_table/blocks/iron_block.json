@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_block",
+          "modifier": [
+            {
+              "type": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {"test": {"machine_item": "casing_iron"}},
+                "minecraft:custom_name": {"text": "鉄の筐体", "italic": false},
+                "minecraft:can_place_on": {"blocks": "#test:machine_placeable"},
+                "minecraft:tooltip_display": {"hidden_components": ["minecraft:can_place_on"]}
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

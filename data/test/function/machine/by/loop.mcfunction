@@ -13,6 +13,8 @@ scoreboard players set #by_t test.temporary 0
 execute if data storage test: machine_work.by[0].chance_stage store result score #by_t test.temporary run data get storage test: machine_work.by[0].chance_stage
 scoreboard players operation #by_t test.temporary *= #ore_stage test.temporary
 scoreboard players operation #by_c test.temporary += #by_t test.temporary
+# 筐体の副産物の確率(machine/run が #machine_by_bonus に入れる)
+scoreboard players operation #by_c test.temporary += #machine_by_bonus test.temporary
 execute if score #by_c test.temporary matches 101.. run scoreboard players set #by_c test.temporary 100
 
 function test:machine/by/roll with storage test: machine_work.by_arg

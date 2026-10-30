@@ -46,6 +46,7 @@ $Tabs = [ordered]@{
   refine_by        = '精錬の副産物'
   pre_by           = '前処理の副産物'
   fuels            = '燃料'
+  casings          = '筐体'
 }
 
 # ---------------------------------------------------------------- 取得
@@ -156,6 +157,7 @@ $RequiredHeaders = @{
   refine_by        = @('原石','素材','確率','レア度ごとの確率','段階ごとの確率','個数')
   pre_by           = @('機械','原石','素材','確率','レア度ごとの確率','個数')
   fuels            = @('アイテム','回数')
+  casings          = @('id','名前','ブロック','処理速度','副産物の確率','燃料の消費量')
 }
 foreach ($key in $Tabs.Keys) {
   $path = Join-Path $dataDir "$key.csv"
@@ -798,7 +800,7 @@ foreach ($s in $BaseStats) { if (-not $baseSeen.ContainsKey($s)) { Add-Err $Tabs
 
 # ---------------------------------------------------------------- 定数(キーは決まっていて、すべて必須)
 
-$ConfigKeys = [ordered]@{ turn_time = 1; turn_warn = 0; enemy_delay = 1; accessory_limit = 0 }   # キー => 最小値
+$ConfigKeys = [ordered]@{ turn_time = 1; turn_warn = 0; enemy_delay = 1; accessory_limit = 0; machine_fuel_max = 1 }   # キー => 最小値
 $constCfg = [ordered]@{}
 foreach ($r in $data.config) {
   $tab = $Tabs.config; $n = $r.__row
@@ -870,20 +872,88 @@ foreach ($r in $data.mines) {
 # (置くのは鉱脈のアマスタ。鉱山をリセットすると、アマスタの位置に structure を置き直す)。
 # 鉱石ブロックは鉱脈ごとに別のもの(そのブロックのルートテーブルを上書きするため、マップ全体に効く)
 $BlockPattern = '^(minecraft:)?[a-z0-9_]+$'
-# 機械に使うブロック(手書きのタグ data/test/tags/block/machine_{floor,parts,containers,cores}.json とホッパー)。
-# 鉱脈の鉱石ブロックには使えない(ルートテーブルを上書きし合うため)
+# 機械に使うブロック(手書きのタグ data/test/tags/block/machine_{floor,cores,inputs,outputs}.json とホッパー)。
+# 筐体(下の「筐体」タブ)・鉱脈の鉱石ブロックには使えない(ルートテーブルを上書きし合うため)
 $MachineBlocks = @('hopper')
-foreach ($t in @('machine_floor','machine_parts','machine_containers','machine_cores')) {
+foreach ($t in @('machine_floor','machine_cores','machine_inputs','machine_outputs')) {
   $tp = Join-Path $repoRoot "data\test\tags\block\$t.json"
   if (-not (Test-Path $tp)) { continue }
   $tj = [IO.File]::ReadAllText($tp, [Text.Encoding]::UTF8) | ConvertFrom-Json
   foreach ($v in $tj.values) { if ("$v" -notmatch '^#') { $MachineBlocks += ("$v" -replace '^minecraft:', '') } }
 }
+
+# 筐体: asset.casing.<id> = {block, name, speed, by_bonus, fuel_use}。機械(3×3×3)の外側に使うブロックで、
+# 全部同じ種類のときだけ機械が完成する。種類で処理速度(%)・副産物の確率に足す値(%)・1回の燃料の量(%、100で1回分)が変わる。
+# アイテムは asset.machine_item.casing_<id>(kind "place")として出し、ブロックのルートテーブルで同じものを落とす
+$blockLoot = [ordered]@{}   # data/minecraft 配下の相対パス => JSON(筐体と鉱脈の鉱石ブロック)
+$casings = [ordered]@{}
+$casingDecls = New-Object System.Collections.Generic.List[string]
+$casingBlocks = @{}
+foreach ($r in $data.casings) {
+  $tab = $Tabs.casings; $n = $r.__row
+  $errBefore = $Errors.Count
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($casings.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $block = Cell $r 'ブロック'; $sp = Cell $r '処理速度'; $bb = Cell $r '副産物の確率'; $fu = Cell $r '燃料の消費量'
+  if ($bb -eq '') { $bb = '0' }
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
+  $bid = ''
+  if ($block -notmatch $BlockPattern) { Add-Err $tab $n "「ブロック」($block) はバニラのブロックのid(例: waxed_cut_copper)にしてください" }
+  else {
+    $bid = $block -replace '^minecraft:', ''
+    if ($bid -eq 'red_shulker_box') { Add-Err $tab $n '「ブロック」に red_shulker_box は使えません(アイテムを渡す仕組みで使っているため)' }
+    elseif ($MachineBlocks -contains $bid) { Add-Err $tab $n "「ブロック」に $bid は使えません(機械の床・核・搬入口・搬出口・ホッパーに使っているため)" }
+    elseif ($casingBlocks.ContainsKey($bid)) { Add-Err $tab $n "ブロック「$bid」は筐体「$($casingBlocks[$bid])」でも使われています" }
+    else { $casingBlocks[$bid] = $id }
+  }
+  [void](Check-Int $tab $n '処理速度' $sp 1)
+  [void](Check-Int $tab $n '副産物の確率' $bb 0)
+  [void](Check-Int $tab $n '燃料の消費量' $fu 1)
+  if ($Errors.Count -gt $errBefore) { continue }
+  $casings[$id] = @{ block = $bid; name = $name }
+  $casingDecls.Add("data modify storage test: asset.casing.$id set value {block:`"minecraft:$bid`",name:`"$(Esc $name)`",speed:$sp,by_bonus:$bb,fuel_use:$fu}")
+  $casingDecls.Add("data modify storage test: asset.casing_ids append value `"$id`"")
+  $casingDecls.Add("data modify storage test: asset.machine_item.casing_$id set value {item:`"minecraft:$bid`",name:`"$(Esc $name)`",kind:`"place`"}")
+  $casingDecls.Add("data modify storage test: asset.machine_item_ids append value `"casing_$id`"")
+}
+if ($casings.Count -eq 0) { Add-Err $Tabs.casings 0 '筐体が1つもありません(機械を組み立てられなくなります)' }
+foreach ($cid in $casings.Keys) { $MachineBlocks += $casings[$cid].block }
+# 筐体のブロックのルートテーブル: 壊すと、item/machine/build(build_place)で作るものと同じ筐体のアイテムを1個落とす
+foreach ($cid in $casings.Keys) {
+  $c = $casings[$cid]
+  $blockLoot["loot_table\blocks\$($c.block).json"] = @"
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:$($c.block)",
+          "modifier": [
+            {
+              "type": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {"test": {"machine_item": "casing_$cid"}},
+                "minecraft:custom_name": {"text": $(Json-Str $c.name), "italic": false},
+                "minecraft:can_place_on": {"blocks": "#test:machine_placeable"},
+                "minecraft:tooltip_display": {"hidden_components": ["minecraft:can_place_on"]}
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+"@ -replace "`r", ''
+}
 $StructurePattern = '^[a-z0-9_.-]+:[a-z0-9_./-]+$'
 $veins = [ordered]@{}
 $veinDecls = New-Object System.Collections.Generic.List[string]
 $blockOwner = @{}
-$blockLoot = [ordered]@{}   # data/minecraft 配下の相対パス => JSON
 foreach ($r in $data.veins) {
   $tab = $Tabs.veins; $n = $r.__row
   $errBefore = $Errors.Count
@@ -898,7 +968,7 @@ foreach ($r in $data.veins) {
   else {
     $bid = $block -replace '^minecraft:', ''
     if ($bid -eq 'red_shulker_box') { Add-Err $tab $n '「鉱石ブロック」に red_shulker_box は使えません(アイテムを渡す仕組みで使っているため)' }
-    elseif ($MachineBlocks -contains $bid) { Add-Err $tab $n "「鉱石ブロック」に $bid は使えません(機械の床・部品・入れ物・核・ホッパーに使っているため。data/test/tags/block/machine_*.json)" }
+    elseif ($MachineBlocks -contains $bid) { Add-Err $tab $n "「鉱石ブロック」に $bid は使えません(機械の床・核・搬入口・搬出口・ホッパー・筐体に使っているため)" }
     elseif ($blockOwner.ContainsKey($bid)) { Add-Err $tab $n "鉱石ブロック「$bid」は鉱脈「$($blockOwner[$bid])」でも使われています(1つのブロックは1つの鉱脈だけ)" }
     else { $blockOwner[$bid] = $id }
   }
@@ -1193,7 +1263,7 @@ $rel = 'init\asset\generated\config.mcfunction'
 $cfgSnbt = @($constCfg.Keys | ForEach-Object { "$($_):$($constCfg[$_])" }) -join ','
 $lines = @($Header, "#> $(Fn-Name $rel)",
   '# 定数(スプレッドシートの「定数」タブ)。asset.config.<キー>',
-  '#   turn_time: 手番の制限時間(秒) / turn_warn: 予告を出す残り時間(秒) / enemy_delay: 敵が行動するまで(tick) / accessory_limit: 効くアクセサリーの数', '',
+  '#   turn_time: 手番の制限時間(秒) / turn_warn: 予告を出す残り時間(秒) / enemy_delay: 敵が行動するまで(tick) / accessory_limit: 効くアクセサリーの数 / machine_fuel_max: 機械に蓄えられる燃料(回数)', '',
   "data modify storage test: asset.config set value {$cfgSnbt}")
 $outputs[$rel] = $lines
 
@@ -1239,10 +1309,17 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# アイテムのidだけで判定する(custom_data は見ない)', '')
 $outputs[$rel] = $lines + $fuelDecls
 
+$rel = 'init\asset\machine\generated\casings.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 機械の筐体(スプレッドシートの「筐体」タブ)。asset.casing.<id> = {block, name, speed, by_bonus, fuel_use}。',
+  '#   speed: 1秒の進み(%) / by_bonus: 副産物の確率に足す値(%) / fuel_use: 1回の処理で使う燃料(%。100で1回分)',
+  '# 筐体のアイテムは asset.machine_item.casing_<id>(test:item/machine/build で作る)。test:init/asset/machine が呼ぶ', '')
+$outputs[$rel] = $lines + $casingDecls
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
-  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated')
+  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d
@@ -1281,10 +1358,16 @@ $mineOresDir = Split-Path $mineOresPath -Parent
 if (-not (Test-Path $mineOresDir)) { New-Item -ItemType Directory -Path $mineOresDir | Out-Null }
 [IO.File]::WriteAllText($mineOresPath, $mineOresJson, $utf8)
 
-Write-Host "生成しました($($outputs.Count + $blockLoot.Count + 1) ファイル)。ゲーム内で /reload してください(ルートテーブルやタグを変えたときはワールドの読み直し)。" -ForegroundColor Green
+# 全筐体のブロックのタグ(#test:machine_casings)。機械の形の判定・置ける場所・レンチで壊せるものに使う。毎回まるごと書き直す
+$casingsTagPath = Join-Path $repoRoot 'data\test\tags\block\machine_casings.json'
+$casingLines = @($casings.Values | ForEach-Object { "    `"minecraft:$($_.block)`"" })
+[IO.File]::WriteAllText($casingsTagPath, "{`n  `"values`": [`n$($casingLines -join ",`n")`n  ]`n}`n", $utf8)
+
+Write-Host "生成しました($($outputs.Count + $blockLoot.Count + 2) ファイル)。ゲーム内で /reload してください(ルートテーブルやタグを変えたときはワールドの読み直し)。" -ForegroundColor Green
 foreach ($relPath in $outputs.Keys) { Write-Host "  data/test/function/$($relPath -replace '\\','/')" }
-if ($blockLoot.Count -gt 0) { Write-Host '  鉱石ブロックのルートテーブル(古いものは自動で消さないので、鉱山を消したときは手で消す):' }
+if ($blockLoot.Count -gt 0) { Write-Host '  筐体と鉱石ブロックのルートテーブル(古いものは自動で消さないので、筐体や鉱脈を消したときは手で消す):' }
 foreach ($relPath in $blockLoot.Keys) { Write-Host "  data/minecraft/$($relPath -replace '\\','/')" }
-Write-Host '  鉱石ブロックのタグ(毎回まるごと書き直す):'
+Write-Host '  ブロックのタグ(毎回まるごと書き直す):'
 Write-Host '  data/test/tags/block/mine_ores.json'
+Write-Host '  data/test/tags/block/machine_casings.json'
 foreach ($relPath in $removed) { Write-Host "  (削除) data/test/function/$($relPath -replace '\\','/')" -ForegroundColor Yellow }

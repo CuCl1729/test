@@ -1,8 +1,9 @@
 #> test:machine/shape/part
-# @s = 機械のマーカー(実行位置は核の中心、向きは機械の前)。@macro block/l/u/f: 部品のブロックと、核から見た位置(左・上・前)。
-# そのブロックが無ければ #machine_missing を増やし、近くに人がいれば(#machine_viewer)そこに置くブロックの形のパーティクルを出す
-# (プレイヤーがマルチブロックの形を知る手がかり)
+# @s = 機械のマーカー(実行位置は核の中心)。@macro x/y/z: 核からのずれ。その位置が搬入口・搬出口・筐体のどれかを調べる。
+# どれでもなければ「足りない」として数え、位置を machine_work.missing に足す(ゴーストを出す位置)
 
-$execute positioned ^$(l) ^$(u) ^$(f) if block ~ ~ ~ $(block) run return 0
+$execute positioned ~$(x) ~$(y) ~$(z) if block ~ ~ ~ #test:machine_inputs run return run function test:machine/shape/input {x:$(x),y:$(y),z:$(z)}
+$execute positioned ~$(x) ~$(y) ~$(z) if block ~ ~ ~ #test:machine_outputs run return run function test:machine/shape/output {x:$(x),y:$(y),z:$(z)}
+$execute positioned ~$(x) ~$(y) ~$(z) if block ~ ~ ~ #test:machine_casings run return run function test:machine/shape/casing
 scoreboard players add #machine_missing test.temporary 1
-$execute if score #machine_viewer test.temporary matches 1 positioned ^$(l) ^$(u) ^$(f) run particle minecraft:block_marker{block_state:{Name:"$(block)"}} ~ ~ ~ 0 0 0 0 1 normal @a[distance=..16]
+$data modify storage test: machine_work.missing append value {x:$(x),y:$(y),z:$(z)}

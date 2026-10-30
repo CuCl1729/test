@@ -265,9 +265,12 @@ scoreboard objectives add test.owner dummy
 # しきい値型のイベント(HP低下時など)の枠に中身があれば1。tickで見張る人を絞る(test:equip/proc/watch_recalc)
  scoreboard objectives add test.equip.has_watch dummy
 
-# 機械(マーカー)の残りの燃料(あと何回処理できるか)と、今の処理の進み具合(秒)
+# 機械(マーカー)の蓄えた燃料(×100。100で燃料の消費量100の処理1回分)、今の処理の進み具合(×100。筐体の処理速度ずつ増える)、
+# 次に使う搬出口の番号、機械ごとの番号(ゴーストの持ち主の目印。#machine_next が最後に振った番号)
  scoreboard objectives add test.machine.fuel dummy
  scoreboard objectives add test.machine.progress dummy
+ scoreboard objectives add test.machine.out_rr dummy
+ scoreboard objectives add test.machine.id dummy
 
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy

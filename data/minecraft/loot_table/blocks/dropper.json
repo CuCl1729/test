@@ -11,8 +11,8 @@
             {
               "type": "minecraft:set_components",
               "components": {
-                "minecraft:custom_data": {"test": {"machine_item": "machine_container"}},
-                "minecraft:custom_name": {"text": "機械の入れ物", "italic": false},
+                "minecraft:custom_data": {"test": {"machine_item": "port_in"}},
+                "minecraft:custom_name": {"text": "搬入口", "italic": false},
                 "minecraft:can_place_on": {"blocks": "#test:machine_placeable"},
                 "minecraft:tooltip_display": {"hidden_components": ["minecraft:can_place_on"]}
               }

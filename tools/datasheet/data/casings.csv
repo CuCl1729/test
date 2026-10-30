@@ -1,0 +1,3 @@
+﻿id,名前,ブロック,処理速度,副産物の確率,燃料の消費量
+copper,銅の筐体,waxed_cut_copper,100,0,100
+iron,鉄の筐体,iron_block,150,10,150
