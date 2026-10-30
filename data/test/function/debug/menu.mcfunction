@@ -33,6 +33,9 @@ function test:debug/menu/vein_loop
 tellraw @s [{text:"[鉱脈のずれを調べる]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/check_veins"}},{text:" (片方のマップにだけある鉱脈など)",color:dark_gray}]
 tellraw @s [{text:"[近くの鉱脈を消す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/remove_vein"}},{text:" "},{text:"[鉱脈の名前を表示]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/show_veins {visible:1b}"}},{text:" "},{text:"[隠す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/show_veins {visible:0b}"}}]
 
+tellraw @s {text:"― 工場 ―",color:gold}
+tellraw @s [{text:"[区画の情報]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/factory_info"}},{text:" (番号・座標・作り終えたか・forceload)",color:dark_gray}]
+
 tellraw @s {text:"― 機械 ―",color:gold}
 data modify storage test: debug_work.casing_queue set from storage test: asset.casing_ids
 function test:debug/menu/casing_loop

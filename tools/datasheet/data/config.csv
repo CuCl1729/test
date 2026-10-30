@@ -4,3 +4,10 @@ turn_warn,10,自動で防御する前に予告を出す残り時間(秒)
 enemy_delay,20,敵が行動を選ぶまでの間(tick。20で1秒)
 accessory_limit,2,インベントリに入れておくと効くアクセサリーの数
 machine_fuel_max,64,機械に蓄えられる燃料(回数。燃料の消費量100の処理で何回分か)
+factory_plot_size,48,工場の区画の大きさ(ブロック。16の倍数。一番外側の列は壁)
+factory_plot_spacing,512,工場の区画どうしの間隔(x方向。区画の大きさ以上)
+factory_floor_y,63,工場の区画の床(岩盤)の高さ
+factory_top_y,127,工場の区画で建築できる一番上の高さ(その1つ上が天井)
+factory_return_x,0,工場から戻る場所が記録されていないときの test:action の x
+factory_return_y,0,同じく y
+factory_return_z,0,同じく z

@@ -272,6 +272,9 @@ scoreboard objectives add test.owner dummy
  scoreboard objectives add test.machine.out_rr dummy
  scoreboard objectives add test.machine.id dummy
 
+# 工場(test:factory)の区画の番号(プレイヤー。1から。#factory_next が最後に割り当てた番号)
+ scoreboard objectives add test.factory.plot dummy
+
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy
  scoreboard objectives add test.debug.display dummy

@@ -807,7 +807,9 @@ foreach ($s in $BaseStats) { if (-not $baseSeen.ContainsKey($s)) { Add-Err $Tabs
 
 # ---------------------------------------------------------------- 定数(キーは決まっていて、すべて必須)
 
-$ConfigKeys = [ordered]@{ turn_time = 1; turn_warn = 0; enemy_delay = 1; accessory_limit = 0; machine_fuel_max = 1 }   # キー => 最小値
+$ConfigKeys = [ordered]@{ turn_time = 1; turn_warn = 0; enemy_delay = 1; accessory_limit = 0; machine_fuel_max = 1
+  factory_plot_size = 16; factory_plot_spacing = 16; factory_floor_y = -63; factory_top_y = -62
+  factory_return_x = -29999999; factory_return_y = -64; factory_return_z = -29999999 }   # キー => 最小値
 $constCfg = [ordered]@{}
 foreach ($r in $data.config) {
   $tab = $Tabs.config; $n = $r.__row
@@ -818,6 +820,12 @@ foreach ($r in $data.config) {
 }
 foreach ($k in $ConfigKeys.Keys) { if (-not $constCfg.Contains($k)) { Add-Err $Tabs.config 0 "キー「$k」の行がありません" } }
 if ($constCfg.Contains('turn_time') -and $constCfg.Contains('turn_warn') -and [int]$constCfg.turn_warn -ge [int]$constCfg.turn_time) { Add-Err $Tabs.config 0 'turn_warn(予告の残り秒数)は turn_time(制限時間)より小さくしてください' }
+# 工場の区画: チャンクの境目にそろえる(forceload をチャンク単位で行うため)。区画どうしが重ならず、天井が建築の上限(319)を超えないこと
+if ($constCfg.Contains('factory_plot_size') -and [int]$constCfg.factory_plot_size % 16 -ne 0) { Add-Err $Tabs.config 0 'factory_plot_size(区画の大きさ)は16の倍数にしてください(チャンクの境目にそろえるため)' }
+if ($constCfg.Contains('factory_plot_spacing') -and [int]$constCfg.factory_plot_spacing % 16 -ne 0) { Add-Err $Tabs.config 0 'factory_plot_spacing(区画の間隔)は16の倍数にしてください' }
+if ($constCfg.Contains('factory_plot_size') -and $constCfg.Contains('factory_plot_spacing') -and [int]$constCfg.factory_plot_spacing -lt [int]$constCfg.factory_plot_size) { Add-Err $Tabs.config 0 'factory_plot_spacing(区画の間隔)は factory_plot_size(区画の大きさ)以上にしてください' }
+if ($constCfg.Contains('factory_floor_y') -and $constCfg.Contains('factory_top_y') -and [int]$constCfg.factory_top_y -le [int]$constCfg.factory_floor_y) { Add-Err $Tabs.config 0 'factory_top_y(建築できる一番上)は factory_floor_y(床)より上にしてください' }
+if ($constCfg.Contains('factory_top_y') -and [int]$constCfg.factory_top_y -gt 318) { Add-Err $Tabs.config 0 'factory_top_y は 318 以下にしてください(その1つ上に天井を置くため)' }
 
 # ---------------------------------------------------------------- 採掘(原石・鉱山・ツルハシ)
 
@@ -1268,7 +1276,9 @@ $rel = 'init\asset\generated\config.mcfunction'
 $cfgSnbt = @($constCfg.Keys | ForEach-Object { "$($_):$($constCfg[$_])" }) -join ','
 $lines = @($Header, "#> $(Fn-Name $rel)",
   '# 定数(スプレッドシートの「定数」タブ)。asset.config.<キー>',
-  '#   turn_time: 手番の制限時間(秒) / turn_warn: 予告を出す残り時間(秒) / enemy_delay: 敵が行動するまで(tick) / accessory_limit: 効くアクセサリーの数 / machine_fuel_max: 機械に蓄えられる燃料(回数)', '',
+  '#   turn_time: 手番の制限時間(秒) / turn_warn: 予告を出す残り時間(秒) / enemy_delay: 敵が行動するまで(tick) / accessory_limit: 効くアクセサリーの数 / machine_fuel_max: 機械に蓄えられる燃料(回数)',
+  '#   factory_plot_size / factory_plot_spacing: 工場の区画の大きさと間隔 / factory_floor_y / factory_top_y: 区画の床と建築できる一番上 /',
+  '#   factory_return_x/y/z: 工場から戻る場所が記録されていないときの test:action の座標', '',
   "data modify storage test: asset.config set value {$cfgSnbt}")
 $outputs[$rel] = $lines
 
