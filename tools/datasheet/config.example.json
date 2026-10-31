@@ -28,6 +28,12 @@
     "refine_by": "",
     "pre_by": "",
     "fuels": "",
-    "casings": ""
+    "casings": "",
+    "gathers": "",
+    "gather_drops": "",
+    "gather_tools": "",
+    "gather_points": "",
+    "fishing_spots": "",
+    "fishing_pools": ""
   }
 }

@@ -165,7 +165,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - Tabs: stats, materials, weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop
     recipes, runes, consumables, enemies (+ gimmicks, drops), jobs (+ skills), magic values, buff values,
     player base stats, constants, ores, mines, veins, pickaxes, refining (main products, by-products,
-    pre-processing by-products), fuels, machine casings. A tab without a gid in `config.json` is not
+    pre-processing by-products), fuels, machine casings, gathering (kinds, drops, tools, points), fishing
+    (spots, pools). A tab without a gid in `config.json` is not
     downloaded; its local CSV is used.
   - **Units**: status values (enemy HP/atk/def/…, job growth, buff params, player base stats) are written in
     display units (as in item lore) and the script multiplies by 100; resist %, exp, chance %, counts are
@@ -174,10 +175,11 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
   - Generated files: `init/asset/generated/{weapons,stats,config}`, `init/asset/equip/generated/{items,sets}`,
     `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
-    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine}/generated/*`.
+    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine,gather,fish}/generated/*`.
     Stale generated `.mcfunction` files in those folders are deleted. The only generated loot tables are the
-    veins' ore blocks (a fixed single token, no rolls) and the machine casings' blocks (the casing item inside
-    the factory, vanilla elsewhere), `data/minecraft/loot_table/blocks/<block>.json`. JSON can't carry the
+    veins' ore blocks (a fixed single token, no rolls), the machine casings' blocks (the casing item inside
+    the factory, vanilla elsewhere), `data/minecraft/loot_table/blocks/<block>.json`, and **vanilla fishing,
+    `data/minecraft/loot_table/gameplay/fishing.json`** (see "Fishing"). JSON can't carry the
     header, so **stale ones are not deleted: remove them by hand** when a vein or casing is removed or its block
     changes (the script lists the ones it wrote). Never touch the hand-written `red_shulker_box.json` or the
     machines' hand-written ones (dropper, dispenser, cores; see "Machines"); the script refuses a vein ore or
@@ -449,6 +451,44 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     else (creative/spectator untouched), so respawning or relogging elsewhere also switches back.
   - Debug menu 工場: key, `factory/use` (go / return), `debug/factory_info` (number, corners, built,
     `forceload query`), `debug/factory_goto {n}` (any plot, for creative).
+- **Gathering points** (採取ポイント; `gather/`), in both `test:action` and `test:turn` at the same coordinates.
+  - Registries (sheet tabs 採取物 / 採取の中身 / 採取の道具 / 採取ポイント → `init/asset/gather/generated/gather`):
+    `asset.gather.<id> = {name, block, after, tool, respawn, drops:[{material, rank, chance, chance_rank, min,
+    max}]}` (`after` is `minecraft:air` when the sheet leaves it empty), `asset.gather_tool.<id> = {item, model,
+    name, kind, rank}`, `asset.gather_point.<id> = {type, block, x, y, z}`, plus the `*_ids` lists.
+  - Placement is self-healing, no manual step: every 5 s (`tick` → `gather/tick_second` → `gather/place/all`)
+    each listed point is placed in both maps where its block is loaded and nothing is there yet (an
+    `interaction` 1×1, `tag=gather_point`, `data.gather = {point, type, dim, def}`, and a separate
+    `block_display` `tag=gather_display` at the block corner), and every placed point whose `def` no longer
+    equals `asset.gather_point.<point>` (removed, moved, retyped, new look) is removed (`place/check`), so the
+    next pass re-places it.
+  - Right click: advancement `trigger/gather` (`player_interacted_with_entity` on an interaction) →
+    `gather/interact` finds the point whose `interaction.player` is the clicker's UUID (`gather/match`), clears
+    that `interaction` data so one press is handled once, and runs `gather/take`.
+  - Taking: rank = the held item's `custom_data.test.gather_tool.rank` if its `kind` is the gather's `tool`,
+    else 0 (bare hands). Each drop row with `rank ≤` that rank rolls `chance + chance_rank × rank` % (cap 100,
+    rng `gather_drop`) and a count (rng `gather_count`); hits are built with `item/material/build` and dropped
+    at the player with `item/drop_at` (picked up at once; nothing is lost when the inventory is full). Taking
+    counts even with no hit.
+  - State lives in storage, not on the entity, so re-placing keeps it: `gather_state.<action|turn>.<point>.
+    ready_at` (game time). Each map's point respawns separately. Every second `gather/refresh` shows `block` or
+    `after` on the display by that state (`tag=gather_used` so it only writes on change).
+  - Tools: `item/gather_tool/build {id}` (common base item + `item_model`, `max_stack_size` 1, lore
+    `採取 ランク<N>`), given by `item/gather_tool/give`.
+  - Debug menu 採取: all tools, nearby points (`debug/gather_status`, seconds to respawn), respawn nearby now.
+- **Fishing** (`fish/`). **The vanilla fishing loot table `gameplay/fishing.json` is overridden by the script**:
+  no rolls, one `alternatives` entry whose children are the 釣り場 rows top to bottom (`location_check` on the
+  bobber position, `weather_check`, `time_check` with `clock: minecraft:overworld`, `period: 24000`), then an
+  unconditional `default`; each drops one token (common base item, `item_model` cod,
+  `custom_data.test.fish_token:"<pool>"`). Vanilla fish/junk/treasure never drop and Luck of the Sea does
+  nothing; Lure is untouched. The `gameplay/fishing/*` sub-tables still exist (guardians drop from
+  `fishing/fish`).
+  - Pools: `asset.fish_pool.<id> = {entries:[{material, weight, min, max}], total}` (`default` required),
+    `asset.fishing_spots` (rows with area as `x1 y1 z1 dx dy dz`, for debug), `asset.fish_token_item`.
+  - Token → materials: `cache/update` runs `fish/token/convert` before copying `player_data` (like ore
+    tokens): per pool it `clear`s the tokens and, per token, picks a row by weight (rng `fish_pick`) and a count
+    (rng `fish_count`), dropped at the player with `item/drop_at`.
+  - Debug menu 採取: `debug/fishing_here` (rows whose area contains you) and a token button per pool.
 - **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
   `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
   craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:
