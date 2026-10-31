@@ -1,6 +1,6 @@
 # 自動生成: tools/datasheet/generate.ps1。直接編集しない(スプレッドシートを直して再生成する)
 #> test:init/asset/rune/generated/runes
-# ルーンの宣言(スプレッドシートの「ルーン」タブ)。asset.rune.<id> = {item, name, status:[{type,value}…]}。
+# ルーンの宣言(スプレッドシートの「アイテム」タブの種類「ルーン」)。asset.rune.<id> = {item, name, status:[{type,value}…]}。
 # 付与台(craft/equip_magic/)で装備の自動発動の枠に入れると、statusが枠に写され、常に能力を上げる。
 # asset.rune_ids は全種類のidの一覧(デバッグで配るときに使う)
 

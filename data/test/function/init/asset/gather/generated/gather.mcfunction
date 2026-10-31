@@ -1,6 +1,6 @@
 # 自動生成: tools/datasheet/generate.ps1。直接編集しない(スプレッドシートを直して再生成する)
 #> test:init/asset/gather/generated/gather
-# 採取(スプレッドシートの「採取物」「採取の中身」「採取の道具」「採取ポイント」タブ)。
+# 採取(スプレッドシートの「採取物」「採取ポイント」タブと、「ドロップ」「道具」タブの採取の行)。
 #   asset.gather.<id> = {name, block, after, tool, respawn(秒), drops:[{material, rank, chance, chance_rank, min, max}]}
 #   asset.gather_tool.<id> = {item, model, name, kind, rank} / asset.gather_point.<id> = {type, block, x, y, z}
 

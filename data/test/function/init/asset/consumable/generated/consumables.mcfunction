@@ -1,6 +1,6 @@
 # 自動生成: tools/datasheet/generate.ps1。直接編集しない(スプレッドシートを直して再生成する)
 #> test:init/asset/consumable/generated/consumables
-# 消耗品の宣言(スプレッドシートの「消耗品」タブ)。asset.consumable.<id> = {item, name, every, effect:{kind, params}}。
+# 消耗品の宣言(スプレッドシートの「アイテム」タブの種類「消耗品」)。asset.consumable.<id> = {item, name, every, effect:{kind, params}}。
 # 効果は test:consumable/use {id} が test:consumable/effect/<kind> にparamsを渡して実行する。
 # 付与台で装備の自動発動の枠に設定すると、イベントが every 回起きるごとに1個自動で使う。
 # asset.consumable_ids は全種類のidの一覧(デバッグで配るときに使う)

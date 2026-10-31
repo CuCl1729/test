@@ -1,6 +1,6 @@
 # 自動生成: tools/datasheet/generate.ps1。直接編集しない(スプレッドシートを直して再生成する)
 #> test:init/asset/material/generated/materials
-# 素材の宣言(スプレッドシートの「素材」タブ)。asset.material.<id> = {item, model, name, role, data}。item は全素材 minecraft:recovery_compass、見た目は model(item_model)。
+# 素材の宣言(スプレッドシートの「アイテム」タブの素材の種類)。asset.material.<id> = {item, model, name, role, data}。item は全素材 minecraft:recovery_compass、見た目は model(item_model)。
 # data はアイテムの custom_data.test に入る({material:{kind}} か、型紙なら {pattern:{part}})。作るのは test:item/material/build {id}
 
 data modify storage test: asset.material.bone set value {item:"minecraft:recovery_compass",model:"minecraft:bone",name:"骨の欠片",role:"material",data:{material:{kind:"bone"}}}

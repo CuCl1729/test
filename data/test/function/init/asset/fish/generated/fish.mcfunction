@@ -1,6 +1,6 @@
 # 自動生成: tools/datasheet/generate.ps1。直接編集しない(スプレッドシートを直して再生成する)
 #> test:init/asset/fish/generated/fish
-# 釣り(スプレッドシートの「釣り場」「釣りの中身」タブ)。asset.fish_pool.<id> = {entries:[{material, weight, min, max}], total}。
+# 釣り(スプレッドシートの「釣り場」タブと、「ドロップ」タブの種類「釣り」)。asset.fish_pool.<id> = {entries:[{material, weight, min, max}], total}。
 # asset.fishing_spots は釣り場の行(上ほど優先。デバッグの表示用。釣れる目印はルートテーブル gameplay/fishing が決める)
 
 data modify storage test: asset.fish_pool.default set value {entries:[{material:"small_fish",weight:80,min:1,max:1},{material:"big_fish",weight:20,min:1,max:1}],total:100}

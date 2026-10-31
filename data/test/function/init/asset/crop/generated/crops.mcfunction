@@ -1,6 +1,6 @@
 # 自動生成: tools/datasheet/generate.ps1。直接編集しない(スプレッドシートを直して再生成する)
 #> test:init/asset/crop/generated/crops
-# 普通の作物のドロップ(スプレッドシートの「作物のドロップ」タブ)。asset.crop.<作物> = {drops:[{item, min, max}]}。
+# 普通の作物のドロップ(スプレッドシートの「ドロップ」タブの種類「作物」)。asset.crop.<作物> = {drops:[{item, min, max}]}。
 # 育ちきった作物の目印(crop_token)を、test:crop/token/convert が行ごとに rng/roll で個数を決めて、バニラのアイテムにする
 
 data modify storage test: asset.crop.wheat set value {drops:[{item:"minecraft:wheat",min:1,max:1},{item:"minecraft:wheat_seeds",min:0,max:3}]}

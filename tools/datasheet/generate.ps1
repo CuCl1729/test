@@ -20,43 +20,58 @@ $Header = '# 自動生成: tools/datasheet/generate.ps1。直接編集しない(
 # タブのキー(data/<キー>.csv、config.jsonのtabs.<キー>)と、スプレッドシート上のタブ名
 $Tabs = [ordered]@{
   stats            = 'ステータス'
-  materials        = '素材'
+  items            = 'アイテム'
+  tools            = '道具'
+  drops            = 'ドロップ'
   weapons          = '武器'
   forge_recipes    = '鍛冶場レシピ'
   equipment        = '防具'
   sets             = 'シリーズ'
   set_effects      = '4部位効果'
   workshop_recipes = '防具工房レシピ'
-  runes            = 'ルーン'
-  consumables      = '消耗品'
   enemies          = '敵'
   enemy_gimmicks   = '敵のギミック'
-  enemy_drops      = '敵のドロップ'
   jobs             = '職業'
   job_skills       = '職業スキル'
   magic_values     = '魔法の数値'
   buff_values      = 'バフの数値'
   player_base      = 'プレイヤー初期値'
   config           = '定数'
-  ores             = '原石'
   mines            = '鉱山'
   veins            = '鉱脈'
-  pickaxes         = 'ツルハシ'
   refine_main      = '精錬の主産物'
   refine_by        = '精錬の副産物'
   pre_by           = '前処理の副産物'
   fuels            = '燃料'
   casings          = '筐体'
   gathers          = '採取物'
-  gather_drops     = '採取の中身'
-  gather_tools     = '採取の道具'
   gather_points    = '採取ポイント'
   fishing_spots    = '釣り場'
-  fishing_pools    = '釣りの中身'
-  crop_drops       = '作物のドロップ'
   magic_crops      = '魔法作物'
   scans            = '観測'
   researches       = '研究'
+}
+
+# 似た形のものをまとめたタブ。行は「種類」(kind の列)の値で、今までのタブ(to のキー)の行に振り分けてから検証・生成する。
+#   cols = 今までのタブの見出し => まとめたタブの列。kinds が無いものは、ほかのどれにも当たらない種類を受ける。
+#   その種類で使わない列に値があれば誤り。unique_id ならタブ全体で id が重なってはいけない
+$Merged = [ordered]@{
+  items = @{ kind = '種類'; unique_id = $true; rows = @(
+    @{ kinds = @('素材', '触媒', '特殊', '型紙', 'エッセンス'); to = 'materials'; cols = [ordered]@{ id = 'id'; 元アイテム = '見た目'; 名前 = '名前'; 種類 = '種類'; 部位 = '部位' } },
+    @{ kinds = @('原石'); to = 'ores'; cols = [ordered]@{ id = 'id'; 名前 = '名前'; アイテム = '見た目' } },
+    @{ kinds = @('ルーン'); to = 'runes'; cols = [ordered]@{ id = 'id'; 元アイテム = '見た目'; 名前 = '名前'; 能力 = '能力' } },
+    @{ kinds = @('消耗品'); to = 'consumables'; cols = [ordered]@{ id = 'id'; 元アイテム = '見た目'; 名前 = '名前'; every = 'every'; 効果 = '効果'; params = 'params' } }
+  ) }
+  tools = @{ kind = '種類'; unique_id = $true; rows = @(
+    @{ kinds = @('pickaxe'); to = 'pickaxes'; cols = [ordered]@{ id = 'id'; 名前 = '名前'; アイテム = '見た目'; ランク = 'ランク'; 採掘速度 = '採掘速度' } },
+    @{ kinds = $null; to = 'gather_tools'; cols = [ordered]@{ id = 'id'; 名前 = '名前'; 見た目 = '見た目'; 種類 = '種類'; ランク = 'ランク' } }
+  ) }
+  drops = @{ kind = '種類'; unique_id = $false; rows = @(
+    @{ kinds = @('敵'); to = 'enemy_drops'; cols = [ordered]@{ 敵 = '元'; 素材 = 'アイテム'; 最小 = '最小'; 最大 = '最大' } },
+    @{ kinds = @('採取'); to = 'gather_drops'; cols = [ordered]@{ 採取物 = '元'; 素材 = 'アイテム'; 必要ランク = '必要ランク'; 確率 = '確率'; ランクごとの確率 = 'ランクごとの確率'; 最小 = '最小'; 最大 = '最大' } },
+    @{ kinds = @('釣り'); to = 'fishing_pools'; cols = [ordered]@{ 中身 = '元'; 素材 = 'アイテム'; 重み = '重み'; 最小 = '最小'; 最大 = '最大' } },
+    @{ kinds = @('作物'); to = 'crop_drops'; cols = [ordered]@{ 作物 = '元'; アイテム = 'アイテム'; 最小 = '最小'; 最大 = '最大' } }
+  ) }
 }
 
 # ---------------------------------------------------------------- 取得
@@ -141,10 +156,11 @@ foreach ($key in $Tabs.Keys) { $data[$key] = Read-Tab $key }
 # 見出しが揃っているか
 $RequiredHeaders = @{
   stats            = @('種類','アイコン','名前','色','単位','抽選値','武器','成長')
-  materials        = @('id','元アイテム','名前','種類','部位')
+  items            = @('id','種類','名前','見た目','部位','能力','every','効果','params')
+  tools            = @('id','種類','名前','見た目','ランク','採掘速度')
+  drops            = @('種類','元','アイテム','必要ランク','確率','ランクごとの確率','重み','最小','最大')
   enemies          = @('id','名前','色','HP','MP','攻撃','防御','防御係数','会心率','会心ダメージ','経験値','攻撃属性','物理耐性','火耐性','水耐性','木耐性','金耐性','土耐性','フィールドAI','防御の重み','命中時バフ','装備ドロップ')
   enemy_gimmicks   = @('敵','id','重み','HP以下','クールダウン','params')
-  enemy_drops      = @('敵','素材','最小','最大')
   jobs             = @('id','名前','色','前提','経験値係数','成長')
   job_skills       = @('職業','id','名前','必要レベル','前提スキル','コスト','種類','params')
   magic_values     = @('要素','コスト','params')
@@ -157,24 +173,16 @@ $RequiredHeaders = @{
   sets             = @('id','名前','2部位ボーナス')
   set_effects      = @('シリーズ','event','kind','params','説明')
   workshop_recipes = @('素材','部位','装備id')
-  runes            = @('id','元アイテム','名前','能力')
-  consumables      = @('id','元アイテム','名前','every','効果','params')
-  ores             = @('id','名前','アイテム')
   mines            = @('id','名前','範囲','入口','リセット間隔')
   veins            = @('id','鉱石ブロック','原石','必要ランク','レア度の重み','構造物')
-  pickaxes         = @('id','名前','アイテム','ランク','採掘速度')
   refine_main      = @('原石','素材','重み','レア度ごとの重み','個数','段階ごとの個数')
   refine_by        = @('原石','素材','確率','レア度ごとの確率','段階ごとの確率','個数')
   pre_by           = @('機械','原石','素材','確率','レア度ごとの確率','個数')
   fuels            = @('アイテム','回数')
   casings          = @('id','名前','ブロック','処理速度','副産物の確率','燃料の消費量')
   gathers          = @('id','名前','見た目','採った後の見た目','道具','復活時間')
-  gather_drops     = @('採取物','素材','必要ランク','確率','ランクごとの確率','最小','最大')
-  gather_tools     = @('id','名前','見た目','種類','ランク')
   gather_points    = @('id','採取物','座標')
   fishing_spots    = @('id','範囲','天気','時間帯','中身')
-  fishing_pools    = @('中身','素材','重み','最小','最大')
-  crop_drops       = @('作物','アイテム','最小','最大')
   magic_crops      = @('id','名前','種の見た目','作物の見た目','段階数','成長時間','エッセンス','最小','最大','種が増える確率')
   scans            = @('id','名前','種類','対象','知識')
   researches       = @('id','名前','アイコン','コスト','前提','観測','知識','解放')
@@ -185,6 +193,34 @@ foreach ($key in $Tabs.Keys) {
   $first = ([IO.File]::ReadAllText($path, [Text.Encoding]::UTF8).TrimStart([char]0xFEFF) -split "`r?`n")[0]
   $heads = @($first | ConvertFrom-Csv -Header (1..64) | ForEach-Object { $_.PSObject.Properties.Value } | Where-Object { $_ })
   foreach ($h in $RequiredHeaders[$key]) { if ($heads -notcontains $h) { Add-Err $Tabs[$key] 1 "見出し「$h」の列がありません" } }
+}
+
+# まとめたタブの行を、今までのタブの見出しを持つ行に作り直して $data.<今までのキー> に入れる(シートの順のまま。行番号はまとめたタブのもの)。
+# エラーの文に出るタブ名も、まとめたタブの名前にする
+foreach ($mk in $Merged.Keys) {
+  $m = $Merged[$mk]
+  $allCols = @(@($m.rows | ForEach-Object { @($_.cols.Values) }) + $m.kind | Select-Object -Unique)
+  $kindNames = @($m.rows | Where-Object { $_.kinds } | ForEach-Object { $_.kinds })
+  foreach ($t in $m.rows) { $data[$t.to] = @(); $Tabs[$t.to] = $Tabs[$mk] }
+  $seenIds = @{}
+  foreach ($r in $data[$mk]) {
+    $n = $r.__row; $kind = Cell $r $m.kind
+    if ($kind -eq '') { Add-Err $Tabs[$mk] $n "「$($m.kind)」が空です"; continue }
+    $t = @($m.rows | Where-Object { $_.kinds -and $_.kinds -contains $kind })[0]
+    if ($null -eq $t) { $t = @($m.rows | Where-Object { -not $_.kinds })[0] }
+    if ($null -eq $t) { Add-Err $Tabs[$mk] $n "「$($m.kind)」($kind) は $($kindNames -join ' / ') のどれかにしてください"; continue }
+    $used = @(@($t.cols.Values) + $m.kind)
+    foreach ($c in $allCols) { if ($used -notcontains $c -and (Cell $r $c) -ne '') { Add-Err $Tabs[$mk] $n "種類「$kind」の行には「$c」を書かないでください" } }
+    if ($m.unique_id) {
+      $id = Cell $r 'id'
+      if ($id -ne '' -and $seenIds.ContainsKey($id)) { Add-Err $Tabs[$mk] $n "id「$id」が $($seenIds[$id]) 行目と重なっています"; continue }
+      $seenIds[$id] = $n
+    }
+    $o = [ordered]@{}
+    foreach ($old in $t.cols.Keys) { $o[$old] = Cell $r $t.cols[$old] }
+    $o['__row'] = $n
+    $data[$t.to] += [pscustomobject]$o
+  }
 }
 
 # ---------------------------------------------------------------- 検証に使う一覧
@@ -400,8 +436,8 @@ foreach ($r in $data.forge_recipes) {
   $mat = Cell $r '素材'; $cat = Cell $r '触媒'; $wid = Cell $r '武器id'
   if (-not (Check-Id $tab $n '素材' $mat)) { continue }
   if (-not (Check-Id $tab $n '触媒' $cat)) { continue }
-  if (-not $materials.Contains($mat) -or $materials[$mat].role -ne 'material') { Add-Err $tab $n "素材「$mat」が「素材」タブに種類「素材」としてありません"; continue }
-  if ($cat -ne 'none' -and (-not $materials.Contains($cat) -or $materials[$cat].role -ne 'catalyst')) { Add-Err $tab $n "触媒「$cat」が「素材」タブに種類「触媒」としてありません(触媒なしは none)"; continue }
+  if (-not $materials.Contains($mat) -or $materials[$mat].role -ne 'material') { Add-Err $tab $n "素材「$mat」が「アイテム」タブに種類「素材」としてありません"; continue }
+  if ($cat -ne 'none' -and (-not $materials.Contains($cat) -or $materials[$cat].role -ne 'catalyst')) { Add-Err $tab $n "触媒「$cat」が「アイテム」タブに種類「触媒」としてありません(触媒なしは none)"; continue }
   if (-not $weaponIds.ContainsKey($wid)) { Add-Err $tab $n "武器id「$wid」が「武器」タブにありません"; continue }
   if (-not $forgeByMaterial.Contains($mat)) { $forgeByMaterial[$mat] = [ordered]@{} }
   if ($forgeByMaterial[$mat].Contains($cat)) { Add-Err $tab $n "素材 $mat × 触媒 $cat の組み合わせが重複しています"; continue }
@@ -482,7 +518,7 @@ foreach ($r in $data.workshop_recipes) {
   $tab = $Tabs.workshop_recipes; $n = $r.__row
   $mat = Cell $r '素材'; $part = Cell $r '部位'; $eid = Cell $r '装備id'
   if (-not (Check-Id $tab $n '素材' $mat)) { continue }
-  if (-not $materials.Contains($mat) -or $materials[$mat].role -ne 'material') { Add-Err $tab $n "素材「$mat」が「素材」タブに種類「素材」としてありません"; continue }
+  if (-not $materials.Contains($mat) -or $materials[$mat].role -ne 'material') { Add-Err $tab $n "素材「$mat」が「アイテム」タブに種類「素材」としてありません"; continue }
   if ($Parts -notcontains $part) { Add-Err $tab $n "「部位」($part) は $($Parts -join ' / ') のどれかにしてください"; continue }
   if (-not $equipIds.ContainsKey($eid)) { Add-Err $tab $n "装備id「$eid」が「防具」タブにありません"; continue }
   if (-not $workshopByMaterial.Contains($mat)) { $workshopByMaterial[$mat] = [ordered]@{} }
@@ -663,7 +699,7 @@ foreach ($r in $data.enemy_drops) {
   $tab = $Tabs.enemy_drops; $n = $r.__row
   $eid = Cell $r '敵'; $mat = Cell $r '素材'; $min = Cell $r '最小'; $max = Cell $r '最大'
   if (-not $enemies.Contains($eid)) { Add-Err $tab $n "敵「$eid」が「敵」タブにありません"; continue }
-  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; continue }
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「アイテム」タブにありません"; continue }
   if (-not (Check-Int $tab $n '最小' $min 0)) { continue }
   if (-not (Check-Int $tab $n '最大' $max 1)) { continue }
   if ([int]$min -gt [int]$max) { Add-Err $tab $n "「最小」($min) が「最大」($max) より大きいです"; continue }
@@ -1025,7 +1061,7 @@ foreach ($r in $data.veins) {
     elseif ($blockOwner.ContainsKey($bid)) { Add-Err $tab $n "鉱石ブロック「$bid」は鉱脈「$($blockOwner[$bid])」でも使われています(1つのブロックは1つの鉱脈だけ)" }
     else { $blockOwner[$bid] = $id }
   }
-  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「原石」タブにありません" }
+  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「アイテム」タブに種類「原石」としてありません" }
   [void](Check-Int $tab $n '必要ランク' $rank 1)
 
   # レア度の重み: 「レア度=重み; …」(レア度は1〜5)
@@ -1118,8 +1154,8 @@ foreach ($r in $data.refine_main) {
   $w = Cell $r '重み'; $wr = Cell $r 'レア度ごとの重み'; $c = Cell $r '個数'; $cs = Cell $r '段階ごとの個数'
   if ($wr -eq '') { $wr = '0' }; if ($cs -eq '') { $cs = '0' }
   $ok = $true
-  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「原石」タブにありません"; $ok = $false }
-  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
+  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「アイテム」タブに種類「原石」としてありません"; $ok = $false }
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「アイテム」タブにありません"; $ok = $false }
   if (-not (Check-Int $tab $n '重み' $w 0)) { $ok = $false }
   if (-not (Check-Int $tab $n 'レア度ごとの重み' $wr 0)) { $ok = $false }
   if (-not (Check-Int $tab $n '個数' $c 1)) { $ok = $false }
@@ -1138,8 +1174,8 @@ foreach ($r in $data.refine_by) {
   $ch = Cell $r '確率'; $chr = Cell $r 'レア度ごとの確率'; $chs = Cell $r '段階ごとの確率'; $c = Cell $r '個数'
   if ($chr -eq '') { $chr = '0' }; if ($chs -eq '') { $chs = '0' }
   $ok = $true
-  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「原石」タブにありません"; $ok = $false }
-  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
+  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「アイテム」タブに種類「原石」としてありません"; $ok = $false }
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「アイテム」タブにありません"; $ok = $false }
   if (-not (Check-Int $tab $n '確率' $ch 0)) { $ok = $false }
   if (-not (Check-Int $tab $n 'レア度ごとの確率' $chr 0)) { $ok = $false }
   if (-not (Check-Int $tab $n '段階ごとの確率' $chs 0)) { $ok = $false }
@@ -1162,8 +1198,8 @@ foreach ($r in $data.pre_by) {
   if ($chr -eq '') { $chr = '0' }
   $ok = $true
   if ($PreMachines -notcontains $mc) { Add-Err $tab $n "機械「$mc」は前処理の機械ではありません(init/asset/machine の kind:`"pre`" の機械: $($PreMachines -join ' / '))"; $ok = $false }
-  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「原石」タブにありません"; $ok = $false }
-  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
+  if (-not $ores.Contains($ore)) { Add-Err $tab $n "原石「$ore」が「アイテム」タブに種類「原石」としてありません"; $ok = $false }
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「アイテム」タブにありません"; $ok = $false }
   if (-not (Check-Int $tab $n '確率' $ch 0)) { $ok = $false }
   if (-not (Check-Int $tab $n 'レア度ごとの確率' $chr 0)) { $ok = $false }
   if (-not (Check-Int $tab $n '個数' $c 1)) { $ok = $false }
@@ -1221,7 +1257,7 @@ foreach ($r in $data.gather_drops) {
   $rk = Cell $r '必要ランク'; $ch = Cell $r '確率'; $chr = Cell $r 'ランクごとの確率'; $mn = Cell $r '最小'; $mx = Cell $r '最大'
   if ($rk -eq '') { $rk = '0' }; if ($chr -eq '') { $chr = '0' }
   $ok = $true
-  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「アイテム」タブにありません"; $ok = $false }
   foreach ($p in @(@('必要ランク', $rk, 0), @('確率', $ch, 0), @('ランクごとの確率', $chr, 0), @('最小', $mn, 1), @('最大', $mx, 1))) { if (-not (Check-Int $tab $n $p[0] $p[1] $p[2])) { $ok = $false } }
   if ($ok -and [int]$mx -lt [int]$mn) { Add-Err $tab $n "「最大」($mx) は「最小」($mn) 以上にしてください"; $ok = $false }
   if ($ok -and -not (Check-MaxDrop $tab $n $mx)) { $ok = $false }
@@ -1245,10 +1281,10 @@ foreach ($r in $data.gathers) {
   if (-not (Check-Id $tab $n '道具' $tool)) { $ok = $false }
   if (-not (Check-Int $tab $n '復活時間' $resp 0)) { $ok = $false }
   if (-not $ok) { continue }
-  if (-not $gatherToolKinds.ContainsKey($tool)) { Add-Warn $tab $n "道具の種類「$tool」の道具が「採取の道具」タブにありません(素手でだけ採ることになります)" }
+  if (-not $gatherToolKinds.ContainsKey($tool)) { Add-Warn $tab $n "道具の種類「$tool」の道具が「道具」タブにありません(素手でだけ採ることになります)" }
   $b = 'minecraft:' + ($block -replace '^minecraft:', ''); $a = if ($after -eq '') { 'minecraft:air' } else { 'minecraft:' + ($after -replace '^minecraft:', '') }
   $drops = if ($gatherDrops.ContainsKey($id)) { $gatherDrops[$id] -join ',' } else { '' }
-  if ($drops -eq '') { Add-Warn $tab $n "採取物「$id」の行が「採取の中身」タブにありません(何も採れません)" }
+  if ($drops -eq '') { Add-Warn $tab $n "採取物「$id」の行が「ドロップ」タブに種類「採取」としてありません(何も採れません)" }
   $gathers[$id] = @{ block = $b }
   $gatherDecls.Add("data modify storage test: asset.gather.$id set value {name:`"$(Esc $name)`",block:`"$b`",after:`"$a`",tool:`"$tool`",respawn:$resp,drops:[$drops]}")
   $gatherDecls.Add("data modify storage test: asset.gather_ids append value `"$id`"")
@@ -1284,7 +1320,7 @@ foreach ($r in $data.fishing_pools) {
   $p = Cell $r '中身'; $mat = Cell $r '素材'; $w = Cell $r '重み'; $mn = Cell $r '最小'; $mx = Cell $r '最大'
   if (-not (Check-Id $tab $n '中身' $p)) { continue }
   $ok = $true
-  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「アイテム」タブにありません"; $ok = $false }
   foreach ($q in @(@('重み', $w, 0), @('最小', $mn, 1), @('最大', $mx, 1))) { if (-not (Check-Int $tab $n $q[0] $q[1] $q[2])) { $ok = $false } }
   if ($ok -and [int]$mx -lt [int]$mn) { Add-Err $tab $n "「最大」($mx) は「最小」($mn) 以上にしてください"; $ok = $false }
   if ($ok -and -not (Check-MaxDrop $tab $n $mx)) { $ok = $false }
@@ -1333,7 +1369,7 @@ foreach ($r in $data.fishing_spots) {
   $ok = $true
   if (-not $WeatherConds.ContainsKey($weather)) { Add-Err $tab $n "「天気」($weather) は any / clear / rain / thunder のどれかにしてください"; $ok = $false }
   if (-not $TimeConds.ContainsKey($time)) { Add-Err $tab $n "「時間帯」($time) は any / day / night のどれかにしてください"; $ok = $false }
-  if (-not $fishPools.Contains($pool)) { Add-Err $tab $n "中身「$pool」が「釣りの中身」タブにありません"; $ok = $false }
+  if (-not $fishPools.Contains($pool)) { Add-Err $tab $n "中身「$pool」が「ドロップ」タブに種類「釣り」としてありません"; $ok = $false }
   $area = Parse-Ints $tab $n '範囲' (Cell $r '範囲') 6 '100 50 200 160 70 260'
   if (-not $ok -or $null -eq $area) { continue }
   $fishSpotIds[$id] = $true
@@ -1466,7 +1502,7 @@ foreach ($r in $data.magic_crops) {
   if ($name -eq '') { Add-Err $tab $n '「名前」が空です'; $ok = $false }
   if ($seed -notmatch $ItemPattern) { Add-Err $tab $n "「種の見た目」($seed) がアイテムidの形ではありません"; $ok = $false }
   if (-not $CropAges.ContainsKey($block)) { Add-Err $tab $n "「作物の見た目」($block) は age を持つバニラの作物ブロック($(@($CropAges.Keys | Sort-Object) -join ' / '))にしてください"; $ok = $false }
-  if (-not $materials.Contains($ess) -or $materials[$ess].role -ne 'essence') { Add-Err $tab $n "エッセンス「$ess」が「素材」タブに種類「エッセンス」としてありません"; $ok = $false }
+  if (-not $materials.Contains($ess) -or $materials[$ess].role -ne 'essence') { Add-Err $tab $n "エッセンス「$ess」が「アイテム」タブに種類「エッセンス」としてありません"; $ok = $false }
   foreach ($q in @(@('段階数', $st, 1), @('成長時間', $time, 1), @('最小', $mn, 1), @('最大', $mx, 1), @('種が増える確率', $sc, 0))) { if (-not (Check-Int $tab $n $q[0] $q[1] $q[2])) { $ok = $false } }
   if ($ok -and [int]$sc -gt 100) { Add-Err $tab $n "「種が増える確率」($sc) は0〜100にしてください"; $ok = $false }
   if ($ok -and [int]$mx -lt [int]$mn) { Add-Err $tab $n "「最大」($mx) は「最小」($mn) 以上にしてください"; $ok = $false }
@@ -1665,14 +1701,14 @@ foreach ($mat in $workshopByMaterial.Keys) {
 
 $rel = 'init\asset\rune\generated\runes.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  '# ルーンの宣言(スプレッドシートの「ルーン」タブ)。asset.rune.<id> = {item, name, status:[{type,value}…]}。',
+  '# ルーンの宣言(スプレッドシートの「アイテム」タブの種類「ルーン」)。asset.rune.<id> = {item, name, status:[{type,value}…]}。',
   '# 付与台(craft/equip_magic/)で装備の自動発動の枠に入れると、statusが枠に写され、常に能力を上げる。',
   '# asset.rune_ids は全種類のidの一覧(デバッグで配るときに使う)', '')
 $outputs[$rel] = $lines + $runeDecls
 
 $rel = 'init\asset\consumable\generated\consumables.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  '# 消耗品の宣言(スプレッドシートの「消耗品」タブ)。asset.consumable.<id> = {item, name, every, effect:{kind, params}}。',
+  '# 消耗品の宣言(スプレッドシートの「アイテム」タブの種類「消耗品」)。asset.consumable.<id> = {item, name, every, effect:{kind, params}}。',
   '# 効果は test:consumable/use {id} が test:consumable/effect/<kind> にparamsを渡して実行する。',
   '# 付与台で装備の自動発動の枠に設定すると、イベントが every 回起きるごとに1個自動で使う。',
   '# asset.consumable_ids は全種類のidの一覧(デバッグで配るときに使う)', '')
@@ -1694,7 +1730,7 @@ $outputs[$rel] = $lines
 
 $rel = 'init\asset\material\generated\materials.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  "# 素材の宣言(スプレッドシートの「素材」タブ)。asset.material.<id> = {item, model, name, role, data}。item は全素材 $CommonBaseItem、見た目は model(item_model)。",
+  "# 素材の宣言(スプレッドシートの「アイテム」タブの素材の種類)。asset.material.<id> = {item, model, name, role, data}。item は全素材 $CommonBaseItem、見た目は model(item_model)。",
   '# data はアイテムの custom_data.test に入る({material:{kind}} か、型紙なら {pattern:{part}})。作るのは test:item/material/build {id}', '')
 $outputs[$rel] = $lines + $materialDecls
 
@@ -1740,7 +1776,7 @@ $outputs[$rel] = $lines
 
 $rel = 'init\asset\ore\generated\ores.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  "# 原石の種類(スプレッドシートの「原石」タブ)。asset.ore.<id> = {item, model, name}。item は全種類 $CommonBaseItem(バニラの仕組みで使われないもの)、",
+  "# 原石の種類(スプレッドシートの「アイテム」タブの種類「原石」)。asset.ore.<id> = {item, model, name}。item は全種類 $CommonBaseItem(バニラの仕組みで使われないもの)、",
   '# 見た目は model(item_model)で変える。作るのは test:item/ore/build {id, rare, stage}。',
   '# asset.ore_ids は全種類のidの一覧(デバッグで配るときに使う)', '')
 $outputs[$rel] = $lines + $oreDecls
@@ -1761,7 +1797,7 @@ $outputs[$rel] = $lines + $veinDecls
 
 $rel = 'init\asset\pickaxe\generated\pickaxes.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  '# ツルハシ(スプレッドシートの「ツルハシ」タブ)。asset.pickaxe.<id> = {item, name, rank, speed, blocks}。',
+  '# ツルハシ(スプレッドシートの「道具」タブの種類「pickaxe」)。asset.pickaxe.<id> = {item, name, rank, speed, blocks}。',
   '# blocks は必要ランクがこのランク以下の鉱脈の鉱石ブロック(生成時に計算)。作るのは test:item/pickaxe/build {id}', '')
 $outputs[$rel] = $lines + $pickaxeDecls
 
@@ -1789,20 +1825,20 @@ $outputs[$rel] = $lines + $casingDecls
 
 $rel = 'init\asset\gather\generated\gather.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  '# 採取(スプレッドシートの「採取物」「採取の中身」「採取の道具」「採取ポイント」タブ)。',
+  '# 採取(スプレッドシートの「採取物」「採取ポイント」タブと、「ドロップ」「道具」タブの採取の行)。',
   '#   asset.gather.<id> = {name, block, after, tool, respawn(秒), drops:[{material, rank, chance, chance_rank, min, max}]}',
   '#   asset.gather_tool.<id> = {item, model, name, kind, rank} / asset.gather_point.<id> = {type, block, x, y, z}', '')
 $outputs[$rel] = $lines + $gatherDecls
 
 $rel = 'init\asset\fish\generated\fish.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  '# 釣り(スプレッドシートの「釣り場」「釣りの中身」タブ)。asset.fish_pool.<id> = {entries:[{material, weight, min, max}], total}。',
+  '# 釣り(スプレッドシートの「釣り場」タブと、「ドロップ」タブの種類「釣り」)。asset.fish_pool.<id> = {entries:[{material, weight, min, max}], total}。',
   '# asset.fishing_spots は釣り場の行(上ほど優先。デバッグの表示用。釣れる目印はルートテーブル gameplay/fishing が決める)', '')
 $outputs[$rel] = $lines + $fishDecls
 
 $rel = 'init\asset\crop\generated\crops.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
-  '# 普通の作物のドロップ(スプレッドシートの「作物のドロップ」タブ)。asset.crop.<作物> = {drops:[{item, min, max}]}。',
+  '# 普通の作物のドロップ(スプレッドシートの「ドロップ」タブの種類「作物」)。asset.crop.<作物> = {drops:[{item, min, max}]}。',
   '# 育ちきった作物の目印(crop_token)を、test:crop/token/convert が行ごとに rng/roll で個数を決めて、バニラのアイテムにする', '')
 $outputs[$rel] = $lines + $cropDecls
 

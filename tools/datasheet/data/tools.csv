@@ -1,0 +1,5 @@
+﻿id,種類,名前,見た目,ランク,採掘速度
+novice_pickaxe,pickaxe,見習いのツルハシ,wooden_pickaxe,1,6
+miner_pickaxe,pickaxe,鉱夫のツルハシ,stone_pickaxe,2,8
+copper_sickle,sickle,銅の鎌,copper_hoe,1,
+iron_sickle,sickle,鉄の鎌,iron_hoe,2,
