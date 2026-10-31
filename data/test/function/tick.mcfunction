@@ -57,6 +57,8 @@ execute if score #clock test.time matches 20.. run scoreboard players set #clock
 execute if score #clock test.time matches 0 run function test:buff/tick_second_all
 # 鉱山のリセット(誰もいない鉱山に最初の1人が入ったら元に戻す)
 execute if score #clock test.time matches 0 run function test:mine/tick_second
+# 採取ポイント(5秒ごとに置き直し、毎秒復活を見る)
+execute if score #clock test.time matches 0 run function test:gather/tick_second
 # 機械(原石を加工するマルチブロック)。読み込まれているものだけ。ターン制のアリーナでは動かさない
 execute if score #clock test.time matches 0 as @e[type=armor_stand,tag=machine,tag=!summoned,tag=!kill] at @s unless dimension test:arena run function test:machine/tick_second
 

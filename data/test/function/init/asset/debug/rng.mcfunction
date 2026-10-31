@@ -23,3 +23,5 @@ data modify storage test: asset.debug.rng append value {key:"equip_proc_event",l
 data modify storage test: asset.debug.rng append value {key:"refine_main",label:"精錬の主産物",range:"1..重みの合計 (重みを順に足して当たった行)",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"refine_by",label:"精錬の副産物",range:"1..100 (値≦確率で出る。行ごと)",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"pre_by",label:"前処理の副産物",range:"1..100 (値≦確率で出る。行ごと)",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"gather_drop",label:"採取の当たり",range:"1..100 (値≦確率で出る。行ごと)",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"gather_count",label:"採取の個数",range:"最小..最大",fixable:1b}
