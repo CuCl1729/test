@@ -258,6 +258,11 @@ function To-Internal($tab, $row, $col, [string]$value) {
   if ($d -ne [decimal]::Truncate($d)) { Add-Err $tab $row "「$col」($value) は小数第2位までにしてください(内部では×100の整数で持つため)"; return '0' }
   return ([long]$d).ToString()
 }
+# 一度に落とす個数の上限。test:item/drop_at はアイテムをその場で summon するので、1スタック(64)を超えると何も出ない
+function Check-MaxDrop($tab, $row, [string]$value) {
+  if ([int]$value -gt 64) { Add-Err $tab $row "「最大」($value) は64以下にしてください(一度に1スタックまでしか落とせないため)"; return $false }
+  return $true
+}
 function Check-Int($tab, $row, $col, [string]$value, [int]$min) {
   if ($value -notmatch '^-?\d+$' -or [long]$value -lt $min) { Add-Err $tab $row "「$col」($value) は$min 以上の整数にしてください"; return $false }
   return $true
@@ -653,6 +658,7 @@ foreach ($r in $data.enemy_drops) {
   if (-not (Check-Int $tab $n '最小' $min 0)) { continue }
   if (-not (Check-Int $tab $n '最大' $max 1)) { continue }
   if ([int]$min -gt [int]$max) { Add-Err $tab $n "「最小」($min) が「最大」($max) より大きいです"; continue }
+  if (-not (Check-MaxDrop $tab $n $max)) { continue }
   $enemies[$eid].drops.Add(@{ mat = $mat; min = $min; max = $max })
 }
 
@@ -1209,6 +1215,7 @@ foreach ($r in $data.gather_drops) {
   if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
   foreach ($p in @(@('必要ランク', $rk, 0), @('確率', $ch, 0), @('ランクごとの確率', $chr, 0), @('最小', $mn, 1), @('最大', $mx, 1))) { if (-not (Check-Int $tab $n $p[0] $p[1] $p[2])) { $ok = $false } }
   if ($ok -and [int]$mx -lt [int]$mn) { Add-Err $tab $n "「最大」($mx) は「最小」($mn) 以上にしてください"; $ok = $false }
+  if ($ok -and -not (Check-MaxDrop $tab $n $mx)) { $ok = $false }
   if (-not $ok) { continue }
   if (-not $gatherDrops.ContainsKey($g)) { $gatherDrops[$g] = New-Object System.Collections.Generic.List[string] }
   $gatherDrops[$g].Add("{material:`"$mat`",rank:$rk,chance:$ch,chance_rank:$chr,min:$mn,max:$mx}")
@@ -1271,6 +1278,7 @@ foreach ($r in $data.fishing_pools) {
   if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
   foreach ($q in @(@('重み', $w, 0), @('最小', $mn, 1), @('最大', $mx, 1))) { if (-not (Check-Int $tab $n $q[0] $q[1] $q[2])) { $ok = $false } }
   if ($ok -and [int]$mx -lt [int]$mn) { Add-Err $tab $n "「最大」($mx) は「最小」($mn) 以上にしてください"; $ok = $false }
+  if ($ok -and -not (Check-MaxDrop $tab $n $mx)) { $ok = $false }
   if (-not $ok) { continue }
   if (-not $fishPools.Contains($p)) { $fishPools[$p] = @{ entries = (New-Object System.Collections.Generic.List[string]); total = 0 } }
   $fishPools[$p].entries.Add("{material:`"$mat`",weight:$w,min:$mn,max:$mx}"); $fishPools[$p].total += [int]$w
