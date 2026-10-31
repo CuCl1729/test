@@ -166,7 +166,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     recipes, runes, consumables, enemies (+ gimmicks, drops), jobs (+ skills), magic values, buff values,
     player base stats, constants, ores, mines, veins, pickaxes, refining (main products, by-products,
     pre-processing by-products), fuels, machine casings, gathering (kinds, drops, tools, points), fishing
-    (spots, pools). A tab without a gid in `config.json` is not
+    (spots, pools), farming (crop drops, magic crops). A tab without a gid in `config.json` is not
     downloaded; its local CSV is used.
   - **Units**: status values (enemy HP/atk/def/…, job growth, buff params, player base stats) are written in
     display units (as in item lore) and the script multiplies by 100; resist %, exp, chance %, counts are
@@ -175,10 +175,10 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
   - Generated files: `init/asset/generated/{weapons,stats,config}`, `init/asset/equip/generated/{items,sets}`,
     `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
-    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine,gather,fish}/generated/*`.
+    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine,gather,fish,crop}/generated/*`.
     Stale generated `.mcfunction` files in those folders are deleted. The only generated loot tables are the
     veins' ore blocks (a fixed single token, no rolls), the machine casings' blocks (the casing item inside
-    the factory, vanilla elsewhere), `data/minecraft/loot_table/blocks/<block>.json`, and **vanilla fishing,
+    the factory, vanilla elsewhere), `data/minecraft/loot_table/blocks/<block>.json`, the four vanilla crops' blocks (see "Farming"), and **vanilla fishing,
     `data/minecraft/loot_table/gameplay/fishing.json`** (see "Fishing"). JSON can't carry the
     header, so **stale ones are not deleted: remove them by hand** when a vein or casing is removed or its block
     changes (the script lists the ones it wrote). Never touch the hand-written `red_shulker_box.json` or the
@@ -218,12 +218,13 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     (`minecraft:recovery_compass`, checked against the 26.3 jar: no recipe uses it, its only tag `compasses`
     is used by no data, and it isn't fuel/compostable/brewable/usable/placeable and stacks to 64). The 素材
     tab's 元アイテム and the 原石 tab's アイテム columns only choose the look.
-  - Materials (`asset.material.<id> = {item, model, name, role, data}`, roles material/catalyst/special/pattern)
+  - Materials (`asset.material.<id> = {item, model, name, role, data}`, roles material/catalyst/special/pattern/essence)
     are built by `test:item/material/build {id}` and handed out by `test:item/material/give {id,count}`
     (straight into the inventory, not through `test:loot/give`, whose `tooltip_display` would stop them
     stacking). Enemy drops and the debug menu both use it, so dropped and given materials stack.
     Special materials' effects are code (`craft/weapon/forge/craft`,
-    `asset/weapon/`).
+    `asset/weapon/`). Essences (`エッセンス`, from magic crops) carry `data.essence:{kind}` instead of
+    `test.material.kind`, so the forge and workshop reject them; they are reserved for a future crafter.
   - Weapons are declared at `asset.<id>` and built by `test:asset/weapon/sword/apply {material:<id>}`
     (used for wands too).
 - **Equipment (armor/accessories)**:
@@ -489,6 +490,33 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     tokens): per pool it `clear`s the tokens and, per token, picks a row by weight (rng `fish_pick`) and a count
     (rng `fish_count`), dropped at the player with `item/drop_at`.
   - Debug menu 採取: `debug/fishing_here` (rows whose area contains you) and a token button per pool.
+- **Farming** (`crop/`, `farm/`).
+  - Normal crops: the script overrides `blocks/{wheat,carrots,potatoes,beetroots}.json` (sheet tab 作物のドロップ →
+    `init/asset/crop/generated/crops`, `asset.crop.<block> = {drops:[{item,min,max}]}`): when mature
+    (`match_block` with the max `age`) one token (`custom_data.test.crop_token:"<block>"`), otherwise the vanilla
+    young drop (seed/carrot/potato). `cache/update` → `crop/token/convert` clears the tokens and rolls each row's
+    count (rng `crop_drop`). Growth itself stays vanilla (random ticks, bone meal): an accepted exception to the
+    rng rule. Other crops (melon, pumpkin, sugar cane, …) keep vanilla drops. Tokens only convert in a player's
+    inventory (one picked up from a chest/hopper converts then).
+  - Magic crops (sheet tab 魔法作物 → `init/asset/crop/generated/magic_crops`): `asset.magic_crop.<id> = {name,
+    seed_item, seed_model, block, ages, last, step, essence, min, max, seed_chance}`; `ages[stage]` is the
+    borrowed vanilla crop's `age` for the look, `step` = ticks per stage (成長時間 × 20 ÷ (段階数 − 1), so the
+    whole growth takes 成長時間). They are entities, not crop blocks, so random ticks, bone meal, water and
+    trampling can't grow or break them: an `interaction` (`tag=magic_crop`, `data.crop = {id, stage, next_at}`
+    with `next_at` in game time) and a `block_display` (`tag=magic_crop_display`, at the block corner).
+  - Seeds (`item/magic_seed/build {id}`, `custom_data.test.magic_seed`, `consumable` like the status item)
+    are planted by right click (`trigger/right_click/mainhand` → `farm/plant`, ray from the eyes, 5 blocks):
+    only in `test:factory`, on farmland with air above and no magic crop there. `item_used_on_block` doesn't
+    fire for an item without a use behavior, hence the right-click trigger.
+  - Growth: `tick`'s 1-second clock → `farm/tick` for crops in `test:factory` (plots are forceloaded): if the
+    block below isn't farmland any more the crop pops its seed (`farm/pop`); otherwise `farm/grow` advances
+    every elapsed stage at once.
+  - Right click (`gather/interact`, same `trigger/gather` advancement and UUID match as gathering points) →
+    `farm/harvest`: not mature → `あと X分Y秒`; mature → essence (rng `crop_yield`, min..max) and, with
+    `seed_chance` % (rng `crop_seed`), one more seed, then back to stage 0 (no replanting). Left click
+    (`trigger/crop_hit`, `player_hurt_entity` on an interaction → `farm/attacked`, matched by `attack.player`)
+    uproots it and drops its seed.
+  - Debug menu 農耕: all magic seeds, vanilla seeds, all essences, nearby status, mature nearby.
 - **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
   `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
   craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:

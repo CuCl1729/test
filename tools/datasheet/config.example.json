@@ -34,6 +34,8 @@
     "gather_tools": "",
     "gather_points": "",
     "fishing_spots": "",
-    "fishing_pools": ""
+    "fishing_pools": "",
+    "crop_drops": "",
+    "magic_crops": ""
   }
 }
