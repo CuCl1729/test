@@ -546,11 +546,14 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     lists are unchanged), `crop` → `test.unlock.crop.<id>` (checked by `farm/plant`), `machine` →
     `test.unlock.machine.<id>` (checked by `machine/place_locked`), `recipe` → `test.unlock.recipe.<id>`. **When
     the custom crafter is built, it must read `test.unlock.recipe` and only allow unlocked recipes.**
-  - Migration: every magic element has a research row (cost 1, no conditions). `research/sync_known` (each time the
-    GUI is drawn) marks done, and grants, any research one of whose unlocks is already recorded, so elements
-    learned before research existed show as [済].
+  - Migration: every magic element has a research row (cost 1, no conditions). `research/sync_known` runs once per
+    player (called when the GUI is drawn; skipped once `test.research.migrated` is set, which it sets at the end)
+    and marks done every research that has at least one unlock and **all** of whose unlocks are already
+    recorded, so elements learned before research existed show as [済]. A research that is only partly
+    unlocked stays undone.
   - Debug menu 研究: scanner, knowledge +10, scanned list and knowledge, research everything, reset (clears
-    `test.research` and `test.unlock`; `test.magic.known` stays).
+    `test.research`, including `migrated`, and `test.unlock`; `test.magic.known` stays, so the migration runs again
+    on the next GUI open).
 - **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
   `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
   craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:

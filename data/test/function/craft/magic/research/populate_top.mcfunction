@@ -2,7 +2,7 @@
 # @s = 研究ステーション本体(barrelの位置)。data.research_ui.page に応じた研究の項目(asset.research_ids)7件をスロット1〜7へ、
 # 矢印をスロット0/8へ、自分の知識の量をスロット13へ描画する。各項目は近くのプレイヤーの状態(済・研究できる・足りない)で色を変える
 
-# 先に、習得済みの魔法要素を解放する研究を済にしておく(研究を入れる前に習得した人のため)。oh_my_dat はこのプレイヤーを指したままになる
+# 研究を入れる前の進み具合を移す(1人1回だけ。2回目からは何もしない)。どちらでも oh_my_dat はこのプレイヤーを指したままになる
 execute as @p[distance=..6] run function test:research/sync_known
 
 data modify storage test: registry_work.top_known set from storage test: asset.research_ids

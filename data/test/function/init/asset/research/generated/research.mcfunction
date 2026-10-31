@@ -47,3 +47,5 @@ data modify storage test: asset.research.crusher set value {id:"crusher",name:"�
 data modify storage test: asset.research_ids append value "crusher"
 data modify storage test: asset.research.smelter set value {id:"smelter",name:"精錬炉",icon:"waxed_chiseled_copper",cost:2,pre:["crusher"],scans:["bone"],knowledge:[{el:"metal",label:"金",n:3},{el:"physics",label:"物理",n:3}],unlock:[{kind:"machine",id:"smelter",path:"unlock.machine"}]}
 data modify storage test: asset.research_ids append value "smelter"
+data modify storage test: asset.research.sync_test set value {id:"sync_test",name:"移行の確認",icon:"blaze_powder",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"fire",path:"magic.known"},{kind:"recipe",id:"sync_test",path:"unlock.recipe"}]}
+data modify storage test: asset.research_ids append value "sync_test"
