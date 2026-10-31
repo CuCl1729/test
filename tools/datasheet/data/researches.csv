@@ -1,0 +1,16 @@
+﻿id,名前,アイコン,コスト,前提,観測,知識,解放
+magic_self,自己,glass_bottle,1,,,,magic:self
+magic_projectile,投射,snowball,1,,,,magic:projectile
+magic_aoe,範囲,tnt,1,,,,magic:aoe
+magic_fire,火炎,fire_charge,1,,,,magic:fire
+magic_atk,威力上昇,redstone,1,,,,magic:atk
+magic_gravity,重力,feather,1,,,,magic:gravity
+magic_heal,回復,ghast_tear,1,,,,magic:heal
+magic_revive,蘇生,totem_of_undying,1,,,,magic:revive
+magic_range,範囲拡大,ender_pearl,1,,,,magic:range
+magic_atk_up,攻撃力上昇,blaze_rod,1,,,,magic:atk_up
+magic_poison,毒,spider_eye,1,,,,magic:poison
+earth_crop,土の作物,melon_seeds,1,,herb,wood=3,crop:earth_crop
+water_crop,水の作物,pumpkin_seeds,1,earth_crop,,water=1; wood=3,crop:water_crop
+crusher,粉砕機,lodestone,1,,goblin; iron_ore,metal=3,machine:crusher
+smelter,精錬炉,waxed_chiseled_copper,2,crusher,bone,metal=3; physics=3,machine:smelter

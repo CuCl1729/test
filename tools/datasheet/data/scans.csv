@@ -1,0 +1,6 @@
+﻿id,名前,種類,対象,知識
+goblin,ゴブリン,enemy,goblin,earth=2; physics=2
+cow,牛,entity,cow,wood=2
+iron_ore,鉄鉱石,block,iron_ore,metal=3
+herb,薬草の茂み,gather,herb,wood=3; water=1
+bone,骨の欠片,item,bone,physics=1; earth=1

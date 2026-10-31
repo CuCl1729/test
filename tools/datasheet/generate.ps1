@@ -55,6 +55,8 @@ $Tabs = [ordered]@{
   fishing_pools    = '釣りの中身'
   crop_drops       = '作物のドロップ'
   magic_crops      = '魔法作物'
+  scans            = '観測'
+  researches       = '研究'
 }
 
 # ---------------------------------------------------------------- 取得
@@ -174,6 +176,8 @@ $RequiredHeaders = @{
   fishing_pools    = @('中身','素材','重み','最小','最大')
   crop_drops       = @('作物','アイテム','最小','最大')
   magic_crops      = @('id','名前','種の見た目','作物の見た目','段階数','成長時間','エッセンス','最小','最大','種が増える確率')
+  scans            = @('id','名前','種類','対象','知識')
+  researches       = @('id','名前','アイコン','コスト','前提','観測','知識','解放')
 }
 foreach ($key in $Tabs.Keys) {
   $path = Join-Path $dataDir "$key.csv"
@@ -1478,6 +1482,131 @@ foreach ($r in $data.magic_crops) {
   $magicCropDecls.Add("data modify storage test: asset.magic_crop_ids append value `"$id`"")
 }
 
+# ---------------------------------------------------------------- 研究(観測・研究)
+
+# 知識の種類(6属性)。id => 表示名
+$Knowledge = [ordered]@{}
+foreach ($k in $DamageCols.Keys) { $Knowledge[$DamageCols[$k]] = $k }
+$researchDecls = New-Object System.Collections.Generic.List[string]
+$knowledgeTypes = @(foreach ($k in $Knowledge.Keys) { '{id:"' + $k + '",label:"' + $Knowledge[$k] + '"}' }) -join ','
+$researchDecls.Add("data modify storage test: asset.knowledge_types set value [$knowledgeTypes]")
+
+# 「fire=10; earth=5」 → snbt [{el, label, n}] と、表示用の「火+10 土+5」
+function Parse-Knowledge($tab, $row, $col, [string]$text) {
+  $list = @(); $gain = @()
+  $pairs = Parse-Pairs $tab $row $col $text ';'
+  foreach ($el in $pairs.Keys) {
+    if (-not $Knowledge.Contains($el)) { Add-Err $tab $row "「$col」の属性「$el」は $(@($Knowledge.Keys) -join ' / ') のどれかにしてください"; continue }
+    if (-not (Check-Int $tab $row "$col の $el" $pairs[$el] 1)) { continue }
+    $list += "{el:`"$el`",label:`"$($Knowledge[$el])`",n:$($pairs[$el])}"
+    $gain += "$($Knowledge[$el])+$($pairs[$el])"
+  }
+  return @{ snbt = "[$($list -join ',')]"; gain = ($gain -join ' ') }
+}
+function Split-Ids([string]$text) { return @($text -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }) }
+function Snbt-Strs($ids) { $q = @(foreach ($i in $ids) { '"' + $i + '"' }) -join ','; return "[$q]" }
+
+# 観測: asset.scan.<id> = {id, name, kind, target, knowledge, gain}。調べるときの照合用に、種類ごとの一覧も作る:
+#   asset.scan_entity = [{id, sel}](敵・採取ポイント・エンティティの順。sel はセレクタの中身)、
+#   asset.scan_block = [{id, block}]、asset.scan_item = [{id, pred}](素材・原石が先、バニラのアイテムが後。pred は if items の条件)
+$ScanKinds = @('enemy', 'entity', 'block', 'item', 'gather')
+$scans = [ordered]@{}
+$scanTargets = @{}
+$scanLists = @{ enemy = @(); gather = @(); entity = @(); block = @(); item_custom = @(); item_vanilla = @() }
+foreach ($r in $data.scans) {
+  $tab = $Tabs.scans; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($scans.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $kind = Cell $r '種類'; $target = (Cell $r '対象') -replace '^minecraft:', ''
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です'; continue }
+  if ($ScanKinds -notcontains $kind) { Add-Err $tab $n "「種類」($kind) は $($ScanKinds -join ' / ') のどれかにしてください"; continue }
+  $list = $null; $entry = $null
+  if ($kind -eq 'enemy') {
+    if ($enemies.Contains($target)) { $list = 'enemy'; $entry = "{id:`"$id`",sel:`"tag=$target`"}" } else { Add-Err $tab $n "敵「$target」が「敵」タブにありません" }
+  } elseif ($kind -eq 'gather') {
+    if ($gathers.Contains($target)) { $list = 'gather'; $entry = "{id:`"$id`",sel:`"type=minecraft:interaction,tag=gather_point,nbt={data:{gather:{type:\`"$target\`"}}}`"}" } else { Add-Err $tab $n "採取物「$target」が「採取物」タブにありません" }
+  } elseif ($target -cnotmatch $IdPattern) {
+    Add-Err $tab $n "「対象」($target) がidの形ではありません"
+  } elseif ($kind -eq 'entity') {
+    $list = 'entity'; $entry = "{id:`"$id`",sel:`"type=minecraft:$target`"}"
+  } elseif ($kind -eq 'block') {
+    $list = 'block'; $entry = "{id:`"$id`",block:`"minecraft:$target`"}"
+  } elseif ($materials.Contains($target) -and $materials[$target].role -ne 'pattern') {
+    # アイテム: 素材のid → 原石の種類 → バニラのアイテムのid の順に見る
+    $key = if ($materials[$target].role -eq 'essence') { 'essence' } else { 'material' }
+    $list = 'item_custom'; $entry = "{id:`"$id`",pred:`"*[minecraft:custom_data~{test:{$($key):{kind:\`"$target\`"}}}]`"}"
+  } elseif ($ores.Contains($target)) {
+    $list = 'item_custom'; $entry = "{id:`"$id`",pred:`"*[minecraft:custom_data~{test:{ore:{kind:\`"$target\`"}}}]`"}"
+  } else {
+    $list = 'item_vanilla'; $entry = "{id:`"$id`",pred:`"minecraft:$target`"}"
+  }
+  if ($null -eq $list) { continue }
+  $tk = "$kind $target"
+  if ($scanTargets.ContainsKey($tk)) { Add-Err $tab $n "対象「$tk」は観測「$($scanTargets[$tk])」と同じです"; continue }
+  $scanTargets[$tk] = $id
+  $k = Parse-Knowledge $tab $n '知識' (Cell $r '知識')
+  $scans[$id] = $true
+  $scanLists[$list] += $entry
+  $researchDecls.Add("data modify storage test: asset.scan.$id set value {id:`"$id`",name:`"$(Esc $name)`",kind:`"$kind`",target:`"$(Esc $target)`",knowledge:$($k.snbt),gain:`"$(Esc $k.gain)`"}")
+  $researchDecls.Add("data modify storage test: asset.scan_ids append value `"$id`"")
+}
+$researchDecls.Add("data modify storage test: asset.scan_entity set value [$(@($scanLists.enemy + $scanLists.gather + $scanLists.entity) -join ',')]")
+$researchDecls.Add("data modify storage test: asset.scan_block set value [$(@($scanLists.block) -join ',')]")
+$researchDecls.Add("data modify storage test: asset.scan_item set value [$(@($scanLists.item_custom + $scanLists.item_vanilla) -join ',')]")
+
+# 研究: asset.research.<id> = {id, name, icon, cost, pre:[研究id], scans:[観測id], knowledge:[{el, label, n}], unlock:[{kind, id, path}]}。
+#   path は解放の記録先(oh_my_dat の test.<path>.<id>)。magic は今までの習得と同じ magic.known
+$UnlockPath = [ordered]@{ magic = 'magic.known'; crop = 'unlock.crop'; machine = 'unlock.machine'; recipe = 'unlock.recipe' }
+$MachineIds = @([regex]::Matches($machineBody, '(?m)^data modify storage test: asset\.machine\.([a-z0-9_]+) set value') | ForEach-Object { $_.Groups[1].Value })
+$researches = [ordered]@{}
+$unlockedBy = @{}
+foreach ($r in $data.researches) {
+  $tab = $Tabs.researches; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($researches.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $icon = Cell $r 'アイコン'; $cost = Cell $r 'コスト'
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
+  if ($icon -notmatch $ItemPattern) { Add-Err $tab $n "「アイコン」($icon) がアイテムidの形ではありません" }
+  if (-not (Check-Int $tab $n 'コスト' $cost 0)) { $cost = '0' }
+  $pre = Split-Ids (Cell $r '前提'); $sc = Split-Ids (Cell $r '観測')
+  foreach ($s in $sc) { if (-not $scans.Contains($s)) { Add-Err $tab $n "観測「$s」が「観測」タブにありません" } }
+  $k = Parse-Knowledge $tab $n '知識' (Cell $r '知識')
+  $unl = @()
+  foreach ($u in (Split-Ids (Cell $r '解放'))) {
+    $kv = $u -split ':', 2
+    if ($kv.Count -ne 2 -or -not $UnlockPath.Contains($kv[0].Trim())) { Add-Err $tab $n "「解放」の「$u」は 種類:id の形(種類は $(@($UnlockPath.Keys) -join ' / '))で書いてください"; continue }
+    $uk = $kv[0].Trim(); $ui = $kv[1].Trim()
+    if (-not (Check-Id $tab $n "解放($uk)" $ui)) { continue }
+    if ($uk -eq 'magic' -and -not $magicReg.Contains($ui)) { Add-Err $tab $n "魔法要素「$ui」がありません(init/asset/magic/types・effects)"; continue }
+    if ($uk -eq 'crop' -and -not $magicCrops.ContainsKey($ui)) { Add-Err $tab $n "魔法作物「$ui」が「魔法作物」タブにありません"; continue }
+    if ($uk -eq 'machine' -and $MachineIds -notcontains $ui) { Add-Err $tab $n "機械「$ui」がありません(init/asset/machine)"; continue }
+    # recipe はカスタムクラフターがまだ無いので確かめない
+    $ukey = "$uk`:$ui"
+    if ($unlockedBy.ContainsKey($ukey)) { Add-Warn $tab $n "「$ukey」は研究「$($unlockedBy[$ukey])」も解放しています" } else { $unlockedBy[$ukey] = $id }
+    $unl += "{kind:`"$uk`",id:`"$ui`",path:`"$($UnlockPath[$uk])`"}"
+  }
+  $researches[$id] = @{ pre = $pre }
+  $researchDecls.Add("data modify storage test: asset.research.$id set value {id:`"$id`",name:`"$(Esc $name)`",icon:`"$icon`",cost:$cost,pre:$(Snbt-Strs $pre),scans:$(Snbt-Strs $sc),knowledge:$($k.snbt),unlock:[$($unl -join ',')]}")
+  $researchDecls.Add("data modify storage test: asset.research_ids append value `"$id`"")
+}
+# 前提: あるか、循環していないか(前提が全部決まったものから順に外していき、残ったものが循環)
+foreach ($id in $researches.Keys) { foreach ($p in $researches[$id].pre) { if (-not $researches.Contains($p)) { Add-Err $Tabs.researches 0 "研究「$id」の前提「$p」が「研究」タブにありません" } } }
+$resolved = @{}
+do {
+  $progress = $false
+  foreach ($id in $researches.Keys) {
+    if ($resolved.ContainsKey($id)) { continue }
+    if (@($researches[$id].pre | Where-Object { $researches.Contains($_) -and -not $resolved.ContainsKey($_) }).Count -eq 0) { $resolved[$id] = $true; $progress = $true }
+  }
+} while ($progress)
+$cyclic = @($researches.Keys | Where-Object { -not $resolved.ContainsKey($_) })
+if ($cyclic.Count -gt 0) { Add-Err $Tabs.researches 0 "前提が循環しています: $($cyclic -join ', ')" }
+# どの研究も解放しない魔法作物・機械は、誰も使えない
+foreach ($c in $magicCrops.Keys) { if (-not $unlockedBy.ContainsKey("crop:$c")) { Add-Warn $Tabs.researches 0 "魔法作物「$c」を解放する研究がありません(誰も植えられません)" } }
+foreach ($m in $MachineIds) { if (-not $unlockedBy.ContainsKey("machine:$m")) { Add-Warn $Tabs.researches 0 "機械「$m」を解放する研究がありません(誰も置けません)" } }
+
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
 foreach ($w in $Warnings) { Write-Host "  警告: $w" -ForegroundColor Yellow }
@@ -1683,10 +1812,17 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# ages[段階] = 見た目の age、last = 育ちきった段階、step = 1段階の tick。植える・育てる・収穫は test:farm/', '')
 $outputs[$rel] = $lines + $magicCropDecls
 
+$rel = 'init\asset\research\generated\research.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 研究(スプレッドシートの「観測」「研究」タブ)。asset.scan.<id> / asset.scan_ids / asset.scan_{entity,block,item}(調べるときの照合用)、',
+  '# asset.research.<id> / asset.research_ids、asset.knowledge_types(知識の6属性)。調べるのは test:research/scan/、研究は craft/magic/research/', '')
+$outputs[$rel] = $lines + $researchDecls
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
-  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated', 'init\asset\crop\generated')
+  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated', 'init\asset\crop\generated',
+  'init\asset\research\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d
