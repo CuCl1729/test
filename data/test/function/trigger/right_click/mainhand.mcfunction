@@ -16,6 +16,9 @@ execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data
 # 工場の鍵(工場の区画へ行く / 元の場所へ戻る)
 execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test{factory_key:1b} run function test:factory/key
 
+# 観測鏡(押し続けて、視線の先か左手のものを調べる)
+execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test{scanner:1b} run function test:research/scan/use
+
 # 魔法の種(工場の耕地に植える)
 execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test.magic_seed run function test:farm/plant with storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test
 

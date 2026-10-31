@@ -277,6 +277,10 @@ scoreboard objectives add test.owner dummy
 # 工場の鍵を最後に使ったゲーム時間(右クリックを押している間は毎tick発火するので、1秒あけるため)
  scoreboard objectives add test.factory.cooldown dummy
 
+# 観測鏡: 今のものを見始めたゲーム時間と、最後に右クリックを押していたゲーム時間(test:research/scan/use)
+ scoreboard objectives add test.research.scan_start dummy
+ scoreboard objectives add test.research.scan_last dummy
+
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy
  scoreboard objectives add test.debug.display dummy
