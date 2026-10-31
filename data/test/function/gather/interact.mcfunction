@@ -8,3 +8,8 @@ data modify storage test: gather_work.uuid set from entity @s UUID
 execute as @e[type=interaction,tag=gather_point,distance=..8] if data entity @s interaction run function test:gather/match
 execute if entity @e[type=interaction,tag=gather_target,limit=1] run function test:gather/take
 tag @e[type=interaction,tag=gather_target] remove gather_target
+
+# 魔法作物(右クリックで収穫か残り時間)
+execute as @e[type=interaction,tag=magic_crop,distance=..8] if data entity @s interaction run function test:gather/match
+execute if entity @e[type=interaction,tag=gather_target,limit=1] run function test:farm/harvest
+tag @e[type=interaction,tag=gather_target] remove gather_target

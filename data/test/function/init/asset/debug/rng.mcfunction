@@ -29,3 +29,5 @@ data modify storage test: asset.debug.rng append value {key:"gather_count",label
 data modify storage test: asset.debug.rng append value {key:"fish_pick",label:"釣れる素材",range:"1..重みの合計 (重みを順に足して当たった行)",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"fish_count",label:"釣れる個数",range:"最小..最大",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"crop_drop",label:"作物のドロップの個数",range:"最小..最大 (行ごと)",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"crop_yield",label:"エッセンスの個数",range:"最小..最大",fixable:1b}
+data modify storage test: asset.debug.rng append value {key:"crop_seed",label:"種が増えるか",range:"1..100 (確率以下で増える)",fixable:1b}

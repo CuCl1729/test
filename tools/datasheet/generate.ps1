@@ -54,6 +54,7 @@ $Tabs = [ordered]@{
   fishing_spots    = '釣り場'
   fishing_pools    = '釣りの中身'
   crop_drops       = '作物のドロップ'
+  magic_crops      = '魔法作物'
 }
 
 # ---------------------------------------------------------------- 取得
@@ -172,6 +173,7 @@ $RequiredHeaders = @{
   fishing_spots    = @('id','範囲','天気','時間帯','中身')
   fishing_pools    = @('中身','素材','重み','最小','最大')
   crop_drops       = @('作物','アイテム','最小','最大')
+  magic_crops      = @('id','名前','種の見た目','作物の見た目','段階数','成長時間','エッセンス','最小','最大','種が増える確率')
 }
 foreach ($key in $Tabs.Keys) {
   $path = Join-Path $dataDir "$key.csv"
@@ -304,7 +306,7 @@ if ($substatWeapon.Count -eq 0) { Add-Err $Tabs.stats 0 '武器でも抽選に�
 
 # ---------------------------------------------------------------- 素材(鍛冶場・工房の材料、触媒、特殊素材、型紙)
 
-$MaterialRoles = [ordered]@{ '素材' = 'material'; '触媒' = 'catalyst'; '特殊' = 'special'; '型紙' = 'pattern' }
+$MaterialRoles = [ordered]@{ '素材' = 'material'; '触媒' = 'catalyst'; '特殊' = 'special'; '型紙' = 'pattern'; 'エッセンス' = 'essence' }
 $materials = [ordered]@{}
 $materialDecls = New-Object System.Collections.Generic.List[string]
 $forgeCraftBody = Read-Fn 'craft\weapon\forge\craft.mcfunction'
@@ -323,7 +325,8 @@ foreach ($r in $data.materials) {
     $snbt = "pattern:{part:`"$part`"}"
   } else {
     if ($part -ne '') { Add-Err $tab $n '「部位」は型紙のときだけ書いてください' }
-    $snbt = "material:{kind:`"$id`"}"
+    # エッセンス(魔法作物から採れる)は material ではなく essence で持ち、鍛冶場・防具工房の材料として受け付けないようにする
+    $snbt = if ($role -eq 'essence') { "essence:{kind:`"$id`"}" } else { "material:{kind:`"$id`"}" }
   }
   # 特殊素材の効果はコードにある(鍛冶場が kind で探し、asset/weapon/ が効果を付ける)
   if ($role -eq 'special' -and $forgeCraftBody -notmatch "kind:`"$id`"") { Add-Err $tab $n "特殊素材「$id」の効果がコード(craft/weapon/forge/craft)にありません" }
@@ -1440,6 +1443,41 @@ foreach ($c in $cropDrops.Keys) {
 "@ -replace "`r", ''
 }
 
+# ---------------------------------------------------------------- 魔法作物
+
+# 見た目に借りられるバニラの作物ブロックと、その age の数(0〜数−1)
+$CropAges = @{ wheat = 8; carrots = 8; potatoes = 8; beetroots = 4; nether_wart = 4; sweet_berry_bush = 4; torchflower_crop = 2; pitcher_crop = 5; cocoa = 3; melon_stem = 8; pumpkin_stem = 8 }
+# 魔法作物: asset.magic_crop.<id> = {name, seed_item, seed_model, block, ages, last, step, essence, min, max, seed_chance}。
+#   ages[段階] = その段階の見た目の age(段階 last = 段階数−1 が育ちきり)。step = 1段階にかかる tick(成長時間 × 20 ÷ (段階数−1))
+$magicCropDecls = New-Object System.Collections.Generic.List[string]
+$magicCrops = @{}
+foreach ($r in $data.magic_crops) {
+  $tab = $Tabs.magic_crops; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($magicCrops.ContainsKey($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $seed = Cell $r '種の見た目'; $block = (Cell $r '作物の見た目') -replace '^minecraft:', ''
+  $st = Cell $r '段階数'; $time = Cell $r '成長時間'; $ess = Cell $r 'エッセンス'; $mn = Cell $r '最小'; $mx = Cell $r '最大'; $sc = Cell $r '種が増える確率'
+  $ok = $true
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です'; $ok = $false }
+  if ($seed -notmatch $ItemPattern) { Add-Err $tab $n "「種の見た目」($seed) がアイテムidの形ではありません"; $ok = $false }
+  if (-not $CropAges.ContainsKey($block)) { Add-Err $tab $n "「作物の見た目」($block) は age を持つバニラの作物ブロック($(@($CropAges.Keys | Sort-Object) -join ' / '))にしてください"; $ok = $false }
+  if (-not $materials.Contains($ess) -or $materials[$ess].role -ne 'essence') { Add-Err $tab $n "エッセンス「$ess」が「素材」タブに種類「エッセンス」としてありません"; $ok = $false }
+  foreach ($q in @(@('段階数', $st, 1), @('成長時間', $time, 1), @('最小', $mn, 1), @('最大', $mx, 1), @('種が増える確率', $sc, 0))) { if (-not (Check-Int $tab $n $q[0] $q[1] $q[2])) { $ok = $false } }
+  if ($ok -and [int]$sc -gt 100) { Add-Err $tab $n "「種が増える確率」($sc) は0〜100にしてください"; $ok = $false }
+  if ($ok -and [int]$mx -lt [int]$mn) { Add-Err $tab $n "「最大」($mx) は「最小」($mn) 以上にしてください"; $ok = $false }
+  if ($ok -and -not (Check-MaxDrop $tab $n $mx)) { $ok = $false }
+  if ($ok -and [int]$st -gt $CropAges[$block]) { Add-Err $tab $n "「段階数」($st) は $block の age の数($($CropAges[$block]))以下にしてください"; $ok = $false }
+  if (-not $ok) { continue }
+  $magicCrops[$id] = $true
+  $last = [int]$st - 1; $maxAge = $CropAges[$block] - 1
+  $ages = if ($last -eq 0) { @($maxAge) } else { @(0..$last | ForEach-Object { [int][Math]::Round($_ * $maxAge / $last) }) }
+  $step = if ($last -eq 0) { 0 } else { [int][Math]::Ceiling([int]$time * 20 / $last) }
+  $seedModel = if ($seed -match ':') { $seed } else { "minecraft:$seed" }
+  $magicCropDecls.Add("data modify storage test: asset.magic_crop.$id set value {name:`"$(Esc $name)`",seed_item:`"$CommonBaseItem`",seed_model:`"$seedModel`",block:`"minecraft:$block`",ages:[$($ages -join ',')],last:$last,step:$step,essence:`"$ess`",min:$mn,max:$mx,seed_chance:$sc}")
+  $magicCropDecls.Add("data modify storage test: asset.magic_crop_ids append value `"$id`"")
+}
+
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
 foreach ($w in $Warnings) { Write-Host "  警告: $w" -ForegroundColor Yellow }
@@ -1638,6 +1676,12 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# 普通の作物のドロップ(スプレッドシートの「作物のドロップ」タブ)。asset.crop.<作物> = {drops:[{item, min, max}]}。',
   '# 育ちきった作物の目印(crop_token)を、test:crop/token/convert が行ごとに rng/roll で個数を決めて、バニラのアイテムにする', '')
 $outputs[$rel] = $lines + $cropDecls
+
+$rel = 'init\asset\crop\generated\magic_crops.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 魔法作物(スプレッドシートの「魔法作物」タブ)。asset.magic_crop.<id> = {name, seed_item, seed_model, block, ages, last, step, essence, min, max, seed_chance}。',
+  '# ages[段階] = 見た目の age、last = 育ちきった段階、step = 1段階の tick。植える・育てる・収穫は test:farm/', '')
+$outputs[$rel] = $lines + $magicCropDecls
 
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',

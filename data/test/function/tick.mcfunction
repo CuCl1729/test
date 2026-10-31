@@ -61,6 +61,8 @@ execute if score #clock test.time matches 0 run function test:mine/tick_second
 execute if score #clock test.time matches 0 run function test:gather/tick_second
 # 機械(原石を加工するマルチブロック)。読み込まれているものだけ。ターン制のアリーナでは動かさない
 execute if score #clock test.time matches 0 as @e[type=armor_stand,tag=machine,tag=!summoned,tag=!kill] at @s unless dimension test:arena run function test:machine/tick_second
+# 魔法作物(工場の区画にあるものだけ。下の耕地を確かめ、時間が来たら育てる)
+execute if score #clock test.time matches 0 in test:factory as @e[type=interaction,tag=magic_crop,distance=0..] at @s run function test:farm/tick
 
 execute as @e[tag=executer] at @s rotated as @n[tag=Temp] run teleport @s ~ ~ ~ ~ ~
 

@@ -53,3 +53,7 @@ data modify storage test: asset.material.big_fish set value {item:"minecraft:rec
 data modify storage test: asset.material_ids append value "big_fish"
 data modify storage test: asset.material.night_fish set value {item:"minecraft:recovery_compass",model:"minecraft:tropical_fish",name:"夜の魚",role:"material",data:{material:{kind:"night_fish"}}}
 data modify storage test: asset.material_ids append value "night_fish"
+data modify storage test: asset.material.earth_essence set value {item:"minecraft:recovery_compass",model:"minecraft:brown_dye",name:"土のエッセンス",role:"essence",data:{essence:{kind:"earth_essence"}}}
+data modify storage test: asset.material_ids append value "earth_essence"
+data modify storage test: asset.material.water_essence set value {item:"minecraft:recovery_compass",model:"minecraft:light_blue_dye",name:"水のエッセンス",role:"essence",data:{essence:{kind:"water_essence"}}}
+data modify storage test: asset.material_ids append value "water_essence"
