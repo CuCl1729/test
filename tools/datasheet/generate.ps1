@@ -1,6 +1,6 @@
 ﻿# 装備・武器の定義を、Googleスプレッドシート(またはtools/datasheet/data/*.csv)から .mcfunction に生成する。
 # 使い方は tools/datasheet/README.md。
-#   generate.cmd           … スプレッドシートから取得して生成する(config.json に sheet_id と各タブの gid が必要)
+#   generate.cmd           … スプレッドシートから取得して生成する(config.json に各ファイルの sheet_id と各タブの gid が必要)
 #   generate.cmd -Offline  … 取得せず、data/*.csv から生成する
 # 検証で1つでも誤りがあれば、ファイルを1つも書き換えずに終える。
 
@@ -76,42 +76,72 @@ $Merged = [ordered]@{
 
 # ---------------------------------------------------------------- 取得
 
+# タブは機能ごとのスプレッドシート(ファイル)に分けて置ける。config.json の sheets.<グループ名> = {sheet_id, tabs:{<キー>: gid}}
+# (グループ名は自由。分け方の例は config.example.json)。sheets に無いタブは、古い形の sheet_id / tabs.<キー> から取る。
+# 取得した中身は $fetched に持ち、誤りが無く生成できるときだけ data/<キー>.csv に書く(古いシートで手元の新しいCSVを上書きしないように)
+$fetched = @{}
 if (-not $Offline) {
   $configPath = Join-Path $toolDir 'config.json'
   if (-not (Test-Path $configPath)) {
-    Write-Host 'config.json がありません。config.example.json をコピーして config.json を作り、sheet_id と各タブの gid を書いてください(config.json はgitの管理外です)。' -ForegroundColor Red
+    Write-Host 'config.json がありません。config.example.json をコピーして config.json を作り、各ファイルの sheet_id と各タブの gid を書いてください(config.json はgitの管理外です)。' -ForegroundColor Red
     exit 1
   }
   $config = Get-Content $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
-  if (-not $config.sheet_id) {
-    Write-Host 'config.json の sheet_id が空です。スプレッドシートを用意して設定するか、-Offline を付けて data/*.csv から生成してください。' -ForegroundColor Red
+  if (-not $config.sheets -and -not $config.sheet_id) {
+    Write-Host 'config.json に sheets も sheet_id もありません。スプレッドシートを用意して設定するか、-Offline を付けて data/*.csv から生成してください。' -ForegroundColor Red
+    exit 1
+  }
+  # タブごとの取得元 キー => @{sheet, gid, where}
+  $source = @{}
+  $bad = @()
+  $groups = @()
+  if ($config.sheets) { foreach ($g in $config.sheets.PSObject.Properties) { $groups += @{ where = "sheets.$($g.Name)"; sheet = "$($g.Value.sheet_id)"; tabs = $g.Value.tabs } } }
+  if ($config.tabs) { $groups += @{ where = 'tabs(古い形)'; sheet = "$($config.sheet_id)"; tabs = $config.tabs; old = $true } }
+  foreach ($g in $groups) {
+    if ($null -eq $g.tabs) { continue }
+    foreach ($t in $g.tabs.PSObject.Properties) {
+      $gid = "$($t.Value)"
+      if ($gid -eq '') { continue }
+      if (-not $Tabs.Contains($t.Name)) { Write-Host "警告: config.json の $($g.where) の「$($t.Name)」は今は無いタブです(無視します)。" -ForegroundColor Yellow; continue }
+      if ($source.ContainsKey($t.Name)) {
+        # 古い形は、新しい形に移したタブの残りなので、黙って新しい方を使う
+        if (-not $g.old) { $bad += "タブ「$($Tabs[$t.Name])」($($t.Name)) が $($source[$t.Name].where) と $($g.where) の両方にあります" }
+        continue
+      }
+      if ($g.sheet -eq '') { $bad += "$($g.where) の sheet_id が空です(タブ $($t.Name) の gid があるのに)"; continue }
+      $source[$t.Name] = @{ sheet = $g.sheet; gid = $gid; where = $g.where }
+    }
+  }
+  if ($bad.Count -gt 0) {
+    Write-Host "config.json に誤りが $($bad.Count) 件あります。何も取得していません。" -ForegroundColor Red
+    foreach ($b in $bad) { Write-Host "  $b" -ForegroundColor Red }
     exit 1
   }
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
   $client = New-Object Net.WebClient
   foreach ($key in $Tabs.Keys) {
-    $gid = $config.tabs.$key
-    # gid が無いタブは取得を飛ばし、手元の data/<key>.csv を使う(タブを作るのを少しずつ進められるように)
-    if ($null -eq $gid -or "$gid" -eq '') {
+    # 取得元が無いタブは、手元の data/<key>.csv を使う(タブを少しずつ移せるように)
+    if (-not $source.ContainsKey($key)) {
       Write-Host "タブ「$($Tabs[$key])」は config.json に gid が無いので、取得せずに data/$key.csv を使います。" -ForegroundColor Yellow
       continue
     }
-    $url = "https://docs.google.com/spreadsheets/d/$($config.sheet_id)/export?format=csv&gid=$gid"
+    $s = $source[$key]
+    $url = "https://docs.google.com/spreadsheets/d/$($s.sheet)/export?format=csv&gid=$($s.gid)"
     try {
       $bytes = $client.DownloadData($url)
     } catch {
-      Write-Host "タブ「$($Tabs[$key])」を取得できませんでした: $($_.Exception.Message)" -ForegroundColor Red
-      Write-Host '  シートが「リンクを知っている全員が閲覧可」になっているか、sheet_id と gid が正しいか確認してください。' -ForegroundColor Red
+      Write-Host "タブ「$($Tabs[$key])」($($s.where))を取得できませんでした: $($_.Exception.Message)" -ForegroundColor Red
+      Write-Host '  ファイルが「リンクを知っている全員が閲覧可」になっているか、sheet_id と gid が正しいか確認してください。' -ForegroundColor Red
       exit 1
     }
     $text = $utf8.GetString($bytes)
     if ($text.TrimStart().StartsWith('<')) {
-      Write-Host "タブ「$($Tabs[$key])」の取得結果がCSVではありません(共有設定でログインを求められている可能性があります)。" -ForegroundColor Red
+      Write-Host "タブ「$($Tabs[$key])」($($s.where))の取得結果がCSVではありません(共有設定でログインを求められている可能性があります)。" -ForegroundColor Red
       exit 1
     }
-    [IO.File]::WriteAllText((Join-Path $dataDir "$key.csv"), $text, $utf8Bom)
+    $fetched[$key] = $text
   }
-  Write-Host 'スプレッドシートから取得しました。' -ForegroundColor Cyan
+  Write-Host "スプレッドシートから $($fetched.Count) タブを取得しました。" -ForegroundColor Cyan
 }
 
 # ---------------------------------------------------------------- 読み込み
@@ -126,10 +156,17 @@ function Add-Warn([string]$tab, [int]$row, [string]$msg) {
   if ($row -gt 0) { $script:Warnings.Add("[$tab] $row 行目: $msg") } else { $script:Warnings.Add("[$tab] $msg") }
 }
 
-function Read-Tab([string]$key) {
+# タブの中身: 取得したものがあればそれ、無ければ data/<key>.csv(どちらも無ければ $null)
+function Tab-Text([string]$key) {
+  if ($fetched.ContainsKey($key)) { return $fetched[$key].TrimStart([char]0xFEFF) }
   $path = Join-Path $dataDir "$key.csv"
-  if (-not (Test-Path $path)) { Add-Err $Tabs[$key] 0 "data/$key.csv がありません"; return @() }
-  $text = [IO.File]::ReadAllText($path, [Text.Encoding]::UTF8).TrimStart([char]0xFEFF)
+  if (-not (Test-Path $path)) { return $null }
+  return [IO.File]::ReadAllText($path, [Text.Encoding]::UTF8).TrimStart([char]0xFEFF)
+}
+
+function Read-Tab([string]$key) {
+  $text = Tab-Text $key
+  if ($null -eq $text) { Add-Err $Tabs[$key] 0 "data/$key.csv がありません"; return @() }
   $rows = @($text | ConvertFrom-Csv)
   $result = @()
   for ($i = 0; $i -lt $rows.Count; $i++) {
@@ -188,9 +225,9 @@ $RequiredHeaders = @{
   researches       = @('id','名前','アイコン','コスト','前提','観測','知識','解放')
 }
 foreach ($key in $Tabs.Keys) {
-  $path = Join-Path $dataDir "$key.csv"
-  if (-not (Test-Path $path)) { continue }
-  $first = ([IO.File]::ReadAllText($path, [Text.Encoding]::UTF8).TrimStart([char]0xFEFF) -split "`r?`n")[0]
+  $text = Tab-Text $key
+  if ($null -eq $text) { continue }
+  $first = ($text -split "`r?`n")[0]
   $heads = @($first | ConvertFrom-Csv -Header (1..64) | ForEach-Object { $_.PSObject.Properties.Value } | Where-Object { $_ })
   foreach ($h in $RequiredHeaders[$key]) { if ($heads -notcontains $h) { Add-Err $Tabs[$key] 1 "見出し「$h」の列がありません" } }
 }
@@ -1647,10 +1684,11 @@ foreach ($m in $MachineIds) { if (-not $unlockedBy.ContainsKey("machine:$m")) { 
 
 foreach ($w in $Warnings) { Write-Host "  警告: $w" -ForegroundColor Yellow }
 if ($Errors.Count -gt 0) {
-  Write-Host "誤りが $($Errors.Count) 件あります。ファイルは書き換えていません。" -ForegroundColor Red
+  Write-Host "誤りが $($Errors.Count) 件あります。ファイルは書き換えていません(取得したタブも data/ に書いていません)。" -ForegroundColor Red
   foreach ($e in $Errors) { Write-Host "  $e" -ForegroundColor Red }
   exit 1
 }
+foreach ($key in $fetched.Keys) { [IO.File]::WriteAllText((Join-Path $dataDir "$key.csv"), $fetched[$key], $utf8Bom) }
 
 # ---------------------------------------------------------------- 生成
 

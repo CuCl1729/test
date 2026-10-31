@@ -1,43 +1,60 @@
 {
-  "sheet_id": "",
-  "tabs": {
-    "stats": "",
-    "materials": "",
-    "weapons": "",
-    "forge_recipes": "",
-    "equipment": "",
-    "sets": "",
-    "set_effects": "",
-    "workshop_recipes": "",
-    "runes": "",
-    "consumables": "",
-    "enemies": "",
-    "enemy_gimmicks": "",
-    "enemy_drops": "",
-    "jobs": "",
-    "job_skills": "",
-    "magic_values": "",
-    "buff_values": "",
-    "player_base": "",
-    "config": "",
-    "ores": "",
-    "mines": "",
-    "veins": "",
-    "pickaxes": "",
-    "refine_main": "",
-    "refine_by": "",
-    "pre_by": "",
-    "fuels": "",
-    "casings": "",
-    "gathers": "",
-    "gather_drops": "",
-    "gather_tools": "",
-    "gather_points": "",
-    "fishing_spots": "",
-    "fishing_pools": "",
-    "crop_drops": "",
-    "magic_crops": "",
-    "scans": "",
-    "researches": ""
+  "sheets": {
+    "common": {
+      "sheet_id": "",
+      "tabs": {
+        "stats": "",
+        "items": "",
+        "tools": "",
+        "drops": "",
+        "config": "",
+        "player_base": ""
+      }
+    },
+    "equip": {
+      "sheet_id": "",
+      "tabs": {
+        "weapons": "",
+        "forge_recipes": "",
+        "equipment": "",
+        "sets": "",
+        "set_effects": "",
+        "workshop_recipes": ""
+      }
+    },
+    "battle": {
+      "sheet_id": "",
+      "tabs": {
+        "enemies": "",
+        "enemy_gimmicks": "",
+        "jobs": "",
+        "job_skills": "",
+        "magic_values": "",
+        "buff_values": ""
+      }
+    },
+    "industry": {
+      "sheet_id": "",
+      "tabs": {
+        "mines": "",
+        "veins": "",
+        "refine_main": "",
+        "refine_by": "",
+        "pre_by": "",
+        "fuels": "",
+        "casings": ""
+      }
+    },
+    "field": {
+      "sheet_id": "",
+      "tabs": {
+        "gathers": "",
+        "gather_points": "",
+        "fishing_spots": "",
+        "magic_crops": "",
+        "scans": "",
+        "researches": ""
+      }
+    }
   }
 }
