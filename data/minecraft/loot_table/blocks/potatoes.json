@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "name": "minecraft:recovery_compass",
+              "condition": {"type": "minecraft:match_block", "blocks": "minecraft:potatoes", "state": {"age": "7"}},
+              "modifier": [
+                {
+                  "type": "minecraft:set_components",
+                  "components": {
+                    "minecraft:custom_data": {"test": {"crop_token": "potatoes"}},
+                    "minecraft:item_model": "minecraft:potato",
+                    "minecraft:custom_name": {"text": "収穫物", "italic": false}
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "minecraft:potato"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

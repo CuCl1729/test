@@ -38,6 +38,9 @@ function test:init/asset/refine/
 function test:init/asset/gather/
 function test:init/asset/fish/
 
+# 農耕(普通の作物のドロップ・魔法作物)
+function test:init/asset/crop/
+
 function test:init/asset/station
 
 function test:init/asset/debug/rng

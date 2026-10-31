@@ -53,6 +53,7 @@ $Tabs = [ordered]@{
   gather_points    = '採取ポイント'
   fishing_spots    = '釣り場'
   fishing_pools    = '釣りの中身'
+  crop_drops       = '作物のドロップ'
 }
 
 # ---------------------------------------------------------------- 取得
@@ -170,6 +171,7 @@ $RequiredHeaders = @{
   gather_points    = @('id','採取物','座標')
   fishing_spots    = @('id','範囲','天気','時間帯','中身')
   fishing_pools    = @('中身','素材','重み','最小','最大')
+  crop_drops       = @('作物','アイテム','最小','最大')
 }
 foreach ($key in $Tabs.Keys) {
   $path = Join-Path $dataDir "$key.csv"
@@ -1366,6 +1368,78 @@ foreach ($p in $fishPools.Keys) {
 $fishDecls.Add("data modify storage test: asset.fish_token_item set value {item:`"$CommonBaseItem`",model:`"$($FishToken.model)`",name:`"$(Esc $FishToken.name)`"}")
 $fishDecls.AddRange($fishSpotDecls)
 
+# ---------------------------------------------------------------- 普通の作物のドロップ
+
+# 対象の作物(バニラの作物ブロック): 育ちきった age、育ちきる前に落ちるもの(バニラでも乱数を使わず1個)、目印の見た目。
+# 26.3 の jar の data/minecraft/loot_table/blocks/<作物>.json で確かめた
+$Crops = [ordered]@{
+  wheat     = @{ age = 7; young = 'minecraft:wheat_seeds';    model = 'minecraft:wheat' }
+  carrots   = @{ age = 7; young = 'minecraft:carrot';         model = 'minecraft:carrot' }
+  potatoes  = @{ age = 7; young = 'minecraft:potato';         model = 'minecraft:potato' }
+  beetroots = @{ age = 3; young = 'minecraft:beetroot_seeds'; model = 'minecraft:beetroot' }
+}
+# 作物のドロップ: asset.crop.<作物> = {drops:[{item, min, max}]}。育ちきった作物を壊すと目印(custom_data.test.crop_token)が1個落ち、
+# 持ち物に入ったときに test:crop/token/convert が行ごとに個数を rng/roll で決めて、普通のバニラのアイテムを渡す
+$cropDrops = [ordered]@{}
+foreach ($r in $data.crop_drops) {
+  $tab = $Tabs.crop_drops; $n = $r.__row
+  $c = Cell $r '作物'; $item = Cell $r 'アイテム'; $mn = Cell $r '最小'; $mx = Cell $r '最大'
+  $ok = $true
+  if (-not $Crops.Contains($c)) { Add-Err $tab $n "作物「$c」は対象ではありません(使えるもの: $(@($Crops.Keys) -join ' / '))"; $ok = $false }
+  if ($item -notmatch $ItemPattern) { Add-Err $tab $n "「アイテム」($item) がアイテムidの形ではありません"; $ok = $false }
+  if (-not (Check-Int $tab $n '最小' $mn 0)) { $ok = $false }
+  if (-not (Check-Int $tab $n '最大' $mx 0)) { $ok = $false }
+  if ($ok -and [int]$mx -lt [int]$mn) { Add-Err $tab $n "「最大」($mx) は「最小」($mn) 以上にしてください"; $ok = $false }
+  if ($ok -and -not (Check-MaxDrop $tab $n $mx)) { $ok = $false }
+  if (-not $ok) { continue }
+  $iid = if ($item -match ':') { $item } else { "minecraft:$item" }
+  if (-not $cropDrops.Contains($c)) { $cropDrops[$c] = New-Object System.Collections.Generic.List[string] }
+  $cropDrops[$c].Add("{item:`"$iid`",min:$mn,max:$mx}")
+}
+$cropDecls = New-Object System.Collections.Generic.List[string]
+foreach ($c in $cropDrops.Keys) {
+  $cropDecls.Add("data modify storage test: asset.crop.$c set value {drops:[$($cropDrops[$c] -join ',')]}")
+  $cropDecls.Add("data modify storage test: asset.crop_ids append value `"$c`"")
+  # 行のある作物だけ、バニラのルートテーブルを上書きする(抽選しない。育ちきる前は決まった1個、育ちきったら目印1個)
+  $cd = $Crops[$c]
+  $blockLoot["loot_table\blocks\$c.json"] = @"
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "name": "$CommonBaseItem",
+              "condition": {"type": "minecraft:match_block", "blocks": "minecraft:$c", "state": {"age": "$($cd.age)"}},
+              "modifier": [
+                {
+                  "type": "minecraft:set_components",
+                  "components": {
+                    "minecraft:custom_data": {"test": {"crop_token": "$c"}},
+                    "minecraft:item_model": "$($cd.model)",
+                    "minecraft:custom_name": {"text": "収穫物", "italic": false}
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "$($cd.young)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+"@ -replace "`r", ''
+}
+
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
 foreach ($w in $Warnings) { Write-Host "  警告: $w" -ForegroundColor Yellow }
@@ -1559,10 +1633,16 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# asset.fishing_spots は釣り場の行(上ほど優先。デバッグの表示用。釣れる目印はルートテーブル gameplay/fishing が決める)', '')
 $outputs[$rel] = $lines + $fishDecls
 
+$rel = 'init\asset\crop\generated\crops.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 普通の作物のドロップ(スプレッドシートの「作物のドロップ」タブ)。asset.crop.<作物> = {drops:[{item, min, max}]}。',
+  '# 育ちきった作物の目印(crop_token)を、test:crop/token/convert が行ごとに rng/roll で個数を決めて、バニラのアイテムにする', '')
+$outputs[$rel] = $lines + $cropDecls
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
-  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated')
+  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated', 'init\asset\crop\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d
