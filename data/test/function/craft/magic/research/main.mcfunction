@@ -14,6 +14,9 @@ execute if data entity @s data.research_ui.page_ids[4] unless data block ~ ~ ~ I
 execute if data entity @s data.research_ui.page_ids[5] unless data block ~ ~ ~ Items[{Slot:6b}] run function test:craft/magic/research/click_top {index:5}
 execute if data entity @s data.research_ui.page_ids[6] unless data block ~ ~ ~ Items[{Slot:7b}] run function test:craft/magic/research/click_top {index:6}
 
+# 知識の表示(スロット13)を取られたら置き直す
+execute unless data block ~ ~ ~ Items[{Slot:13b}] run function test:craft/magic/research/populate_top
+
 # UI用アイテム(矢印・要素)は取っても意味が無いので、誤って手元に残らないよう
 # このtick内で必ず回収する(目印を持たない物は対象外)
 clear @p[distance=..3] *[custom_data~{test:{crafter_ui:1b}}]

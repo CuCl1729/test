@@ -1,8 +1,10 @@
 #> test:craft/magic/research/populate_top_slot_loop
+# registry_work.top_known(研究のid)を先頭から、スロット #top_slot(1〜7)へ詰める
 execute unless data storage test: registry_work.top_known[0] run return 0
 execute if score #top_slot test.buff.work matches 8.. run return 0
 
-data modify storage test: registry_work.top_entry set from storage test: registry_work.top_known[0]
+data modify storage test: registry_work.top_entry set value {id:"",slot:0}
+data modify storage test: registry_work.top_entry.id set from storage test: registry_work.top_known[0]
 data remove storage test: registry_work.top_known[0]
 execute store result storage test: registry_work.top_entry.slot int 1 run scoreboard players get #top_slot test.buff.work
 
