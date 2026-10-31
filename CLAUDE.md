@@ -100,12 +100,12 @@ under `asset/` (or an `init/asset/*` registry) *declares data only*, and separat
 that data to decide what to do. Adding a new instance of something almost never means touching the
 generic driver — it means adding a declaration plus a small per-id handler function.
 
-- **Enemies** are declared in the sheet's 敵 / 敵のギミック / 敵のドロップ tabs (generated, see below) as
+- **Enemies** are declared in the sheet's 敵 / 敵のギミック tabs and the 敵 rows of ドロップ (generated, see below) as
   `asset.enemy.<id> = {name?, stats:{hp,mp,atk,def,coef,crit_rate,crit_damage,exp}, resist:{…}, data}`.
   `test:asset/enemy/spawn {id}` → `asset/enemy/load` builds the `enemy.*` storage root and the `#enemy`
   scores from it (HP/MP start full; damage bonuses 100, pene/debuff 0 are fixed in `load`), then
   `asset/enemy/summon.mcfunction` copies `enemy.data` onto the summoned entity's `data` tag verbatim.
-  `data` carries `buff_on_hit`, `material_drops` (`[{id, min, max}]` from the 敵のドロップ tab; one roll per
+  `data` carries `buff_on_hit`, `material_drops` (`[{id, min, max}]` from the 敵 rows of ドロップ; one roll per
   entry, see rewards under "Battle/combat pipeline"), `attack_element` (the
   normal attack's element, from the sheet's 攻撃属性; `battle/action/attack_damage_enemy`), `equip_drops`,
   `ai_field_enabled`, `ai` (weighted attack/defend/gimmick behavior read by
@@ -162,12 +162,25 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   (PowerShell 5.1; run `generate.cmd`, or `generate.cmd -Offline` to use `tools/datasheet/data/*.csv`).
   **Balance numbers belong in the sheet, not in function literals** — when adding a feature with tunable
   values, add them to a tab (or `params`) and read them via macro args/storage.
-  - Tabs: stats, materials, weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop
-    recipes, runes, consumables, enemies (+ gimmicks, drops), jobs (+ skills), magic values, buff values,
-    player base stats, constants, ores, mines, veins, pickaxes, refining (main products, by-products,
-    pre-processing by-products), fuels, machine casings, gathering (kinds, drops, tools, points), fishing
-    (spots, pools), farming (crop drops, magic crops), research (scans, researches). A tab without a gid in `config.json` is not
-    downloaded; its local CSV is used.
+  - Tabs (31), in 5 spreadsheet files (`config.json` `sheets.<file> = {sheet_id, tabs:{<key>: gid}}`; the old
+    single-file `sheet_id`/`tabs` still works as a fallback):
+    - common: stats, items, tools, drops, constants, player base stats
+    - equip: weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop recipes
+    - battle: enemies, enemy gimmicks, jobs, job skills, magic values, buff values
+    - industry: mines, veins, refining main / by-products, pre-processing by-products, fuels, machine casings
+    - field: gathering kinds and points, fishing spots, magic crops, scans, researches
+
+    A tab without a gid is not downloaded; its local CSV is used. Downloaded CSVs are written to `data/` only
+    when validation passes, so a stale sheet never overwrites newer local CSVs.
+  - **Merged tabs** (`$Merged` in the script):
+    - アイテム `items`: 種類 素材/触媒/特殊/型紙/エッセンス → materials, 原石 → ores, ルーン → runes, 消耗品 → consumables
+    - 道具 `tools`: 種類 `pickaxe` → pickaxes, any other kind → gathering tools of that kind
+    - ドロップ `drops`: 種類 敵 / 採取 / 釣り / 作物 → enemy drops / gathering drops / fishing pools / crop drops; the
+      column 元 is the owner
+
+    Right after reading, each row is rebuilt as a row of the old per-kind tab (`$data.materials` …), so the rest
+    of the script is unchanged. A column the kind doesn't use must be empty, and `id` is unique across アイテム
+    and across 道具. A new kind in a merged tab is one entry in `$Merged`.
   - **Units**: status values (enemy HP/atk/def/…, job growth, buff params, player base stats) are written in
     display units (as in item lore) and the script multiplies by 100; resist %, exp, chance %, counts are
     as written; magic `params` are raw (internal) values.
@@ -216,8 +229,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     brewing and dispensers look only at the item id, never at `custom_data`, so a material on `copper_ingot` or
     `bone` would craft into nuggets or bone meal. The base is the script's `$CommonBaseItem`
     (`minecraft:recovery_compass`, checked against the 26.3 jar: no recipe uses it, its only tag `compasses`
-    is used by no data, and it isn't fuel/compostable/brewable/usable/placeable and stacks to 64). The 素材
-    tab's 元アイテム and the 原石 tab's アイテム columns only choose the look.
+    is used by no data, and it isn't fuel/compostable/brewable/usable/placeable and stacks to 64). The アイテム
+    tab's 見た目 column only chooses the look.
   - Materials (`asset.material.<id> = {item, model, name, role, data}`, roles material/catalyst/special/pattern/essence)
     are built by `test:item/material/build {id}` and handed out by `test:item/material/give {id,count}`
     (straight into the inventory, not through `test:loot/give`, whose `tooltip_display` would stop them
@@ -316,7 +329,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   removes within 2 blocks in both. The other map is usually unloaded, so these (and `debug/check_veins`) do
   nothing and offer `debug/mine_load {mode:add|remove}` (forceloads every mine area in both maps; saved with
   the world, so turn it off afterwards) when a spot isn't loaded (`debug/vein_loaded`).
-  - Registries (generated from the 原石 / 鉱山 / 鉱脈 / ツルハシ tabs): `asset.ore.<id> = {item, name}`,
+  - Registries (generated from アイテム (原石 rows) / 鉱山 / 鉱脈 / 道具 (`pickaxe` rows)): `asset.ore.<id> = {item, name}`,
     `asset.mine.<id> = {name, area:{x1,y1,z1,dx,dy,dz}, entrance:{x,y,z}, interval}`,
     `asset.vein.<id> = {block, ore, rank, weights:[{rare,weight}], weight_total, structure}`,
     `asset.pickaxe.<id> = {item, name, rank, speed, blocks}` (`blocks` = the ore blocks of every vein whose
@@ -329,7 +342,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     loot table for the whole map with one token item (`custom_data.test.ore_token:"<vein id>"`, the ore's look
     and name).
   - Ores, staged ores and tokens use the common base item (`asset.ore.<id>.item` = `minecraft:recovery_compass`,
-    see Materials); the look comes from `minecraft:item_model` = the 原石 tab's アイテム column
+    see Materials); the look comes from `minecraft:item_model` = the アイテム tab's 見た目 column
     (`asset.ore.<id>.model`).
   - Token → ore: `cache/update` runs `mine/token/convert` **before** copying `player_data` (so `equip/recalc`
     sees the result). Per vein id it `clear`s the tokens, rolls each one's rarity (rng key `ore_rarity`,
@@ -454,7 +467,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - Debug menu 工場: key, `factory/use` (go / return), `debug/factory_info` (number, corners, built,
     `forceload query`), `debug/factory_goto {n}` (any plot, for creative).
 - **Gathering points** (採取ポイント; `gather/`), in both `test:action` and `test:turn` at the same coordinates.
-  - Registries (sheet tabs 採取物 / 採取の中身 / 採取の道具 / 採取ポイント → `init/asset/gather/generated/gather`):
+  - Registries (sheet tabs 採取物 / 採取ポイント, plus the 採取 rows of ドロップ and the non-pickaxe rows of 道具 → `init/asset/gather/generated/gather`):
     `asset.gather.<id> = {name, block, after, tool, respawn, drops:[{material, rank, chance, chance_rank, min,
     max}]}` (`after` is `minecraft:air` when the sheet leaves it empty), `asset.gather_tool.<id> = {item, model,
     name, kind, rank}`, `asset.gather_point.<id> = {type, block, x, y, z}`, plus the `*_ids` lists.
@@ -492,7 +505,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     (rng `fish_count`), dropped at the player with `item/drop_at`.
   - Debug menu 採取: `debug/fishing_here` (rows whose area contains you) and a token button per pool.
 - **Farming** (`crop/`, `farm/`).
-  - Normal crops: the script overrides `blocks/{wheat,carrots,potatoes,beetroots}.json` (sheet tab 作物のドロップ →
+  - Normal crops: the script overrides `blocks/{wheat,carrots,potatoes,beetroots}.json` (作物 rows of the ドロップ tab →
     `init/asset/crop/generated/crops`, `asset.crop.<block> = {drops:[{item,min,max}]}`): when mature
     (`match_block` with the max `age`) one token (`custom_data.test.crop_token:"<block>"`), otherwise the vanilla
     young drop (seed/carrot/potato). `cache/update` → `crop/token/convert` clears the tokens and rolls each row's
