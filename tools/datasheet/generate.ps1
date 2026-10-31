@@ -47,6 +47,10 @@ $Tabs = [ordered]@{
   pre_by           = '前処理の副産物'
   fuels            = '燃料'
   casings          = '筐体'
+  gathers          = '採取物'
+  gather_drops     = '採取の中身'
+  gather_tools     = '採取の道具'
+  gather_points    = '採取ポイント'
 }
 
 # ---------------------------------------------------------------- 取得
@@ -158,6 +162,10 @@ $RequiredHeaders = @{
   pre_by           = @('機械','原石','素材','確率','レア度ごとの確率','個数')
   fuels            = @('アイテム','回数')
   casings          = @('id','名前','ブロック','処理速度','副産物の確率','燃料の消費量')
+  gathers          = @('id','名前','見た目','採った後の見た目','道具','復活時間')
+  gather_drops     = @('採取物','素材','必要ランク','確率','ランクごとの確率','最小','最大')
+  gather_tools     = @('id','名前','見た目','種類','ランク')
+  gather_points    = @('id','採取物','座標')
 }
 foreach ($key in $Tabs.Keys) {
   $path = Join-Path $dataDir "$key.csv"
@@ -1164,6 +1172,89 @@ foreach ($r in $data.fuels) {
 }
 if ($fuels.Count -eq 0) { Add-Warn $Tabs.fuels 0 '燃料が1つもありません(機械が動かなくなります)' }
 
+# ---------------------------------------------------------------- 採取(採取ポイント・採取の道具)
+
+# 採取の道具: asset.gather_tool.<id> = {item, model, name, kind, rank}。元のアイテムは素材と同じ $CommonBaseItem
+$gatherTools = [ordered]@{}
+$gatherToolKinds = @{}
+$gatherDecls = New-Object System.Collections.Generic.List[string]
+foreach ($r in $data.gather_tools) {
+  $tab = $Tabs.gather_tools; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($gatherTools.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $look = Cell $r '見た目'; $kind = Cell $r '種類'; $rank = Cell $r 'ランク'
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
+  if ($look -notmatch $ItemPattern) { Add-Err $tab $n "「見た目」($look) がアイテムidの形ではありません"; continue }
+  if (-not (Check-Id $tab $n '種類' $kind)) { continue }
+  if (-not (Check-Int $tab $n 'ランク' $rank 1)) { continue }
+  $model = if ($look -match ':') { $look } else { "minecraft:$look" }
+  $gatherTools[$id] = $true; $gatherToolKinds[$kind] = $true
+  $gatherDecls.Add("data modify storage test: asset.gather_tool.$id set value {item:`"$CommonBaseItem`",model:`"$model`",name:`"$(Esc $name)`",kind:`"$kind`",rank:$rank}")
+  $gatherDecls.Add("data modify storage test: asset.gather_tool_ids append value `"$id`"")
+}
+
+# 採取の中身: 採取物ごとの行 [{material, rank, chance, chance_rank, min, max}]
+$gatherDrops = @{}
+foreach ($r in $data.gather_drops) {
+  $tab = $Tabs.gather_drops; $n = $r.__row
+  $g = Cell $r '採取物'; $mat = Cell $r '素材'
+  $rk = Cell $r '必要ランク'; $ch = Cell $r '確率'; $chr = Cell $r 'ランクごとの確率'; $mn = Cell $r '最小'; $mx = Cell $r '最大'
+  if ($rk -eq '') { $rk = '0' }; if ($chr -eq '') { $chr = '0' }
+  $ok = $true
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
+  foreach ($p in @(@('必要ランク', $rk, 0), @('確率', $ch, 0), @('ランクごとの確率', $chr, 0), @('最小', $mn, 1), @('最大', $mx, 1))) { if (-not (Check-Int $tab $n $p[0] $p[1] $p[2])) { $ok = $false } }
+  if ($ok -and [int]$mx -lt [int]$mn) { Add-Err $tab $n "「最大」($mx) は「最小」($mn) 以上にしてください"; $ok = $false }
+  if (-not $ok) { continue }
+  if (-not $gatherDrops.ContainsKey($g)) { $gatherDrops[$g] = New-Object System.Collections.Generic.List[string] }
+  $gatherDrops[$g].Add("{material:`"$mat`",rank:$rk,chance:$ch,chance_rank:$chr,min:$mn,max:$mx}")
+}
+
+# 採取物: asset.gather.<id> = {name, block, after, tool, respawn, drops}。after が "" なら、採った後は見た目を消す(air)
+$gathers = [ordered]@{}
+foreach ($r in $data.gathers) {
+  $tab = $Tabs.gathers; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($gathers.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $block = Cell $r '見た目'; $after = Cell $r '採った後の見た目'; $tool = Cell $r '道具'; $resp = Cell $r '復活時間'
+  $ok = $true
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です'; $ok = $false }
+  if ($block -notmatch $BlockPattern) { Add-Err $tab $n "「見た目」($block) はバニラのブロックのid(例: fern)にしてください"; $ok = $false }
+  if ($after -ne '' -and $after -notmatch $BlockPattern) { Add-Err $tab $n "「採った後の見た目」($after) はバニラのブロックのidか空にしてください"; $ok = $false }
+  if (-not (Check-Id $tab $n '道具' $tool)) { $ok = $false }
+  if (-not (Check-Int $tab $n '復活時間' $resp 0)) { $ok = $false }
+  if (-not $ok) { continue }
+  if (-not $gatherToolKinds.ContainsKey($tool)) { Add-Warn $tab $n "道具の種類「$tool」の道具が「採取の道具」タブにありません(素手でだけ採ることになります)" }
+  $b = 'minecraft:' + ($block -replace '^minecraft:', ''); $a = if ($after -eq '') { 'minecraft:air' } else { 'minecraft:' + ($after -replace '^minecraft:', '') }
+  $drops = if ($gatherDrops.ContainsKey($id)) { $gatherDrops[$id] -join ',' } else { '' }
+  if ($drops -eq '') { Add-Warn $tab $n "採取物「$id」の行が「採取の中身」タブにありません(何も採れません)" }
+  $gathers[$id] = @{ block = $b }
+  $gatherDecls.Add("data modify storage test: asset.gather.$id set value {name:`"$(Esc $name)`",block:`"$b`",after:`"$a`",tool:`"$tool`",respawn:$resp,drops:[$drops]}")
+  $gatherDecls.Add("data modify storage test: asset.gather_ids append value `"$id`"")
+}
+foreach ($g in $gatherDrops.Keys) { if (-not $gathers.Contains($g)) { Add-Err $Tabs.gather_drops 0 "採取物「$g」が「採取物」タブにありません" } }
+
+# 採取ポイント: asset.gather_point.<id> = {type, block, x, y, z}。両方のマップ(test:action と test:turn)の同じ座標に置く。
+# block も持たせるのは、置いてあるエンティティと定義を比べて、見た目を変えたときも置き直すため(test:gather/place/check)
+$gatherPoints = [ordered]@{}
+$gatherPointAt = @{}
+foreach ($r in $data.gather_points) {
+  $tab = $Tabs.gather_points; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($gatherPoints.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $type = Cell $r '採取物'
+  if (-not $gathers.Contains($type)) { Add-Err $tab $n "採取物「$type」が「採取物」タブにありません"; continue }
+  $pos = Parse-Ints $tab $n '座標' (Cell $r '座標') 3 '120 64 -30'
+  if ($null -eq $pos) { continue }
+  $key = "$($pos[0]) $($pos[1]) $($pos[2])"
+  if ($gatherPointAt.ContainsKey($key)) { Add-Err $tab $n "座標 $key はポイント「$($gatherPointAt[$key])」と重なっています"; continue }
+  $gatherPointAt[$key] = $id; $gatherPoints[$id] = $true
+  $gatherDecls.Add("data modify storage test: asset.gather_point.$id set value {type:`"$type`",block:`"$($gathers[$type].block)`",x:$($pos[0]),y:$($pos[1]),z:$($pos[2])}")
+  $gatherDecls.Add("data modify storage test: asset.gather_point_ids append value `"$id`"")
+}
+
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
 foreach ($w in $Warnings) { Write-Host "  警告: $w" -ForegroundColor Yellow }
@@ -1344,10 +1435,17 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# 筐体のアイテムは asset.machine_item.casing_<id>(test:item/machine/build で作る)。test:init/asset/machine が呼ぶ', '')
 $outputs[$rel] = $lines + $casingDecls
 
+$rel = 'init\asset\gather\generated\gather.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 採取(スプレッドシートの「採取物」「採取の中身」「採取の道具」「採取ポイント」タブ)。',
+  '#   asset.gather.<id> = {name, block, after, tool, respawn(秒), drops:[{material, rank, chance, chance_rank, min, max}]}',
+  '#   asset.gather_tool.<id> = {item, model, name, kind, rank} / asset.gather_point.<id> = {type, block, x, y, z}', '')
+$outputs[$rel] = $lines + $gatherDecls
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
-  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated')
+  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d

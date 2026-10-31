@@ -34,6 +34,9 @@ function test:init/asset/pickaxe/
 function test:init/asset/machine
 function test:init/asset/refine/
 
+# 採取(採取ポイント・採取の道具)
+function test:init/asset/gather/
+
 function test:init/asset/station
 
 function test:init/asset/debug/rng

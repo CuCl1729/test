@@ -1,0 +1,3 @@
+﻿id,名前,見た目,採った後の見た目,道具,復活時間
+herb,薬草の茂み,fern,,sickle,30
+bush,低木,azalea,dead_bush,sickle,60

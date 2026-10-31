@@ -39,3 +39,11 @@ data modify storage test: asset.material.slag set value {item:"minecraft:recover
 data modify storage test: asset.material_ids append value "slag"
 data modify storage test: asset.material.stone_dust set value {item:"minecraft:recovery_compass",model:"minecraft:clay_ball",name:"石の粉",role:"material",data:{material:{kind:"stone_dust"}}}
 data modify storage test: asset.material_ids append value "stone_dust"
+data modify storage test: asset.material.herb_leaf set value {item:"minecraft:recovery_compass",model:"minecraft:fern",name:"薬草",role:"material",data:{material:{kind:"herb_leaf"}}}
+data modify storage test: asset.material_ids append value "herb_leaf"
+data modify storage test: asset.material.medicinal_root set value {item:"minecraft:recovery_compass",model:"minecraft:beetroot_seeds",name:"薬の根",role:"material",data:{material:{kind:"medicinal_root"}}}
+data modify storage test: asset.material_ids append value "medicinal_root"
+data modify storage test: asset.material.twig set value {item:"minecraft:recovery_compass",model:"minecraft:stick",name:"小枝",role:"material",data:{material:{kind:"twig"}}}
+data modify storage test: asset.material_ids append value "twig"
+data modify storage test: asset.material.flower_petal set value {item:"minecraft:recovery_compass",model:"minecraft:pink_petals",name:"花びら",role:"material",data:{material:{kind:"flower_petal"}}}
+data modify storage test: asset.material_ids append value "flower_petal"
