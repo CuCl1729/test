@@ -166,7 +166,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     recipes, runes, consumables, enemies (+ gimmicks, drops), jobs (+ skills), magic values, buff values,
     player base stats, constants, ores, mines, veins, pickaxes, refining (main products, by-products,
     pre-processing by-products), fuels, machine casings, gathering (kinds, drops, tools, points), fishing
-    (spots, pools), farming (crop drops, magic crops). A tab without a gid in `config.json` is not
+    (spots, pools), farming (crop drops, magic crops), research (scans, researches). A tab without a gid in `config.json` is not
     downloaded; its local CSV is used.
   - **Units**: status values (enemy HP/atk/def/…, job growth, buff params, player base stats) are written in
     display units (as in item lore) and the script multiplies by 100; resist %, exp, chance %, counts are
@@ -175,7 +175,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
   - Generated files: `init/asset/generated/{weapons,stats,config}`, `init/asset/equip/generated/{items,sets}`,
     `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
-    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine,gather,fish,crop}/generated/*`.
+    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine,gather,fish,crop,research}/generated/*`.
     Stale generated `.mcfunction` files in those folders are deleted. The only generated loot tables are the
     veins' ore blocks (a fixed single token, no rolls), the machine casings' blocks (the casing item inside
     the factory, vanilla elsewhere), `data/minecraft/loot_table/blocks/<block>.json`, the four vanilla crops' blocks (see "Farming"), and **vanilla fishing,
@@ -388,7 +388,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     spot is the bottom center, so the marker (armor_stand, `tag=machine`,
     `data.machine = {id, processing?, label, casing, ghost}`, number `test.machine.id`) moves one block up to
     the core's center, and the core is placed if it is in `test:factory` and its own block is air; otherwise
-    the egg is returned (機械は工場の中の空いた所に置く). Outside the factory (adventure) the egg can't even be
+    the egg is returned (機械は工場の中の空いた所に置く). Before that, `trigger/place` → `machine/place_locked` returns the egg
+    (未研究) unless the placer has `test.unlock.machine.<id>` (see "Research"; `debug/spawn_machine` skips it). Outside the factory (adventure) the egg can't even be
     used on a block. A `text_display` passenger (`machine_label`) shows
     `<name> [<state>] 燃料 <n>`.
   - Every second (`tick` → `machine/tick_second`): no core (broken with the wrench) → drop the egg and the
@@ -506,7 +507,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     with `next_at` in game time) and a `block_display` (`tag=magic_crop_display`, at the block corner).
   - Seeds (`item/magic_seed/build {id}`, `custom_data.test.magic_seed`, `consumable` like the status item)
     are planted by right click (`trigger/right_click/mainhand` → `farm/plant`, ray from the eyes, 5 blocks):
-    only in `test:factory`, on farmland with air above and no magic crop there. `item_used_on_block` doesn't
+    only in `test:factory`, on farmland with air above and no magic crop there, and only once researched
+    (`test.unlock.crop.<id>`, else 未研究; see "Research"). `item_used_on_block` doesn't
     fire for an item without a use behavior, hence the right-click trigger.
   - Growth: `tick`'s 1-second clock → `farm/tick` for crops in `test:factory` (plots are forceloaded): if the
     block below isn't farmland any more the crop pops its seed (`farm/pop`); otherwise `farm/grow` advances
@@ -517,6 +519,38 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     (`trigger/crop_hit`, `player_hurt_entity` on an interaction → `farm/attacked`, matched by `attack.player`)
     uproots it and drops its seed.
   - Debug menu 農耕: all magic seeds, vanilla seeds, all essences, nearby status, mature nearby.
+- **Research** (`research/`, GUI in the 魔法台's 研究 mode `craft/magic/research/`). Players scan things to gain
+  knowledge, then research entries that unlock content. Everything is per player, in oh_my_dat:
+  `test.research.knowledge.<element>` (the 6 elements physics/fire/water/wood/metal/earth; an amount that only
+  grows, used as a threshold, never spent), `test.research.scanned.<scan id>`, `test.research.done.<research id>`,
+  and the unlocks (below). Research costs skill points only.
+  - Registries (sheet tabs 観測 / 研究 → `init/asset/research/generated/research`): `asset.scan.<id> = {id, name,
+    kind, target, knowledge:[{el, label, n}], gain}` and, for matching, `asset.scan_entity = [{id, sel}]` (enemies
+    by tag, gathering points by `data.gather.type`, vanilla entities by type, in that order), `asset.scan_block =
+    [{id, block}]`, `asset.scan_item = [{id, pred}]` (material / ore `custom_data` first, then vanilla item ids);
+    `asset.research.<id> = {id, name, icon, cost, pre, scans, knowledge, unlock:[{kind, id, path}]}`;
+    `asset.knowledge_types`. The script checks references, prerequisite cycles, duplicate scan targets, and warns
+    when two researches unlock the same thing or a magic crop / machine has no research.
+  - Scanner 観測鏡 (`debug/give_scanner`; `custom_data.test.scanner`, `consumable`, look `spyglass`): holding right
+    click → `trigger/right_click/mainhand` → `research/scan/use` every tick. It rays 5 blocks from the eyes
+    (`scan/ray`: an entity whose hitbox contains the point, else a non-air block), else the off-hand item, and
+    matches the lists above. The same target for 20 ticks (`test.research.scan_start`/`scan_last`; a 2-tick gap or
+    a new target restarts) finishes: first time → knowledge added, `調べた: <name> 火+2`; else `調べ済み`; not
+    listed → `調べられない`. The item sets `entity_interaction_range` to 0 in the main hand, so right clicks on
+    armor stands / interactions (enemies, gathering points, magic crops) reach the item instead of the entity.
+  - GUI: slots 1–7 list `asset.research_ids` (paging as before), named `<name> [済]` / bright (all conditions met)
+    / gray, with one lore line per condition (cost, prerequisites, scans, knowledge `火 3/10`), green if met and red
+    if not (`research/eval`). Slot 13 shows your knowledge and skill points. Clicking → `research/try`: pays the
+    cost and `research/grant` (else `足りない: <first missing>`).
+  - Unlocks, `path` per kind: `magic` → `test.magic.known.<id>` (the old 習得, so the magic crafter and battle
+    lists are unchanged), `crop` → `test.unlock.crop.<id>` (checked by `farm/plant`), `machine` →
+    `test.unlock.machine.<id>` (checked by `machine/place_locked`), `recipe` → `test.unlock.recipe.<id>`. **When
+    the custom crafter is built, it must read `test.unlock.recipe` and only allow unlocked recipes.**
+  - Migration: every magic element has a research row (cost 1, no conditions). `research/sync_known` (each time the
+    GUI is drawn) marks done, and grants, any research one of whose unlocks is already recorded, so elements
+    learned before research existed show as [済].
+  - Debug menu 研究: scanner, knowledge +10, scanned list and knowledge, research everything, reset (clears
+    `test.research` and `test.unlock`; `test.magic.known` stays).
 - **Stations** (barrel GUIs with an armor_stand marker) share one driver, `station/`. Each is declared in
   `init/asset/station` as `asset.station.<id> = {name, color, icon, breakable?, modes:[{id, label, icon,
   craft? | main?, enter?}]}`; the per-feature folders only hold what a mode does:
@@ -524,7 +558,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   |---|---|
   | `smithy` 工房 | 武器 `craft/weapon/forge/craft` / 防具 `craft/equip/craft` |
   | `enhance` 強化台 | 強化 `craft/weapon/upgrade/craft` / 付与 `craft/equip_magic/craft` |
-  | `magic` 魔法台 (breakable) | 作成 `magic/crafter/{main,enter}` / 研究 `craft/magic/research/{main,enter}` |
+  | `magic` 魔法台 (breakable) | 作成 `magic/crafter/{main,enter}` / 研究 `craft/magic/research/{main,enter}` (see "Research") |
   | `job` Jobステーション | one mode, `job/station/{main,enter}` (7 per page: slots 1–7, arrows 0/8, 戻る 18) |
   - Markers are tagged `station` with `data.station = {id, mode, main|craft}`; `tick` has one line for all of
     them → `station/tick`: re-place a missing barrel (or, if `breakable`, return a spawn egg via
