@@ -1,0 +1,6 @@
+﻿中身,素材,重み,最小,最大
+default,small_fish,80,1,1
+default,big_fish,20,1,1
+pond,small_fish,40,1,2
+pond,big_fish,60,1,1
+pond_night,night_fish,100,1,1

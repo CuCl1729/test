@@ -51,6 +51,8 @@ $Tabs = [ordered]@{
   gather_drops     = '採取の中身'
   gather_tools     = '採取の道具'
   gather_points    = '採取ポイント'
+  fishing_spots    = '釣り場'
+  fishing_pools    = '釣りの中身'
 }
 
 # ---------------------------------------------------------------- 取得
@@ -166,6 +168,8 @@ $RequiredHeaders = @{
   gather_drops     = @('採取物','素材','必要ランク','確率','ランクごとの確率','最小','最大')
   gather_tools     = @('id','名前','見た目','種類','ランク')
   gather_points    = @('id','採取物','座標')
+  fishing_spots    = @('id','範囲','天気','時間帯','中身')
+  fishing_pools    = @('中身','素材','重み','最小','最大')
 }
 foreach ($key in $Tabs.Keys) {
   $path = Join-Path $dataDir "$key.csv"
@@ -1255,6 +1259,105 @@ foreach ($r in $data.gather_points) {
   $gatherDecls.Add("data modify storage test: asset.gather_point_ids append value `"$id`"")
 }
 
+# ---------------------------------------------------------------- 釣り(釣り場・釣りの中身)
+
+# 釣りの中身: asset.fish_pool.<id> = {entries:[{material, weight, min, max}], total}。default は、どの釣り場にも当てはまらないとき
+$fishPools = [ordered]@{}
+foreach ($r in $data.fishing_pools) {
+  $tab = $Tabs.fishing_pools; $n = $r.__row
+  $p = Cell $r '中身'; $mat = Cell $r '素材'; $w = Cell $r '重み'; $mn = Cell $r '最小'; $mx = Cell $r '最大'
+  if (-not (Check-Id $tab $n '中身' $p)) { continue }
+  $ok = $true
+  if (-not $materials.Contains($mat)) { Add-Err $tab $n "素材「$mat」が「素材」タブにありません"; $ok = $false }
+  foreach ($q in @(@('重み', $w, 0), @('最小', $mn, 1), @('最大', $mx, 1))) { if (-not (Check-Int $tab $n $q[0] $q[1] $q[2])) { $ok = $false } }
+  if ($ok -and [int]$mx -lt [int]$mn) { Add-Err $tab $n "「最大」($mx) は「最小」($mn) 以上にしてください"; $ok = $false }
+  if (-not $ok) { continue }
+  if (-not $fishPools.Contains($p)) { $fishPools[$p] = @{ entries = (New-Object System.Collections.Generic.List[string]); total = 0 } }
+  $fishPools[$p].entries.Add("{material:`"$mat`",weight:$w,min:$mn,max:$mx}"); $fishPools[$p].total += [int]$w
+}
+if (-not $fishPools.Contains('default')) { Add-Err $Tabs.fishing_pools 0 '中身「default」の行がありません(どの釣り場にも当てはまらないときに使います)' }
+foreach ($p in $fishPools.Keys) { if ($fishPools[$p].total -lt 1) { Add-Err $Tabs.fishing_pools 0 "中身「$p」の「重み」の合計を1以上にしてください" } }
+
+# 釣り場: 上の行ほど優先。浮きの位置が範囲の中で、天気・時間帯が当てはまる最初の行の中身の目印が釣れる。
+# 目印は鉱石の目印と同じく、ルートテーブルは条件だけで1つに決め(抽選しない)、中身は持ち物に入ったときに test:fish/token/convert が rng/roll で決める
+$FishToken = @{ model = 'minecraft:cod'; name = '釣った魚' }
+$WeatherConds = @{ any = $null; clear = '{"type": "minecraft:weather_check", "raining": false}'; rain = '{"type": "minecraft:weather_check", "raining": true}'; thunder = '{"type": "minecraft:weather_check", "thundering": true}' }
+# 時間帯: 1日 = 24000 tick の周期(昼 0〜11999、夜 12000〜23999)。26.3 の time_check はワールドの時計(clock)を持つので、overworld の時計を使う
+$TimeConds = @{ any = $null; day = '{"type": "minecraft:time_check", "clock": "minecraft:overworld", "period": 24000, "value": {"min": 0, "max": 11999}}'; night = '{"type": "minecraft:time_check", "clock": "minecraft:overworld", "period": 24000, "value": {"min": 12000, "max": 23999}}' }
+function Fish-Entry([string]$pool, [string]$cond) {
+  $c = if ($cond) { "`n              `"condition`": $cond," } else { '' }
+  return @"
+            {
+              "type": "minecraft:item",
+              "name": "$CommonBaseItem",$c
+              "modifier": [
+                {
+                  "type": "minecraft:set_components",
+                  "components": {
+                    "minecraft:custom_data": {"test": {"fish_token": "$pool"}},
+                    "minecraft:item_model": "$($FishToken.model)",
+                    "minecraft:custom_name": {"text": $(Json-Str $FishToken.name), "italic": false}
+                  }
+                }
+              ]
+            }
+"@
+}
+$fishSpotIds = @{}
+$fishEntries = New-Object System.Collections.Generic.List[string]
+$fishSpotDecls = New-Object System.Collections.Generic.List[string]
+foreach ($r in $data.fishing_spots) {
+  $tab = $Tabs.fishing_spots; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($fishSpotIds.ContainsKey($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $weather = Cell $r '天気'; $time = Cell $r '時間帯'; $pool = Cell $r '中身'
+  if ($weather -eq '') { $weather = 'any' }; if ($time -eq '') { $time = 'any' }
+  $ok = $true
+  if (-not $WeatherConds.ContainsKey($weather)) { Add-Err $tab $n "「天気」($weather) は any / clear / rain / thunder のどれかにしてください"; $ok = $false }
+  if (-not $TimeConds.ContainsKey($time)) { Add-Err $tab $n "「時間帯」($time) は any / day / night のどれかにしてください"; $ok = $false }
+  if (-not $fishPools.Contains($pool)) { Add-Err $tab $n "中身「$pool」が「釣りの中身」タブにありません"; $ok = $false }
+  $area = Parse-Ints $tab $n '範囲' (Cell $r '範囲') 6 '100 50 200 160 70 260'
+  if (-not $ok -or $null -eq $area) { continue }
+  $fishSpotIds[$id] = $true
+  $x1 = [Math]::Min($area[0], $area[3]); $y1 = [Math]::Min($area[1], $area[4]); $z1 = [Math]::Min($area[2], $area[5])
+  $x2 = [Math]::Max($area[0], $area[3]); $y2 = [Math]::Max($area[1], $area[4]); $z2 = [Math]::Max($area[2], $area[5])
+  # 範囲はブロックの座標なので、浮きの位置(小数)で見るときは上の端を +1 する
+  $conds = @("{`"type`": `"minecraft:location_check`", `"predicate`": {`"position`": {`"x`": {`"min`": $x1, `"max`": $($x2 + 1)}, `"y`": {`"min`": $y1, `"max`": $($y2 + 1)}, `"z`": {`"min`": $z1, `"max`": $($z2 + 1)}}}}")
+  if ($WeatherConds[$weather]) { $conds += $WeatherConds[$weather] }
+  if ($TimeConds[$time]) { $conds += $TimeConds[$time] }
+  $cond = if ($conds.Count -eq 1) { $conds[0] } else { "{`"type`": `"minecraft:all_of`", `"terms`": [$($conds -join ', ')]}" }
+  $fishEntries.Add((Fish-Entry $pool $cond))
+  $fishSpotDecls.Add("data modify storage test: asset.fishing_spots append value {id:`"$id`",pool:`"$pool`",weather:`"$weather`",time:`"$time`",x1:$x1,y1:$y1,z1:$z1,dx:$($x2 - $x1),dy:$($y2 - $y1),dz:$($z2 - $z1)}")
+}
+$fishEntries.Add((Fish-Entry 'default' ''))
+# バニラの釣りのルートテーブルを上書きする(バニラの魚・ゴミ・お宝は出なくなり、宝釣りも効かなくなる。入れ食いはバニラのまま)
+$blockLoot['loot_table\gameplay\fishing.json'] = @"
+{
+  "type": "minecraft:fishing",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+$($fishEntries -join ",`n")
+          ]
+        }
+      ]
+    }
+  ]
+}
+"@ -replace "`r", ''
+$fishDecls = New-Object System.Collections.Generic.List[string]
+foreach ($p in $fishPools.Keys) {
+  $fishDecls.Add("data modify storage test: asset.fish_pool.$p set value {entries:[$($fishPools[$p].entries -join ',')],total:$($fishPools[$p].total)}")
+  $fishDecls.Add("data modify storage test: asset.fish_pool_ids append value `"$p`"")
+}
+$fishDecls.Add("data modify storage test: asset.fish_token_item set value {item:`"$CommonBaseItem`",model:`"$($FishToken.model)`",name:`"$(Esc $FishToken.name)`"}")
+$fishDecls.AddRange($fishSpotDecls)
+
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
 foreach ($w in $Warnings) { Write-Host "  警告: $w" -ForegroundColor Yellow }
@@ -1442,10 +1545,16 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '#   asset.gather_tool.<id> = {item, model, name, kind, rank} / asset.gather_point.<id> = {type, block, x, y, z}', '')
 $outputs[$rel] = $lines + $gatherDecls
 
+$rel = 'init\asset\fish\generated\fish.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 釣り(スプレッドシートの「釣り場」「釣りの中身」タブ)。asset.fish_pool.<id> = {entries:[{material, weight, min, max}], total}。',
+  '# asset.fishing_spots は釣り場の行(上ほど優先。デバッグの表示用。釣れる目印はルートテーブル gameplay/fishing が決める)', '')
+$outputs[$rel] = $lines + $fishDecls
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
-  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated')
+  'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d

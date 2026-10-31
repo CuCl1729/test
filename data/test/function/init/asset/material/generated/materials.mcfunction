@@ -47,3 +47,9 @@ data modify storage test: asset.material.twig set value {item:"minecraft:recover
 data modify storage test: asset.material_ids append value "twig"
 data modify storage test: asset.material.flower_petal set value {item:"minecraft:recovery_compass",model:"minecraft:pink_petals",name:"花びら",role:"material",data:{material:{kind:"flower_petal"}}}
 data modify storage test: asset.material_ids append value "flower_petal"
+data modify storage test: asset.material.small_fish set value {item:"minecraft:recovery_compass",model:"minecraft:cod",name:"小魚",role:"material",data:{material:{kind:"small_fish"}}}
+data modify storage test: asset.material_ids append value "small_fish"
+data modify storage test: asset.material.big_fish set value {item:"minecraft:recovery_compass",model:"minecraft:salmon",name:"大きな魚",role:"material",data:{material:{kind:"big_fish"}}}
+data modify storage test: asset.material_ids append value "big_fish"
+data modify storage test: asset.material.night_fish set value {item:"minecraft:recovery_compass",model:"minecraft:tropical_fish",name:"夜の魚",role:"material",data:{material:{kind:"night_fish"}}}
+data modify storage test: asset.material_ids append value "night_fish"

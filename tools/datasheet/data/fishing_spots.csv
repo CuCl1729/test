@@ -1,0 +1,3 @@
+﻿id,範囲,天気,時間帯,中身
+pond_night,-50 -64 -50 50 10 50,any,night,pond_night
+pond,-50 -64 -50 50 10 50,any,any,pond

@@ -35,6 +35,9 @@ tellraw @s [{text:"[近くの鉱脈を消す]",color:aqua,click_event:{action:"r
 
 tellraw @s {text:"― 採取 ―",color:gold}
 tellraw @s [{text:"[採取の道具全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_gather_tools"}},{text:" "},{text:"[近くの採取ポイント]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/gather_status"}},{text:" "},{text:"[近くを今すぐ復活]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/gather_respawn"}}]
+tellraw @s [{text:"[ここの釣り場]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/fishing_here"}},{text:" (当てはまる行と中身)",color:dark_gray}]
+data modify storage test: debug_work.fish_pool_queue set from storage test: asset.fish_pool_ids
+function test:debug/menu/fish_loop
 
 tellraw @s {text:"― 工場 ―",color:gold}
 tellraw @s [{text:"[工場の鍵]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_factory_key"}},{text:" "},{text:"[区画へ / 戻る]",color:aqua,click_event:{action:"run_command",command:"/function test:factory/use"}},{text:" (鍵と同じ動き)",color:dark_gray}]

@@ -1,0 +1,59 @@
+{
+  "type": "minecraft:fishing",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "name": "minecraft:recovery_compass",
+              "condition": {"type": "minecraft:all_of", "terms": [{"type": "minecraft:location_check", "predicate": {"position": {"x": {"min": -50, "max": 51}, "y": {"min": -64, "max": 11}, "z": {"min": -50, "max": 51}}}}, {"type": "minecraft:time_check", "clock": "minecraft:overworld", "period": 24000, "value": {"min": 12000, "max": 23999}}]},
+              "modifier": [
+                {
+                  "type": "minecraft:set_components",
+                  "components": {
+                    "minecraft:custom_data": {"test": {"fish_token": "pond_night"}},
+                    "minecraft:item_model": "minecraft:cod",
+                    "minecraft:custom_name": {"text": "釣った魚", "italic": false}
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "minecraft:recovery_compass",
+              "condition": {"type": "minecraft:location_check", "predicate": {"position": {"x": {"min": -50, "max": 51}, "y": {"min": -64, "max": 11}, "z": {"min": -50, "max": 51}}}},
+              "modifier": [
+                {
+                  "type": "minecraft:set_components",
+                  "components": {
+                    "minecraft:custom_data": {"test": {"fish_token": "pond"}},
+                    "minecraft:item_model": "minecraft:cod",
+                    "minecraft:custom_name": {"text": "釣った魚", "italic": false}
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "minecraft:recovery_compass",
+              "modifier": [
+                {
+                  "type": "minecraft:set_components",
+                  "components": {
+                    "minecraft:custom_data": {"test": {"fish_token": "default"}},
+                    "minecraft:item_model": "minecraft:cod",
+                    "minecraft:custom_name": {"text": "釣った魚", "italic": false}
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
