@@ -1,0 +1,6 @@
+﻿店,品物,個数,買値,売値
+general,consumable:healing_potion,1,30,
+general,consumable:mana_dust,2,20,
+general,gather_tool:copper_sickle,1,100,
+general,material:bone,3,,5
+general,material:herb_leaf,2,,8

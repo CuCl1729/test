@@ -293,6 +293,8 @@ scoreboard objectives add test.owner dummy
 # 店・銀行のトロッコ: 持ち主の番号(トロッコ)と、目線がNPCから外れて続いたtick数(プレイヤー)
  scoreboard objectives add test.npc.cart_owner dummy
  scoreboard objectives add test.npc.cart_lost dummy
+# 店のトロッコの品物のページ(トロッコ。0から)
+ scoreboard objectives add test.npc.cart_page dummy
 
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy

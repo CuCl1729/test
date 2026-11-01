@@ -55,6 +55,7 @@ $Tabs = [ordered]@{
   dialogues        = '会話'
   quests           = 'クエスト'
   quest_stages     = 'クエストの段階'
+  shops            = '店'
 }
 
 # 似た形のものをまとめたタブ。行は「種類」(kind の列)の値で、今までのタブ(to のキー)の行に振り分けてから検証・生成する。
@@ -233,6 +234,7 @@ $RequiredHeaders = @{
   dialogues        = @('id','話す人','本文','次','選択肢','処理','全員')
   quests           = @('id','名前','種類','説明','報酬')
   quest_stages     = @('クエスト','段階','目標','対象','数','説明')
+  shops            = @('店','品物','個数','買値','売値')
 }
 foreach ($key in $Tabs.Keys) {
   $text = Tab-Text $key
@@ -1958,6 +1960,35 @@ foreach ($q in $quests.Keys) {
   for ($s = 1; $s -le $c; $s++) { if (-not $quests[$q].stages.Contains("$s")) { Add-Err $Tabs.quest_stages 0 "クエスト「$q」の段階は1から順に書いてください($s がありません)" } }
 }
 
+# ---------------------------------------------------------------- 店
+
+# asset.shop.<店> = {items:[{kind, id, count, buy, sell}]}(buy / sell は値段。買えない・売れないものは -1)。
+# 売りの関数 test:shop/generated/sell/<店>(@s = 店のトロッコ): 売値のある品物ごとに、売る枠 14〜17 のどれかが合えば売る
+$shops = [ordered]@{}
+foreach ($r in $data.shops) {
+  $tab = $Tabs.shops; $n = $r.__row
+  $sid = Cell $r '店'
+  if (-not (Check-Id $tab $n '店' $sid)) { continue }
+  $cnt = Cell $r '個数'; $buy = Cell $r '買値'; $sell = Cell $r '売値'
+  if ($cnt -eq '') { $cnt = '1' }
+  if (-not (Check-Int $tab $n '個数' $cnt 1)) { continue }
+  $it = Item-Spec $tab $n '品物' "$(Cell $r '品物')*$cnt"
+  if ($null -eq $it) { continue }
+  if ($buy -eq '' -and $sell -eq '') { Add-Err $tab $n '「買値」と「売値」のどちらかは書いてください'; continue }
+  if ($buy -ne '' -and -not (Check-Int $tab $n '買値' $buy 0)) { continue }
+  if ($sell -ne '' -and -not (Check-Int $tab $n '売値' $sell 0)) { continue }
+  if (-not $shops.Contains($sid)) { $shops[$sid] = @{ items = @(); sell = @() } }
+  $b = if ($buy -eq '') { -1 } else { $buy }; $s = if ($sell -eq '') { -1 } else { $sell }
+  $shops[$sid].items += "{kind:`"$($it.kind)`",id:`"$($it.id)`",count:$cnt,buy:$b,sell:$s}"
+  if ($sell -ne '') { foreach ($slot in 14..17) { $shops[$sid].sell += "execute if items entity @s container.$slot $($it.pred) run function test:npc/cart/shop/sell_slot {slot:$slot,count:$cnt,price:$sell}" } }
+}
+$shopDecls = New-Object System.Collections.Generic.List[string]
+foreach ($sid in $shops.Keys) {
+  $shopDecls.Add("data modify storage test: asset.shop.$sid set value {items:[$($shops[$sid].items -join ',')]}")
+  $shopDecls.Add("data modify storage test: asset.shop_ids append value `"$sid`"")
+  $genFns["shop\generated\sell\$sid.mcfunction"] = @("# 店「$sid」の売り(@s = 店のトロッコ。売る枠 14〜17 のうち、この店が買い取るものを売る)", '') + $shops[$sid].sell
+}
+
 # ---------------------------------------------------------------- NPC
 
 # asset.npc.<id> = {id, name, kind, body, x, y, z, yaw, role, shop, counter?, entry?}。body は summon <kind> にそのまま渡す中身。
@@ -1990,7 +2021,10 @@ foreach ($r in $data.npcs) {
   } else { Add-Err $tab $n "「見た目」($look) は mannequin:<プレイヤー名> / mannequin:texture:<テクスチャ> / villager:<職業>:<地域> のどれかにしてください"; $ok = $false }
   $shop = ''
   if ($role -eq '') { $role = 'talk' }
-  if ($role -match '^shop:([a-z0-9_]+)$') { $shop = $Matches[1]; $role = 'shop' }
+  if ($role -match '^shop:([a-z0-9_]+)$') {
+    $shop = $Matches[1]; $role = 'shop'
+    if (-not $shops.Contains($shop)) { Add-Err $tab $n "店「$shop」が「店」タブにありません"; $ok = $false }
+  }
   elseif ($role -ne 'talk' -and $role -ne 'bank') { Add-Err $tab $n "「役割」($role) は talk / shop:<店のid> / bank のどれかにしてください"; $ok = $false }
   if (-not $ok) { continue }
   $counter = if ($role -ne 'talk') { ',counter:1b' } else { '' }
@@ -2389,6 +2423,10 @@ $rel = 'init\asset\quest\generated\quests.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)", '# クエスト(スプレッドシートの「クエスト」「クエストの段階」タブ)。asset.quest.<id> = {id, name, main, desc, last, reward?, stages:{s<段階>:{goal, count, desc}}}。進めるのは test:quest/', '')
 $outputs[$rel] = $lines + $questDecls
 
+$rel = 'init\asset\shop\generated\shops.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)", '# 店(スプレッドシートの「店」タブ)。asset.shop.<店> = {items:[{kind, id, count, buy, sell}]}(買えない・売れないものは -1)。画面は test:npc/cart/shop/', '')
+$outputs[$rel] = $lines + $shopDecls
+
 # 条件・処理・会話のノード・クエストのフックなど、データの中身から作る関数(上の各節が $genFns に入れたもの)
 foreach ($gk in $genFns.Keys) { $outputs[$gk] = @($Header, "#> $(Fn-Name $gk)") + $genFns[$gk] }
 
@@ -2398,7 +2436,7 @@ $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\we
   'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated', 'init\asset\crop\generated',
   'init\asset\research\generated', 'init\asset\recipe\generated', 'talk\generated\cond', 'talk\generated\act',
   'init\asset\npc\generated', 'talk\generated\node', 'npc\generated\entry',
-  'init\asset\quest\generated', 'quest\generated', 'quest\generated\npc')
+  'init\asset\quest\generated', 'quest\generated', 'quest\generated\npc', 'init\asset\shop\generated', 'shop\generated\sell')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d
