@@ -60,6 +60,10 @@ There isn't any — verification is manual, in-game:
 - There's no automated equivalent of unit tests; when a fix is non-obvious, ask for the actual
   in-game/log result rather than guessing twice. Have the user turn on the relevant debug log or watch,
   or fix/replay the roll involved; add debug output only when those don't cover it.
+- **Screenshots, clipboard contents and anything else that may hold personal information** (e.g. from
+  agent-desktop, which can capture the whole desktop including other apps): never commit them or put them in
+  the repo, keep them only in the session's scratch/temp directory, and delete them as soon as they are no
+  longer needed.
 - A malformed registry JSON (predicate, loot table, enchantment, advancement, item_modifier, provider)
   stops the world from loading at all; `latest.log` names the exact file and key under
   `Registry loading errors`. A `.mcfunction` parse error doesn't block loading but shows up as
