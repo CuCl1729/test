@@ -18,6 +18,6 @@ scoreboard players set #farm_n test.temporary 60
 scoreboard players operation #farm_min test.temporary = #farm_left test.temporary
 scoreboard players operation #farm_min test.temporary /= #farm_n test.temporary
 scoreboard players operation #farm_left test.temporary %= #farm_n test.temporary
-execute if score #farm_min test.temporary matches 1.. run return run title @s actionbar [{text:"あと ",color:"gray"},{score:{name:"#farm_min",objective:"test.temporary"},color:"aqua"},{text:"分",color:"gray"},{score:{name:"#farm_left",objective:"test.temporary"},color:"aqua"},{text:"秒",color:"gray"}]
-title @s actionbar [{text:"あと ",color:"gray"},{score:{name:"#farm_left",objective:"test.temporary"},color:"aqua"},{text:"秒",color:"gray"}]
+execute if score #farm_min test.temporary matches 1.. run return run execute store success score @s test.ui.bar_shown run title @s actionbar [{text:"あと ",color:"gray"},{score:{name:"#farm_min",objective:"test.temporary"},color:"aqua"},{text:"分",color:"gray"},{score:{name:"#farm_left",objective:"test.temporary"},color:"aqua"},{text:"秒",color:"gray"}]
+execute store success score @s test.ui.bar_shown run title @s actionbar [{text:"あと ",color:"gray"},{score:{name:"#farm_left",objective:"test.temporary"},color:"aqua"},{text:"秒",color:"gray"}]
 return 1

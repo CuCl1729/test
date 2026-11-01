@@ -3,7 +3,7 @@
 # トロッコには item_minecart のタグだけを付ける(skill_minecart を付けると test:battle/ui/skill_hover_hide に消される)
 
 execute store result score #item_kinds test.temporary run function test:battle/action/item_list
-execute if score #item_kinds test.temporary matches 0 run return run title @s actionbar {text:"使えるアイテムがない",color:"gray"}
+execute if score #item_kinds test.temporary matches 0 run return run execute store success score @s test.ui.bar_shown run title @s actionbar {text:"使えるアイテムがない",color:"gray"}
 
 execute anchored eyes positioned ^ ^-0.35 ^ run summon chest_minecart ~ ~ ~ {Tags:[item_minecart],NoGravity:1b,Invulnerable:1b}
 

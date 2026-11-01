@@ -797,6 +797,10 @@ Turn-based battle (`battle/`) uses the same formulas as real time, through share
   the station already makes obvious (e.g. how/where to socket a rune). When adding new text, match the
   length of the existing lore lines rather than writing full explanations.
 
+- **Every action-bar message is written as `execute store success score @s test.ui.bar_shown run title @s
+  actionbar …`.** `tick` → `ui/status/` writes the MP display to the action bar every tick. A plain `title … actionbar`
+  is overwritten on the next tick, so nobody sees it. A set `bar_shown` makes `ui/status/` skip the MP display for 50
+  ticks.
 - **Player NBT can be read with `/data get` but never written with `/data modify`/`data remove`.**
   To change a player's items, build the item in the overworld shulker box at `0 -64 0` and either
   `loot spawn` it and let the player pick it up (`test:loot/give`, `test:job/bundle/deliver`) or

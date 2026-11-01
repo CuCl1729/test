@@ -5,4 +5,4 @@ $data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.research.
 $data modify storage test: research_work.kq set from storage test: asset.scan.$(id).knowledge
 function test:research/knowledge_add_loop
 $tellraw @s [{text:"調べた: ",color:"gold"},{text:"$(name)",color:"white"},{text:" $(gain)",color:"aqua"}]
-$title @s actionbar [{text:"調べた: ",color:"gold"},{text:"$(name)",color:"white"}]
+$execute store success score @s test.ui.bar_shown run title @s actionbar [{text:"調べた: ",color:"gold"},{text:"$(name)",color:"white"}]

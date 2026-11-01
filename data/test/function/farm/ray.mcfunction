@@ -3,5 +3,5 @@
 
 execute unless block ~ ~ ~ #minecraft:air run return run function test:farm/plant_at
 scoreboard players remove #farm_ray test.temporary 1
-execute if score #farm_ray test.temporary matches ..0 run return run title @s actionbar {text:"耕地に植える",color:"gray"}
+execute if score #farm_ray test.temporary matches ..0 run return run execute store success score @s test.ui.bar_shown run title @s actionbar {text:"耕地に植える",color:"gray"}
 execute positioned ^ ^ ^0.1 run function test:farm/ray
