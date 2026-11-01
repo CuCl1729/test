@@ -4,6 +4,9 @@
 # 拾われる前に消す(プレイヤーが置いた物はそのまま落ちる)。
 # breakable なら樽も消してスポーンエッグを返し、マーカーごと消える。それ以外は置き直す
 
+# カスタムクラフターの結果の枠のもの(まだ作っていない)も消す
+execute if data entity @s data.crafter.show run function test:craft/custom/drop_kill with entity @s data.crafter
+
 kill @e[type=item,distance=..2,nbt={Item:{components:{"minecraft:custom_data":{test:{station_ui:1b}}}}}]
 kill @e[type=item,distance=..2,nbt={Item:{components:{"minecraft:custom_data":{test:{button:1b}}}}}]
 kill @e[type=item,distance=..2,nbt={Item:{components:{"minecraft:custom_data":{test:{crafter_ui:1b}}}}}]

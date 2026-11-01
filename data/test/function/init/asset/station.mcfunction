@@ -33,5 +33,12 @@ data modify storage test: asset.station.job set value {name:"Jobステーショ�
   {id:"skills",label:"職業",icon:"iron_helmet",main:"job/station/main",enter:"job/station/enter"}\
 ]}
 
+# カスタムクラフター: 作業台のように 3×3 に材料を並べて作る(test:craft/custom/)。材料の枠と結果の枠を持つ専用の画面が要り、
+# ほかのステーションの画面と合わないので、モードではなく別のステーションにしている。町に置くもの(壊せない)と、
+# 工場でエッグから置くものがあるので breakable。材料の枠 3〜5・12〜14・21〜23、結果の枠 16
+data modify storage test: asset.station.crafter set value {name:"カスタムクラフター",color:"aqua",icon:"crafting_table",breakable:1b,modes:[\
+  {id:"craft",label:"作成",icon:"crafting_table",main:"craft/custom/main",enter:"craft/custom/enter",keep:[3,4,5,12,13,14,21,22,23,16]}\
+]}
+
 # デバッグメニューの「ステーション」欄に並べる順
-data modify storage test: asset.station_ids set value ["smithy","enhance","magic","job"]
+data modify storage test: asset.station_ids set value ["smithy","enhance","magic","job","crafter"]

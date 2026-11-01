@@ -61,6 +61,8 @@ data modify storage test: asset.recipe.earth_essence_iron set value {id:"earth_e
 data modify storage test: asset.recipe_ids append value "earth_essence_iron"
 data modify storage test: asset.recipe.water_essence_mana set value {id:"water_essence_mana",name:"水のエッセンスから魔力",shape_text:"aaa/a.a/aaa",mat_text:"a=material:water_essence",out:{kind:"material",id:"mana_shard",count:1},pred:"*[minecraft:custom_data~{test:{material:{kind:\"mana_shard\"}}}]",inputs:[{kind:"material",id:"water_essence",count:8}]}
 data modify storage test: asset.recipe_ids append value "water_essence_mana"
+data modify storage test: asset.recipe.crafter_egg set value {id:"crafter_egg",name:"カスタムクラフター",shape_text:"aaa/aba/aaa",mat_text:"a=material:twig; b=material:copper_ingot",out:{kind:"station_egg",id:"crafter",count:1},pred:"*[minecraft:custom_data~{test:{egg:\"station:crafter\"}}]",inputs:[{kind:"material",id:"twig",count:8},{kind:"material",id:"copper_ingot",count:1}]}
+data modify storage test: asset.recipe_ids append value "crafter_egg"
 data modify storage test: asset.recipe_index."m:copper_ingot,,,m:copper_ingot,,,m:iron_ingot,," set value {recipe:"factory_key",need:[1,0,0,1,0,0,1,0,0]}
 data modify storage test: asset.recipe_index.",m:copper_ingot,,,m:copper_ingot,,,m:iron_ingot," set value {recipe:"factory_key",need:[0,1,0,0,1,0,0,1,0]}
 data modify storage test: asset.recipe_index.",,m:copper_ingot,,,m:copper_ingot,,,m:iron_ingot" set value {recipe:"factory_key",need:[0,0,1,0,0,1,0,0,1]}
@@ -136,3 +138,4 @@ data modify storage test: asset.recipe_index.",,,,,,,m:bone,m:stone_dust" set va
 data modify storage test: asset.recipe_index.",m:flower_petal,,m:flower_petal,m:big_fish,m:flower_petal,,m:flower_petal," set value {recipe:"revive_feather",need:[0,1,0,1,1,1,0,1,0]}
 data modify storage test: asset.recipe_index."m:earth_essence,m:earth_essence,m:earth_essence,m:earth_essence,,m:earth_essence,m:earth_essence,m:earth_essence,m:earth_essence" set value {recipe:"earth_essence_iron",need:[1,1,1,1,0,1,1,1,1]}
 data modify storage test: asset.recipe_index."m:water_essence,m:water_essence,m:water_essence,m:water_essence,,m:water_essence,m:water_essence,m:water_essence,m:water_essence" set value {recipe:"water_essence_mana",need:[1,1,1,1,0,1,1,1,1]}
+data modify storage test: asset.recipe_index."m:twig,m:twig,m:twig,m:twig,m:copper_ingot,m:twig,m:twig,m:twig,m:twig" set value {recipe:"crafter_egg",need:[1,1,1,1,1,1,1,1,1]}

@@ -28,3 +28,4 @@ power_dust,力の粉,ab./.../...,a=material:bone; b=material:stone_dust,consumab
 revive_feather,蘇生の羽,.a./aba/.a.,a=material:flower_petal; b=material:big_fish,consumable:revive_feather,1
 earth_essence_iron,土のエッセンスから鉄,aaa/a.a/aaa,a=material:earth_essence,material:iron_ingot,1
 water_essence_mana,水のエッセンスから魔力,aaa/a.a/aaa,a=material:water_essence,material:mana_shard,1
+crafter_egg,カスタムクラフター,aaa/aba/aaa,a=material:twig; b=material:copper_ingot,station_egg:crafter,1
