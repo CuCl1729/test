@@ -54,7 +54,12 @@
         "fishing_spots": "",
         "magic_crops": "",
         "scans": "",
-        "researches": ""
+        "researches": "",
+        "npcs": "",
+        "dialogues": "",
+        "quests": "",
+        "quest_stages": "",
+        "shops": ""
       }
     }
   }

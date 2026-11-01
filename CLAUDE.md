@@ -162,13 +162,14 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   (PowerShell 5.1; run `generate.cmd`, or `generate.cmd -Offline` to use `tools/datasheet/data/*.csv`).
   **Balance numbers belong in the sheet, not in function literals** — when adding a feature with tunable
   values, add them to a tab (or `params`) and read them via macro args/storage.
-  - Tabs (32), in 5 spreadsheet files (`config.json` `sheets.<file> = {sheet_id, tabs:{<key>: gid}}`; the old
+  - Tabs (37), in 5 spreadsheet files (`config.json` `sheets.<file> = {sheet_id, tabs:{<key>: gid}}`; the old
     single-file `sheet_id`/`tabs` still works as a fallback):
     - common: stats, items, tools, drops, constants, player base stats, recipes
     - equip: weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop recipes
     - battle: enemies, enemy gimmicks, jobs, job skills, magic values, buff values
     - industry: mines, veins, refining main / by-products, pre-processing by-products, fuels, machine casings
-    - field: gathering kinds and points, fishing spots, magic crops, scans, researches
+    - field: gathering kinds and points, fishing spots, magic crops, scans, researches, NPCs, dialogues, quests,
+      quest stages, shops
 
     A tab without a gid is not downloaded; its local CSV is used. Downloaded CSVs are written to `data/` only
     when validation passes, so a stale sheet never overwrites newer local CSVs.
@@ -188,7 +189,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
   - Generated files: `init/asset/generated/{weapons,stats,config}`, `init/asset/equip/generated/{items,sets}`,
     `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
-    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine,gather,fish,crop,research,recipe}/generated/*`.
+    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine,gather,fish,crop,research,recipe,npc,quest,shop}/generated/*`.
     Stale generated `.mcfunction` files in those folders are deleted. The only generated loot tables are the
     veins' ore blocks (a fixed single token, no rolls), the machine casings' blocks (the casing item inside
     the factory, vanilla elsewhere), `data/minecraft/loot_table/blocks/<block>.json`, the four vanilla crops' blocks (see "Farming"), and **vanilla fishing,
@@ -634,6 +635,92 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     `item/factory_key/build` / `item/scanner/build`.
   - Debug menu ステーション: crafter placement, [レシピ一覧] (`debug/recipe_list`), [全レシピの材料]
     (`debug/recipe_materials`).
+- **Flags, conditions and actions** (the base for story branching).
+  - Flags are integers: story flags (shared by everyone) at `storage test: story.flag.<name>`, personal flags at
+    oh_my_dat `test.flag.<name>`. Names are free; the script warns when a condition reads a flag no action writes.
+  - Condition and action strings (in 入口, 選択肢, 処理, 報酬) are **compiled by the script into functions**; nothing
+    parses them at run time, so mistakes are generation errors:
+    - Conditions go to `talk/generated/cond/c<n>` and return 1 when met (`;` means and): `story:` / `flag:<name>=|>=|<=<v>`,
+      `quest:<id>=none|active|done`, `stage:<id>=<n>`, `research:<id>`, `has:<kind>:<id>*<n>`, `money>=<n>` (coins + bank),
+      `bank>=<n>`.
+    - Actions go to `talk/generated/act/a<n>`, run in order: `start:<quest>`, `story:` / `flag:<name>=<v>` or `+=<v>`,
+      `give:` / `take:<kind>:<id>*<n>`, `money:+<n>`, `money:-<n>` (pays like a purchase), `coin:+<n>`, `exp:+<n>`.
+    - Item kinds are the crafter's `出るもの` kinds: `give:` builds with `craft/custom/out/<kind>`, and `has:` / `take:` /
+      deliveries / selling use the script's `Recipe-Out` pred.
+
+    Every caller points oh_my_dat at the player first. The same string compiles to one function.
+- **Money** (`money/`): coins are items (`item/coin/build {value}`, common base item, `custom_data.test.coin` 1 / 10 / 100,
+  copper / iron / gold nugget look, `asset.coin`); the bank is the score `test.money`. Dying drops coins only.
+  - `money/coins` and `money/total` return the coins carried, and coins + bank.
+  - `money/give_coins {n}` drops the largest coins first at the player (also used for change and withdrawals).
+  - `money/pay {n}` returns 0 if coins + bank are short. Otherwise it clears all coins, takes the rest from the bank
+    and gives change back in coins.
+  - `money/add {n}` adds to the bank, and `money/show` prints `口座 1230G(+50)` on the action bar.
+  - Quest rewards pay in coins; sales go to the bank. Deposits and withdrawals only happen at the bank.
+- **NPCs** (`npc/`; sheet tab NPC → `init/asset/npc/generated/npcs`): `asset.npc.<id> = {id, name, kind, body, x, y, z,
+  yaw, role, shop, counter?, entry?, hooks?}`.
+  - Placed in both `test:action` and `test:turn` at the same coordinates, self-healing like gathering points
+    (`npc/place/*` every 5 s; a changed definition re-places). Each NPC is two entities:
+    - the body (`summon <kind> ~ ~ ~ <body>`: a mannequin with `profile` / `immovable`, or a villager with `NoAI`
+      and empty `Offers`; `tag=npc_body, npc.<id>`)
+    - an interaction slightly larger than the body that takes the right click (`tag=npc_i, npc.<id>`, plus
+      `npc_counter` for shopkeepers and bankers; `data.npc.def` holds the definition)
+  - Bodies turn to the nearest player within 6 (`rotate … facing entity`) and back to `yaw`.
+  - Right click → `trigger/gather` → `gather/interact` → `npc/interact`: first the quest hooks for that NPC
+    (`quest/generated/npc/<id>`), then the entry (`npc/generated/entry/<id>`, the first `条件 => ノード` that holds).
+  - Roles:
+    - `talk`: right click talks.
+    - `shop:<店>` / `bank`: looking at the NPC puts that screen's minecart at the player's head, so a right click opens
+      it. Sneaking hides the cart, so Shift + right click reaches the NPC and talks (only if it has an entry).
+- **Dialogue** (`talk/`; sheet tab 会話): each node compiles to `talk/generated/node/<id>`, run as the player at the
+  NPC (`talk/goto`).
+  - The node runs, in order:
+    1. A 全員 node first checks that the whole party (every online player) is within 16 (`talk/party_ready`) and shows
+       its text to everyone near.
+    2. `talk/begin` bumps `test.talk_seq` and clears the choices.
+    3. It prints a blank line and `[speaker] text`.
+    4. It runs its action.
+    5. It shows the buttons: `[次へ]` or the choices whose conditions hold, via `talk/btn {i,label,node}`, only to the
+       speaker.
+  - A button runs `/trigger test.talk set <seq×10+i>`. `talk/press` acts only if `seq` is current, `test.talk.opts.o<i>`
+    exists and the NPC is within 8, so old buttons do nothing.
+  - State: oh_my_dat `test.talk = {npc, node, opts}` and `tag=talking`. It ends when there are no buttons
+    (`talk/finish`) or the player is more than 8 away (`talk/range`, every second).
+- **Quests** (`quest/`; sheet tabs クエスト / クエストの段階 → `init/asset/quest/generated/quests`): `asset.quest.<id> =
+  {id, name, main, desc, last, reward?, stages:{s<n>:{goal, count, desc}}}`.
+  - State `{state: none|active|done, stage, count}`: subs in oh_my_dat `test.quest.<id>` (per player), mains in
+    `storage test: story.quest.<id>` (shared). Read and written via `quest/st_get` / `st_set`.
+  - `quest/hit {id,stage,need,add}` → `advance` → `complete`, which runs the reward action, for everyone on a main
+    quest (`complete_main`, which then points oh_my_dat back at @s). `notify` shows `名前: 説明 1/3` with a sound.
+  - Where stages advance (generated hooks):
+    - `kill`: `quest/generated/kill`, from `battle/grant_reward`, so it works in and out of battle. A sub counts for
+      every recipient, a main once.
+    - `deliver` / `talk`: `quest/generated/npc/<npc>`, before the dialogue; a delivery `clear`s the items.
+    - `reach`: `quest/generated/reach` every second, in both maps.
+- **Shops and bank carts** (`npc/cart/`): one chest minecart per player (`tag=npc_cart`, owner in `test.npc.cart_owner`
+  = the player's `test.pid`), like the battle's hover carts.
+  - `tick` → `npc/cart/player` for players within 6 of a counter:
+    - Sneaking removes the cart.
+    - Otherwise a 4.5-block gaze ray (`npc/gaze/ray`, like the scanner's) finds the counter, summons or refills the
+      cart (`populate {npc}` → `npc/cart/<shop|bank>/populate`, then panes on everything outside `cart_work.keep`),
+      and keeps it at the head.
+    - After 10 ticks off target (`test.npc.cart_lost`), or when the owner leaves, the cart is cleaned up
+      (`cleanup` returns what players put in).
+  - UI items carry `custom_data.test.shop_ui = {cart, npc, act, i?, n?}`. `tick` finds whoever holds one (inventory or
+    cursor), runs `npc/cart/act/<act>` for that player and redraws the cart, so the clicker, not the nearest player,
+    pays and receives.
+  - Shop (sheet tab 店 → `asset.shop.<店> = {items:[{kind,id,count,buy,sell}]}`, `-1` = not offered):
+    - 0–13 samples (14 per page, `test.npc.cart_page`); buying is `money/pay` and then the real item.
+    - 14–17 sell slots; [売る] runs `shop/generated/sell/<店>`, sells whole `個数` lots to the bank and returns the rest.
+    - 18 money shown, 19 [売る], 21 / 23 page arrows.
+  - Bank:
+    - 0–17 deposit slots: coins go straight to the owner's bank (`bank/tick`); anything else is handed back.
+    - 18 money, 20 [全部預ける], 22–25 withdraw 1 / 10 / 100 / 1000, 26 withdraw all.
+  - A hopper under a cart is broken.
+- **Triggers** players can use: `test.talk` (dialogue buttons) and `test.quest` (quest list with bank and coins,
+  enabled for everyone every second).
+- Debug menu NPC・クエスト: NPC list (teleports to `test:action`), quest states with start / advance / complete / reset
+  (`debug/quest_op`), flags (`debug/flags`, `debug/flag_set`), +100 G to the bank, 123 G of coins.
 
 ## Battle/combat pipeline
 
