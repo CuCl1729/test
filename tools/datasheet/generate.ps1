@@ -1798,6 +1798,136 @@ foreach ($key in $recipeIndex.Keys) {
   $recipeDecls.Add("data modify storage test: asset.recipe_index.`"$key`" set value {recipe:`"$($e.recipe)`",need:[$($e.need -join ',')]}")
 }
 
+# ---------------------------------------------------------------- 条件と処理(会話・クエスト・NPCの入口で使う。ここで関数に変換する)
+
+# 書き方の文字列を mcfunction に変換する。ゲーム中には文字列を読み解かないので、書き方の誤りはここで見つかる。
+#   条件: test:talk/generated/cond/c<n>(満たせば return 1)。@s = プレイヤー(oh_my_dat は @s を指していること)
+#   処理: test:talk/generated/act/a<n>(順に行う)。@s = プレイヤー
+# 同じ文字列は1つの関数にまとめる。$genFns(相対パス => 本体の行)は、下の「生成」で $outputs に足す
+$genFns = [ordered]@{}
+$condFns = @{}; $actFns = @{}
+$flagWrites = @{}; $flagReads = New-Object System.Collections.Generic.List[object]
+$OMD = 'oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4]'
+# 中身は後の節で入る(クエスト・NPC)。条件と処理は、そこで初めて使う
+$quests = [ordered]@{}
+
+function Flag-Path([string]$scope, [string]$name) { if ($scope -eq 'story') { return "storage test: story.flag.$name" } else { return "storage $OMD.test.flag.$name" } }
+function Quest-Path([string]$id) { if ($quests[$id].main) { return "storage test: story.quest.$id" } else { return "storage $OMD.test.quest.$id" } }
+function Range-Of([string]$op, [string]$v) { switch ($op) { '=' { return $v } '>=' { return "$v.." } '<=' { return "..$v" } } }
+# 「<種類>:<id>*<数>」(種類はカスタムクラフターの出るものと同じ)。@{kind; id; n; pred} か $null
+function Item-Spec($tab, $row, $col, [string]$text) {
+  if ($text -notmatch '^([a-z_]+)(:([a-z0-9_:./-]+))?(\*(\d+))?$') { Add-Err $tab $row "「$col」の「$text」は 種類:id*数 の形で書いてください"; return $null }
+  $kind = $Matches[1]; $id = if ($Matches[3]) { $Matches[3] -replace '^minecraft:', '' } elseif ($RecipeFixedId.ContainsKey($kind)) { $RecipeFixedId[$kind] } else { '' }
+  $n = if ($Matches[5]) { [int]$Matches[5] } else { 1 }
+  if ($RecipeOutKinds -notcontains $kind) { Add-Err $tab $row "「$col」の「$text」の種類は $($RecipeOutKinds -join ' / ') のどれかにしてください"; return $null }
+  $pred = Recipe-Out $kind $id
+  if ($null -eq $pred) { Add-Err $tab $row "「$col」の「$text」の id「$id」がありません"; return $null }
+  if ($n -lt 1 -or $n -gt 64) { Add-Err $tab $row "「$col」の「$text」の数は1〜64にしてください"; return $null }
+  return @{ kind = $kind; id = $id; n = $n; pred = $pred }
+}
+function Gen-FnName([string]$rel) { return 'test:' + ($rel -replace '\\', '/' -replace '\.mcfunction$', '') }
+function Split-Clauses([string]$text) { return @($text -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }) }
+
+# 条件の文字列 → 関数名(誤りなら $null)。空なら $null を返さず '' を返す(条件無し)
+function Compile-Cond($tab, $row, $col, [string]$text) {
+  $text = $text.Trim()
+  if ($text -eq '') { return '' }
+  if ($condFns.ContainsKey($text)) { return $condFns[$text] }
+  $lines = @("# 条件: $text", '')
+  $ok = $true
+  foreach ($c in (Split-Clauses $text)) {
+    if ($c -match '^(story|flag):([a-z0-9_]+)(>=|<=|=)(-?\d+)$') {
+      $script:flagReads.Add(@{ key = "$($Matches[1]):$($Matches[2])"; tab = $tab; row = $row })
+      $lines += 'scoreboard players set #cv test.temporary 0'
+      $lines += "execute store result score #cv test.temporary run data get $(Flag-Path $Matches[1] $Matches[2])"
+      $lines += "execute unless score #cv test.temporary matches $(Range-Of $Matches[3] $Matches[4]) run return 0"
+    } elseif ($c -match '^quest:([a-z0-9_]+)=(none|active|done)$') {
+      if (-not $quests.Contains($Matches[1])) { Add-Err $tab $row "「$col」のクエスト「$($Matches[1])」が「クエスト」タブにありません"; $ok = $false; continue }
+      $p = Quest-Path $Matches[1]
+      if ($Matches[2] -eq 'none') { $lines += "execute if data $p{state:`"active`"} run return 0"; $lines += "execute if data $p{state:`"done`"} run return 0" }
+      else { $lines += "execute unless data $p{state:`"$($Matches[2])`"} run return 0" }
+    } elseif ($c -match '^stage:([a-z0-9_]+)=(\d+)$') {
+      if (-not $quests.Contains($Matches[1])) { Add-Err $tab $row "「$col」のクエスト「$($Matches[1])」が「クエスト」タブにありません"; $ok = $false; continue }
+      $p = Quest-Path $Matches[1]
+      $lines += "execute unless data $p{state:`"active`"} run return 0"
+      $lines += "execute store result score #cv test.temporary run data get $p.stage"
+      $lines += "execute unless score #cv test.temporary matches $($Matches[2]) run return 0"
+    } elseif ($c -match '^research:([a-z0-9_]+)$') {
+      if (-not $researches.Contains($Matches[1])) { Add-Err $tab $row "「$col」の研究「$($Matches[1])」が「研究」タブにありません"; $ok = $false; continue }
+      $lines += "execute unless data storage $OMD.test.research.done.$($Matches[1]) run return 0"
+    } elseif ($c -match '^has:(.+)$') {
+      $it = Item-Spec $tab $row $col $Matches[1]
+      if ($null -eq $it) { $ok = $false; continue }
+      $lines += "execute store result score #cv test.temporary run clear @s $($it.pred) 0"
+      $lines += "execute unless score #cv test.temporary matches $($it.n).. run return 0"
+    } elseif ($c -match '^money>=(\d+)$') {
+      $lines += 'execute store result score #cv test.temporary run function test:money/total'
+      $lines += "execute unless score #cv test.temporary matches $($Matches[1]).. run return 0"
+    } elseif ($c -match '^bank>=(\d+)$') {
+      $lines += "execute unless score @s test.money matches $($Matches[1]).. run return 0"
+    } else {
+      Add-Err $tab $row "「$col」の条件「$c」の書き方が違います(story: / flag: / quest: / stage: / research: / has: / money>= / bank>=)"; $ok = $false
+    }
+  }
+  if (-not $ok) { return $null }
+  $rel = "talk\generated\cond\c$($condFns.Count + 1).mcfunction"
+  $script:genFns[$rel] = $lines + 'return 1'
+  $fn = Gen-FnName $rel
+  $script:condFns[$text] = $fn
+  return $fn
+}
+
+# 処理の文字列 → 関数名(誤りなら $null)。空なら ''
+function Compile-Act($tab, $row, $col, [string]$text) {
+  $text = $text.Trim()
+  if ($text -eq '') { return '' }
+  if ($actFns.ContainsKey($text)) { return $actFns[$text] }
+  $lines = @("# 処理: $text", '')
+  $ok = $true
+  foreach ($c in (Split-Clauses $text)) {
+    if ($c -match '^start:([a-z0-9_]+)$') {
+      if (-not $quests.Contains($Matches[1])) { Add-Err $tab $row "「$col」のクエスト「$($Matches[1])」が「クエスト」タブにありません"; $ok = $false; continue }
+      $lines += "function test:quest/start {id:`"$($Matches[1])`"}"
+    } elseif ($c -match '^(story|flag):([a-z0-9_]+)(\+=|=)(-?\d+)$') {
+      $script:flagWrites["$($Matches[1]):$($Matches[2])"] = $true
+      $p = Flag-Path $Matches[1] $Matches[2]; $v = [int]$Matches[4]
+      if ($Matches[3] -eq '=') { $lines += "data modify $p set value $v" }
+      else {
+        $lines += 'scoreboard players set #cv test.temporary 0'
+        $lines += "execute store result score #cv test.temporary run data get $p"
+        if ($v -ge 0) { $lines += "scoreboard players add #cv test.temporary $v" } else { $lines += "scoreboard players remove #cv test.temporary $(-$v)" }
+        $lines += "execute store result $p int 1 run scoreboard players get #cv test.temporary"
+      }
+    } elseif ($c -match '^give:(.+)$') {
+      $it = Item-Spec $tab $row $col $Matches[1]
+      if ($null -eq $it) { $ok = $false; continue }
+      $lines += "function test:craft/custom/out/$($it.kind) {id:`"$($it.id)`"}"
+      $lines += "data modify storage test: loot.item.count set value $($it.n)"
+      $lines += 'execute at @s run function test:item/drop_at'
+    } elseif ($c -match '^take:(.+)$') {
+      $it = Item-Spec $tab $row $col $Matches[1]
+      if ($null -eq $it) { $ok = $false; continue }
+      $lines += "clear @s $($it.pred) $($it.n)"
+    } elseif ($c -match '^money:\+(\d+)$') { $lines += "function test:money/add {n:$($Matches[1])}" }
+    elseif ($c -match '^money:-(\d+)$') { $lines += "function test:money/pay {n:$($Matches[1])}" }
+    elseif ($c -match '^coin:\+(\d+)$') { $lines += "function test:money/give_coins {n:$($Matches[1])}" }
+    elseif ($c -match '^exp:\+(\d+)$') { $lines += "scoreboard players add @s test.status.exp $($Matches[1])" }
+    else {
+      Add-Err $tab $row "「$col」の処理「$c」の書き方が違います(start: / story: / flag: / give: / take: / money:+ / money:- / coin:+ / exp:+)"; $ok = $false
+    }
+  }
+  if (-not $ok) { return $null }
+  $rel = "talk\generated\act\a$($actFns.Count + 1).mcfunction"
+  $script:genFns[$rel] = $lines
+  $fn = Gen-FnName $rel
+  $script:actFns[$text] = $fn
+  return $fn
+}
+
+# ---------------------------------------------------------------- 条件で読むフラグの確かめ(どこからも書かれないものは打ち間違いかもしれない)
+
+foreach ($fr in $flagReads) { if (-not $flagWrites.ContainsKey($fr.key)) { Add-Warn $fr.tab $fr.row "フラグ「$($fr.key)」を条件で読んでいますが、どの処理も書いていません(打ち間違いかもしれません)" } }
+
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
 foreach ($w in $Warnings) { Write-Host "  警告: $w" -ForegroundColor Yellow }
@@ -2016,11 +2146,14 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# asset.recipe_index."<9マスのキー>" = {recipe, need:[9マスの必要数]}(形を3×3の置ける位置すべてに置いたもの)。作るのは test:craft/custom/', '')
 $outputs[$rel] = $lines + $recipeDecls
 
+# 条件・処理・会話のノード・クエストのフックなど、データの中身から作る関数(上の各節が $genFns に入れたもの)
+foreach ($gk in $genFns.Keys) { $outputs[$gk] = @($Header, "#> $(Fn-Name $gk)") + $genFns[$gk] }
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
   'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated', 'init\asset\crop\generated',
-  'init\asset\research\generated', 'init\asset\recipe\generated')
+  'init\asset\research\generated', 'init\asset\recipe\generated', 'talk\generated\cond', 'talk\generated\act')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d
