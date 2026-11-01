@@ -92,7 +92,7 @@ tag @e[tag=executer] remove executer
 
 # ターン制の戦闘の外(test:action・フィールドの先制攻撃など)で倒した敵の報酬を、近くのプレイヤーに渡す
 # (戦闘中の敵は手番の終わりに test:battle/proc_all が渡す。ダミーは報酬を持たない)
-execute as @e[tag=kill,tag=enemy,tag=!battle_member,tag=!dummy] at @s run function test:reward/field_kill
+execute as @e[tag=kill,tag=enemy,tag=!battle_member,tag=!battle_killed,tag=!dummy] at @s run function test:reward/field_kill
 
 # 死亡するエンティティに騎乗しているtext_display(HP表示等)は道連れにしないと取り残されるため、
 # 同じタイミングでkillタグを付けてまとめて消す
