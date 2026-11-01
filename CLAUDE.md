@@ -594,7 +594,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     station with modes. Only add a separate station when no existing one fits. The one exception so far is
     `crafter`: it needs its own screen (a 3×3 grid of input slots plus a result slot) that doesn't fit any
     existing station's layout.
-  - **Empty slots are filled with gray glass panes** (`minecraft:gray_stained_glass_pane`, `tooltip_display`
+  - **Empty slots are filled with light gray glass panes** (`minecraft:light_gray_stained_glass_pane`, `tooltip_display`
     `hide_tooltip`, `station_ui`) by `station/fill_empty`, called at the end of every `station/tick`. Only the
     mode's `keep` slots (`keep:{s<n>:1b,…}` in the registry: the slots players put items into) stay empty;
     `enter_mode` copies them to `data.station.keep` and adds slot 20 (mode button) / 26 (craft button). **Every

@@ -26,7 +26,7 @@ execute if data entity @s data.station.craft unless items block ~ ~ ~ container.
 # 独自の画面: 毎tick呼ぶ
 execute if data entity @s data.station.main run function test:station/run_main with entity @s data.station
 
-# 使わないスロットを灰色の板ガラスで埋める
+# 使わないスロットを薄灰色の板ガラスで埋める
 function test:station/fill_empty
 
 # 取っても意味の無いUIアイテム(モード切り替え・作るボタン・板ガラス)は、手元に残らないよう回収する
