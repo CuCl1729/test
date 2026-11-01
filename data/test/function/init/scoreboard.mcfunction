@@ -285,6 +285,9 @@ scoreboard objectives add test.owner dummy
  scoreboard objectives add test.money dummy
 # プレイヤーの番号(1から。#pid_next が最後に配った番号)。店・銀行のトロッコの持ち主と、UIアイテムの印に使う
  scoreboard objectives add test.pid dummy
+# 会話: 選択肢のボタン(/trigger test.talk set <通し番号×10+番号>)と、ノードを出した通し番号(古いボタンを効かなくする)
+ scoreboard objectives add test.talk trigger
+ scoreboard objectives add test.talk_seq dummy
 # 店・銀行のトロッコ: 持ち主の番号(トロッコ)と、目線がNPCから外れて続いたtick数(プレイヤー)
  scoreboard objectives add test.npc.cart_owner dummy
  scoreboard objectives add test.npc.cart_lost dummy

@@ -1,5 +1,5 @@
 ﻿id,名前,見た目,座標,向き,役割,入口
-elder,村長,villager:librarian:plains,0 0 -15,0,talk,
-herbalist,薬師,mannequin:Alex,3 0 -15,0,talk,
-shopkeeper,道具屋,mannequin:Steve,-3 0 -15,0,shop:general,
+elder,村長,villager:librarian:plains,0 0 -15,0,talk,story:path>=1 => elder_after | => elder_hello
+herbalist,薬師,mannequin:Alex,3 0 -15,0,talk,=> herb_hello
+shopkeeper,道具屋,mannequin:Steve,-3 0 -15,0,shop:general,=> shop_hello
 banker,銀行員,villager:cartographer:plains,-6 0 -15,0,bank,

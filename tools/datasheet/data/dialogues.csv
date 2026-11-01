@@ -1,0 +1,12 @@
+﻿id,話す人,本文,次,選択肢,処理,全員
+elder_hello,elder,ようこそ、旅の人。,,村のことを聞く => elder_village | 村の行く末について => elder_decide ? story:path=0 | 話を終える => elder_bye,,
+elder_village,elder,この村は小さいが、皆で支え合っておる。,elder_village2,,,
+elder_village2,player,なるほど。,elder_bye,,,
+elder_bye,elder,また来なされ。,elder_leave,,,
+elder_leave,,村長はゆっくりとうなずいた。,,,,
+elder_decide,elder,村の行く末を、皆で決めてほしい。,,森を守る => elder_forest | 鉱山を広げる => elder_mine,,yes
+elder_forest,elder,森を守るのじゃな。皆に伝えよう。,,,story:path=1,yes
+elder_mine,elder,鉱山を広げるのじゃな。皆に伝えよう。,,,story:path=2,yes
+elder_after,elder,決めたとおりに、村は動き始めておる。,,,,
+herb_hello,herbalist,薬草のことなら任せて。,,,,
+shop_hello,shopkeeper,いらっしゃい。品物は、こっちを見ると出るよ。,,,,

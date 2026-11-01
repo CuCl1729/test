@@ -52,6 +52,7 @@ $Tabs = [ordered]@{
   researches       = '研究'
   recipes          = 'レシピ'
   npcs             = 'NPC'
+  dialogues        = '会話'
 }
 
 # 似た形のものをまとめたタブ。行は「種類」(kind の列)の値で、今までのタブ(to のキー)の行に振り分けてから検証・生成する。
@@ -227,6 +228,7 @@ $RequiredHeaders = @{
   researches       = @('id','名前','アイコン','コスト','前提','観測','知識','解放')
   recipes          = @('id','名前','形','材料','出るもの','個数')
   npcs             = @('id','名前','見た目','座標','向き','役割','入口')
+  dialogues        = @('id','話す人','本文','次','選択肢','処理','全員')
 }
 foreach ($key in $Tabs.Keys) {
   $text = Tab-Text $key
@@ -1961,10 +1963,108 @@ foreach ($r in $data.npcs) {
   if ($role -match '^shop:([a-z0-9_]+)$') { $shop = $Matches[1]; $role = 'shop' }
   elseif ($role -ne 'talk' -and $role -ne 'bank') { Add-Err $tab $n "「役割」($role) は talk / shop:<店のid> / bank のどれかにしてください"; $ok = $false }
   if (-not $ok) { continue }
-  $npcs[$id] = @{ name = $name; role = $role; shop = $shop; entry = $entry; row = $n }
   $counter = if ($role -ne 'talk') { ',counter:1b' } else { '' }
-  $npcDecls.Add("data modify storage test: asset.npc.$id set value {id:`"$id`",name:`"$(Esc $name)`",kind:`"$kind`",body:$body,x:$($pos[0]),y:$($pos[1]),z:$($pos[2]),yaw:$($yaw)f,role:`"$role`",shop:`"$shop`"$counter}")
-  $npcDecls.Add("data modify storage test: asset.npc_ids append value `"$id`"")
+  # 書き出しは会話・クエストの後(入口があるか・クエストのフックがあるかの印を付けるため。下の「NPCの書き出し」)
+  $npcs[$id] = @{ name = $name; role = $role; shop = $shop; entry = $entry; row = $n
+    snbt = "id:`"$id`",name:`"$(Esc $name)`",kind:`"$kind`",body:$body,x:$($pos[0]),y:$($pos[1]),z:$($pos[2]),yaw:$($yaw)f,role:`"$role`",shop:`"$shop`"$counter" }
+}
+
+# ---------------------------------------------------------------- 会話(ノード)と NPC の入口
+
+# 1つのノードは関数 test:talk/generated/node/<id> になる(@s = 話しかけた人、実行位置 = NPC。test:talk/goto が呼ぶ)。
+#   全員のノードはパーティがそろっているか確かめ、本文を出し、処理を行い、ボタン(次へ・条件を満たす選択肢)を出す
+$nodes = [ordered]@{}
+foreach ($r in $data.dialogues) {
+  $tab = $Tabs.dialogues; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($nodes.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $nodes[$id] = $r
+}
+foreach ($id in $nodes.Keys) {
+  $r = $nodes[$id]; $tab = $Tabs.dialogues; $n = $r.__row
+  $speaker = Cell $r '話す人'; $text = Cell $r '本文'; $next = Cell $r '次'; $choiceText = Cell $r '選択肢'; $act = Cell $r '処理'; $all = (Cell $r '全員') -eq 'yes'
+  $ok = $true
+  if ($text -eq '') { Add-Err $tab $n '「本文」が空です'; $ok = $false }
+  $who = ''
+  if ($speaker -eq 'player') { $who = '{text:"[",color:"aqua"},{selector:"@s",color:"aqua"},{text:"] ",color:"aqua"},' }
+  elseif ($speaker -ne '') {
+    if ($npcs.Contains($speaker)) { $who = "{text:`"[$(Esc $npcs[$speaker].name)] `",color:`"yellow`"}," } else { Add-Err $tab $n "話す人「$speaker」が「NPC」タブにありません(player か空も書けます)"; $ok = $false }
+  }
+  $body = if ($speaker -eq '') { "{text:`"$(Esc $text)`",color:`"gray`"}" } else { "{text:`"$(Esc $text)`",color:`"white`"}" }
+  $buttons = @()
+  if ($next -ne '') {
+    if (-not $nodes.Contains($next)) { Add-Err $tab $n "次のノード「$next」が「会話」タブにありません"; $ok = $false }
+    if ($choiceText -ne '') { Add-Err $tab $n '「次」と「選択肢」は、どちらか一方だけ書いてください'; $ok = $false }
+    $buttons += "function test:talk/btn {i:1,label:`"次へ`",node:`"$next`"}"
+  }
+  $choices = @($choiceText -split '\|' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' })
+  if ($choices.Count -gt 9) { Add-Err $tab $n "「選択肢」は9個までにしてください(今は $($choices.Count) 個)"; $ok = $false }
+  $i = 0
+  foreach ($c in $choices) {
+    $i++
+    if ($c -notmatch '^(.+?)\s*=>\s*([a-z0-9_]+)\s*(\?\s*(.+))?$') { Add-Err $tab $n "「選択肢」の「$c」は ラベル => ノード(? 条件)の形で書いてください"; $ok = $false; continue }
+    $label = $Matches[1].Trim(); $to = $Matches[2]; $cond = if ($Matches[4]) { $Matches[4] } else { '' }
+    if (-not $nodes.Contains($to)) { Add-Err $tab $n "選択肢のノード「$to」が「会話」タブにありません"; $ok = $false; continue }
+    $cf = Compile-Cond $tab $n '選択肢' $cond
+    if ($null -eq $cf) { $ok = $false; continue }
+    $btn = "function test:talk/btn {i:$i,label:`"$(Esc $label)`",node:`"$to`"}"
+    if ($cf -ne '') { $btn = "execute if function $cf run $btn" }
+    $buttons += $btn
+  }
+  $af = Compile-Act $tab $n '処理' $act
+  if ($null -eq $af) { $ok = $false }
+  if (-not $ok) { continue }
+  $tgt = if ($all) { '@a[distance=..16]' } else { '@s' }
+  $lines = @("# 会話のノード「$id」(スプレッドシートの「会話」タブ)。@s = 話しかけた人、実行位置 = NPC", '')
+  if ($all) { $lines += 'execute unless function test:talk/party_ready run return run function test:talk/not_ready' }
+  $lines += "function test:talk/begin {node:`"$id`"}"
+  $lines += "tellraw $tgt `"`""
+  $lines += "tellraw $tgt [$who$body]"
+  if ($af -ne '') { $lines += "function $af" }
+  $lines += $buttons
+  $lines += 'function test:talk/finish'
+  $genFns["talk\generated\node\$id.mcfunction"] = $lines
+}
+
+# NPC の入口: 「条件 => ノード | … | => ノード」。上から最初に条件を満たしたノードで会話を始める(最後は条件無し)
+foreach ($nid in $npcs.Keys) {
+  $np = $npcs[$nid]; $tab = $Tabs.npcs; $n = $np.row
+  if ($np.entry -eq '') {
+    if ($np.role -eq 'talk') { Add-Err $tab $n "会話の NPC(役割 talk)には「入口」が要ります" }
+    continue
+  }
+  $parts = @($np.entry -split '\|' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' })
+  $lines = @("# NPC「$nid」の入口(スプレッドシートの「NPC」タブ)。@s = 話しかけた人", '')
+  $ok = $true
+  for ($k = 0; $k -lt $parts.Count; $k++) {
+    if ($parts[$k] -notmatch '^(.*?)\s*=>\s*([a-z0-9_]+)$') { Add-Err $tab $n "「入口」の「$($parts[$k])」は 条件 => ノード の形で書いてください"; $ok = $false; continue }
+    $cond = $Matches[1].Trim(); $to = $Matches[2]
+    if (-not $nodes.Contains($to)) { Add-Err $tab $n "入口のノード「$to」が「会話」タブにありません"; $ok = $false; continue }
+    $start = "function test:talk/start {npc:`"$nid`",node:`"$to`"}"
+    if ($k -eq $parts.Count - 1) {
+      if ($cond -ne '') { Add-Err $tab $n '「入口」の最後は条件無し(=> ノード)にしてください'; $ok = $false }
+      $lines += $start
+    } else {
+      if ($cond -eq '') { Add-Err $tab $n '「入口」の条件無し(=> ノード)は最後にだけ書けます'; $ok = $false; continue }
+      $cf = Compile-Cond $tab $n '入口' $cond
+      if ($null -eq $cf) { $ok = $false; continue }
+      $lines += "execute if function $cf run return run $start"
+    }
+  }
+  if ($ok) { $genFns["npc\generated\entry\$nid.mcfunction"] = $lines }
+}
+
+# ---------------------------------------------------------------- NPC の書き出し(入口・クエストのフックの印を付ける)
+
+$npcDecls = New-Object System.Collections.Generic.List[string]
+foreach ($nid in $npcs.Keys) {
+  $np = $npcs[$nid]
+  $flags = ''
+  if ($genFns.Contains("npc\generated\entry\$nid.mcfunction")) { $flags += ',entry:1b' }
+  if ($genFns.Contains("quest\generated\npc\$nid.mcfunction")) { $flags += ',hooks:1b' }
+  $npcDecls.Add("data modify storage test: asset.npc.$nid set value {$($np.snbt)$flags}")
+  $npcDecls.Add("data modify storage test: asset.npc_ids append value `"$nid`"")
 }
 
 # ---------------------------------------------------------------- 条件で読むフラグの確かめ(どこからも書かれないものは打ち間違いかもしれない)
@@ -2201,7 +2301,7 @@ $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\we
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
   'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated', 'init\asset\crop\generated',
   'init\asset\research\generated', 'init\asset\recipe\generated', 'talk\generated\cond', 'talk\generated\act',
-  'init\asset\npc\generated')
+  'init\asset\npc\generated', 'talk\generated\node', 'npc\generated\entry')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d

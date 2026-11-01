@@ -69,6 +69,10 @@ execute if score #clock test.time matches 0 run function test:npc/tick_second
 execute as @e[type=!interaction,tag=npc_body] at @s if entity @a[distance=..6] run function test:npc/look_at
 execute as @e[type=!interaction,tag=npc_body,tag=npc_looking] at @s unless entity @a[distance=..6] run function test:npc/look_home
 
+# 会話: 選択肢のボタン(/trigger test.talk)を押した人。毎秒、NPC から離れた人の会話を終える
+execute as @a[scores={test.talk=1..}] at @s run function test:talk/press
+execute if score #clock test.time matches 0 as @a[tag=talking] at @s run function test:talk/range
+
 # プレイヤーの番号(店・銀行のトロッコの持ち主に使う)
 execute as @a unless score @s test.pid matches 1.. run function test:player/assign_pid
 # 店・銀行のトロッコ: 店員・銀行員の近くの人の目線を見て出す・動かす・片付ける。UIのアイテムを取った人の処理。持ち主のいないトロッコの片付け
