@@ -64,6 +64,14 @@ execute if score #clock test.time matches 0 as @e[type=armor_stand,tag=machine,t
 # 魔法作物(工場の区画にあるものだけ。下の耕地を確かめ、時間が来たら育てる)
 execute if score #clock test.time matches 0 in test:factory as @e[type=interaction,tag=magic_crop,distance=0..] at @s run function test:farm/tick
 
+# プレイヤーの番号(店・銀行のトロッコの持ち主に使う)
+execute as @a unless score @s test.pid matches 1.. run function test:player/assign_pid
+# 店・銀行のトロッコ: 店員・銀行員の近くの人の目線を見て出す・動かす・片付ける。UIのアイテムを取った人の処理。持ち主のいないトロッコの片付け
+execute as @a[gamemode=!spectator] at @s if entity @e[type=interaction,tag=npc_counter,distance=..6] run function test:npc/cart/player
+execute as @a if items entity @s player.cursor *[minecraft:custom_data~{test:{shop_ui:{}}}] at @s run function test:npc/cart/click {from:"cursor"}
+execute as @a if items entity @s container.* *[minecraft:custom_data~{test:{shop_ui:{}}}] at @s run function test:npc/cart/click {from:"inv"}
+execute as @e[type=chest_minecart,tag=npc_cart] at @s run function test:npc/cart/cart_tick
+
 execute as @e[tag=executer] at @s rotated as @n[tag=Temp] run teleport @s ~ ~ ~ ~ ~
 
 tag @e[tag=executer] remove executer

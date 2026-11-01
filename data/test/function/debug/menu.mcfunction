@@ -47,6 +47,9 @@ tellraw @s {text:"― 研究 ―",color:gold}
 tellraw @s [{text:"[観測鏡]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_scanner"}},{text:" "},{text:"[知識+10]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/research_knowledge"}},{text:" "},{text:"[調べ済みと知識]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/research_show"}}]
 tellraw @s [{text:"[全部研究する]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/research_all"}},{text:" "},{text:"[研究を全部消す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/research_reset"}},{text:" (知識・調べ済みも)",color:dark_gray}]
 
+tellraw @s {text:"― NPC・クエスト ―",color:gold}
+tellraw @s [{text:"[口座+100G]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/money_add"}},{text:" "},{text:"[コイン123G]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/money_coins"}}]
+
 tellraw @s {text:"― 工場 ―",color:gold}
 tellraw @s [{text:"[工場の鍵]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_factory_key"}},{text:" "},{text:"[区画へ / 戻る]",color:aqua,click_event:{action:"run_command",command:"/function test:factory/use"}},{text:" (鍵と同じ動き)",color:dark_gray}]
 tellraw @s [{text:"[区画の情報]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/factory_info"}},{text:" "},{text:"[番号を指定して移る…]",color:aqua,click_event:{action:"suggest_command",command:"/function test:debug/factory_goto {n:1}"}},{text:" (クリエイティブ向け)",color:dark_gray}]

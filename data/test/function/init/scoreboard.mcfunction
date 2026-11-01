@@ -281,6 +281,14 @@ scoreboard objectives add test.owner dummy
  scoreboard objectives add test.research.scan_start dummy
  scoreboard objectives add test.research.scan_last dummy
 
+# お金: 口座の残高(G。持ち歩くコインはアイテム。test:money/)
+ scoreboard objectives add test.money dummy
+# プレイヤーの番号(1から。#pid_next が最後に配った番号)。店・銀行のトロッコの持ち主と、UIアイテムの印に使う
+ scoreboard objectives add test.pid dummy
+# 店・銀行のトロッコ: 持ち主の番号(トロッコ)と、目線がNPCから外れて続いたtick数(プレイヤー)
+ scoreboard objectives add test.npc.cart_owner dummy
+ scoreboard objectives add test.npc.cart_lost dummy
+
 # デバッグ用
  scoreboard objectives add test.debug.enabled dummy
  scoreboard objectives add test.debug.display dummy

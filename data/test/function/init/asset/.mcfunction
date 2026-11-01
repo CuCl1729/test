@@ -42,6 +42,7 @@ function test:init/asset/fish/
 function test:init/asset/crop/
 function test:init/asset/research/
 function test:init/asset/recipe/
+function test:init/asset/money
 
 function test:init/asset/station
 
