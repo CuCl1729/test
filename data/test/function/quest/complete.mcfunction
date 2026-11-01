@@ -5,5 +5,5 @@ data modify storage test: quest_work.st.state set value "done"
 $function test:quest/st_set {id:"$(id)"}
 $execute if data storage test: asset.quest.$(id){main:1b} run return run function test:quest/complete_main {id:"$(id)"}
 $function test:quest/reward {id:"$(id)"}
-$tellraw @s [{text:"クエスト完了: ",color:"gold"},{storage:"test:",nbt:"asset.quest.$(id).name",color:"white"}]
+$tellraw @s [{text:"クエスト完了: ",color:"gold"},{storage:"test:",nbt:"asset.quest.$(id).name",interpret:true,color:"white"}]
 execute at @s run playsound minecraft:ui.toast.challenge_complete master @s
