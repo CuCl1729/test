@@ -48,6 +48,7 @@ tellraw @s [{text:"[観測鏡]",color:aqua,click_event:{action:"run_command",com
 tellraw @s [{text:"[全部研究する]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/research_all"}},{text:" "},{text:"[研究を全部消す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/research_reset"}},{text:" (知識・調べ済みも)",color:dark_gray}]
 
 tellraw @s {text:"― NPC・クエスト ―",color:gold}
+tellraw @s [{text:"[NPCの一覧]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/npc_list"}},{text:" (押すと移動)",color:dark_gray}]
 tellraw @s [{text:"[口座+100G]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/money_add"}},{text:" "},{text:"[コイン123G]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/money_coins"}}]
 
 tellraw @s {text:"― 工場 ―",color:gold}

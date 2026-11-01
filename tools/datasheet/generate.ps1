@@ -51,6 +51,7 @@ $Tabs = [ordered]@{
   scans            = '観測'
   researches       = '研究'
   recipes          = 'レシピ'
+  npcs             = 'NPC'
 }
 
 # 似た形のものをまとめたタブ。行は「種類」(kind の列)の値で、今までのタブ(to のキー)の行に振り分けてから検証・生成する。
@@ -225,6 +226,7 @@ $RequiredHeaders = @{
   scans            = @('id','名前','種類','対象','知識')
   researches       = @('id','名前','アイコン','コスト','前提','観測','知識','解放')
   recipes          = @('id','名前','形','材料','出るもの','個数')
+  npcs             = @('id','名前','見た目','座標','向き','役割','入口')
 }
 foreach ($key in $Tabs.Keys) {
   $text = Tab-Text $key
@@ -1924,6 +1926,47 @@ function Compile-Act($tab, $row, $col, [string]$text) {
   return $fn
 }
 
+# ---------------------------------------------------------------- NPC
+
+# asset.npc.<id> = {id, name, kind, body, x, y, z, yaw, role, shop, counter?, entry?}。body は summon <kind> にそのまま渡す中身。
+#   role: talk(会話)/ shop(店員。shop = 店のid)/ bank(銀行員)。店員・銀行員は counter:1b(目線を合わせるとトロッコが出る)。
+#   entry:1b は入口があるもの(test:npc/generated/entry/<id>)。置くのは test:npc/place/(両方のマップの同じ座標)
+$npcs = [ordered]@{}
+$npcDecls = New-Object System.Collections.Generic.List[string]
+foreach ($r in $data.npcs) {
+  $tab = $Tabs.npcs; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($npcs.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $look = Cell $r '見た目'; $yaw = Cell $r '向き'; $role = Cell $r '役割'; $entry = Cell $r '入口'
+  $ok = $true
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です'; $ok = $false }
+  $pos = Parse-Ints $tab $n '座標' (Cell $r '座標') 3 '120 64 -30'
+  if ($null -eq $pos) { $ok = $false }
+  if ($yaw -eq '') { $yaw = '0' }
+  if ($yaw -notmatch $NumPattern) { Add-Err $tab $n "「向き」($yaw) が数値ではありません"; $ok = $false }
+  $nameSnbt = "CustomName:{text:`"$(Esc $name)`",color:`"yellow`"},CustomNameVisible:1b"
+  $tags = "Tags:[`"npc_body`",`"npc.$id`"]"
+  $rot = "Rotation:[$($yaw)f,0f]"
+  $kind = ''; $body = ''
+  if ($look -match '^mannequin:texture:(.+)$') {
+    $kind = 'mannequin'; $body = "{profile:{texture:`"$(Esc $Matches[1])`"},immovable:1b,hide_description:1b,Invulnerable:1b,Silent:1b,$nameSnbt,$tags,$rot}"
+  } elseif ($look -match '^mannequin:([A-Za-z0-9_]{1,16})$') {
+    $kind = 'mannequin'; $body = "{profile:{name:`"$($Matches[1])`"},immovable:1b,hide_description:1b,Invulnerable:1b,Silent:1b,$nameSnbt,$tags,$rot}"
+  } elseif ($look -match '^villager:([a-z_]+):([a-z_]+)$') {
+    $kind = 'villager'; $body = "{NoAI:1b,Invulnerable:1b,Silent:1b,PersistenceRequired:1b,VillagerData:{profession:`"minecraft:$($Matches[1])`",type:`"minecraft:$($Matches[2])`",level:1},Offers:{Recipes:[]},$nameSnbt,$tags,$rot}"
+  } else { Add-Err $tab $n "「見た目」($look) は mannequin:<プレイヤー名> / mannequin:texture:<テクスチャ> / villager:<職業>:<地域> のどれかにしてください"; $ok = $false }
+  $shop = ''
+  if ($role -eq '') { $role = 'talk' }
+  if ($role -match '^shop:([a-z0-9_]+)$') { $shop = $Matches[1]; $role = 'shop' }
+  elseif ($role -ne 'talk' -and $role -ne 'bank') { Add-Err $tab $n "「役割」($role) は talk / shop:<店のid> / bank のどれかにしてください"; $ok = $false }
+  if (-not $ok) { continue }
+  $npcs[$id] = @{ name = $name; role = $role; shop = $shop; entry = $entry; row = $n }
+  $counter = if ($role -ne 'talk') { ',counter:1b' } else { '' }
+  $npcDecls.Add("data modify storage test: asset.npc.$id set value {id:`"$id`",name:`"$(Esc $name)`",kind:`"$kind`",body:$body,x:$($pos[0]),y:$($pos[1]),z:$($pos[2]),yaw:$($yaw)f,role:`"$role`",shop:`"$shop`"$counter}")
+  $npcDecls.Add("data modify storage test: asset.npc_ids append value `"$id`"")
+}
+
 # ---------------------------------------------------------------- 条件で読むフラグの確かめ(どこからも書かれないものは打ち間違いかもしれない)
 
 foreach ($fr in $flagReads) { if (-not $flagWrites.ContainsKey($fr.key)) { Add-Warn $fr.tab $fr.row "フラグ「$($fr.key)」を条件で読んでいますが、どの処理も書いていません(打ち間違いかもしれません)" } }
@@ -2146,6 +2189,10 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# asset.recipe_index."<9マスのキー>" = {recipe, need:[9マスの必要数]}(形を3×3の置ける位置すべてに置いたもの)。作るのは test:craft/custom/', '')
 $outputs[$rel] = $lines + $recipeDecls
 
+$rel = 'init\asset\npc\generated\npcs.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)", '# NPC(スプレッドシートの「NPC」タブ)。asset.npc.<id> = {id, name, kind, body, x, y, z, yaw, role, shop, counter?, entry?}。置くのは test:npc/place/', '')
+$outputs[$rel] = $lines + $npcDecls
+
 # 条件・処理・会話のノード・クエストのフックなど、データの中身から作る関数(上の各節が $genFns に入れたもの)
 foreach ($gk in $genFns.Keys) { $outputs[$gk] = @($Header, "#> $(Fn-Name $gk)") + $genFns[$gk] }
 
@@ -2153,7 +2200,8 @@ foreach ($gk in $genFns.Keys) { $outputs[$gk] = @($Header, "#> $(Fn-Name $gk)") 
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
   'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated', 'init\asset\crop\generated',
-  'init\asset\research\generated', 'init\asset\recipe\generated', 'talk\generated\cond', 'talk\generated\act')
+  'init\asset\research\generated', 'init\asset\recipe\generated', 'talk\generated\cond', 'talk\generated\act',
+  'init\asset\npc\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d

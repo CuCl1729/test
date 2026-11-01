@@ -64,6 +64,11 @@ execute if score #clock test.time matches 0 as @e[type=armor_stand,tag=machine,t
 # 魔法作物(工場の区画にあるものだけ。下の耕地を確かめ、時間が来たら育てる)
 execute if score #clock test.time matches 0 in test:factory as @e[type=interaction,tag=magic_crop,distance=0..] at @s run function test:farm/tick
 
+# NPC(5秒ごとに置き直す。近くのプレイヤーの方を向き、いなくなったら元の向きに戻る)
+execute if score #clock test.time matches 0 run function test:npc/tick_second
+execute as @e[type=!interaction,tag=npc_body] at @s if entity @a[distance=..6] run function test:npc/look_at
+execute as @e[type=!interaction,tag=npc_body,tag=npc_looking] at @s unless entity @a[distance=..6] run function test:npc/look_home
+
 # プレイヤーの番号(店・銀行のトロッコの持ち主に使う)
 execute as @a unless score @s test.pid matches 1.. run function test:player/assign_pid
 # 店・銀行のトロッコ: 店員・銀行員の近くの人の目線を見て出す・動かす・片付ける。UIのアイテムを取った人の処理。持ち主のいないトロッコの片付け

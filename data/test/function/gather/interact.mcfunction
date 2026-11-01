@@ -13,3 +13,8 @@ tag @e[type=interaction,tag=gather_target] remove gather_target
 execute as @e[type=interaction,tag=magic_crop,distance=..8] if data entity @s interaction run function test:gather/match
 execute if entity @e[type=interaction,tag=gather_target,limit=1] run function test:farm/harvest
 tag @e[type=interaction,tag=gather_target] remove gather_target
+
+# NPC(右クリックで、クエストの段階を進めてから会話を始める)
+execute as @e[type=interaction,tag=npc_i,distance=..8] if data entity @s interaction run function test:gather/match
+execute if entity @e[type=interaction,tag=gather_target,limit=1] run function test:npc/interact
+tag @e[type=interaction,tag=gather_target] remove gather_target
