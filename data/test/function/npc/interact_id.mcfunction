@@ -3,4 +3,5 @@
 
 function #oh_my_dat:please
 $execute if data storage test: asset.npc.$(id){hooks:1b} run function test:quest/generated/npc/$(id)
+function #oh_my_dat:please
 $execute if data storage test: asset.npc.$(id){entry:1b} run function test:npc/generated/entry/$(id)

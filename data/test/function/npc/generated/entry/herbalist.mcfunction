@@ -2,4 +2,6 @@
 #> test:npc/generated/entry/herbalist
 # NPC「herbalist」の入口(スプレッドシートの「NPC」タブ)。@s = 話しかけた人
 
-function test:talk/start {npc:"herbalist",node:"herb_hello"}
+execute if function test:talk/generated/cond/c5 run return run function test:talk/start {npc:"herbalist",node:"herb_offer"}
+execute if function test:talk/generated/cond/c6 run return run function test:talk/start {npc:"herbalist",node:"herb_wait"}
+function test:talk/start {npc:"herbalist",node:"herb_thanks"}

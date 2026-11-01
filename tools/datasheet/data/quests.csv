@@ -1,0 +1,4 @@
+﻿id,名前,種類,説明,報酬
+herb,薬草集め,sub,薬師の頼み。ゴブリンを倒し、薬草を届ける。,coin:+50; exp:+20; give:consumable:healing_potion*2
+patrol,見回り,sub,村の外れを見て回り、村長に知らせる。,coin:+20; flag:patrolled=1
+village,村の決断,main,村の行く末を皆で決める。,story:decided=1; coin:+100

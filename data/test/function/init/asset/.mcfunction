@@ -44,6 +44,7 @@ function test:init/asset/research/
 function test:init/asset/recipe/
 function test:init/asset/money
 function test:init/asset/npc/
+function test:init/asset/quest/
 
 function test:init/asset/station
 

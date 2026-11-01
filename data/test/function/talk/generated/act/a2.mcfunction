@@ -1,5 +1,5 @@
 # 自動生成: tools/datasheet/generate.ps1。直接編集しない(スプレッドシートを直して再生成する)
 #> test:talk/generated/act/a2
-# 処理: story:path=2
+# 処理: start:village
 
-data modify storage test: story.flag.path set value 2
+function test:quest/start {id:"village"}

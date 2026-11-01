@@ -73,6 +73,11 @@ execute as @e[type=!interaction,tag=npc_body,tag=npc_looking] at @s unless entit
 execute as @a[scores={test.talk=1..}] at @s run function test:talk/press
 execute if score #clock test.time matches 0 as @a[tag=talking] at @s run function test:talk/range
 
+# クエスト: 毎秒、場所に行く段階を見て、一覧の trigger を使えるようにする。一覧を押した人に出す
+execute if score #clock test.time matches 0 run function test:quest/generated/reach
+execute if score #clock test.time matches 0 run scoreboard players enable @a test.quest
+execute as @a[scores={test.quest=1..}] run function test:quest/list
+
 # プレイヤーの番号(店・銀行のトロッコの持ち主に使う)
 execute as @a unless score @s test.pid matches 1.. run function test:player/assign_pid
 # 店・銀行のトロッコ: 店員・銀行員の近くの人の目線を見て出す・動かす・片付ける。UIのアイテムを取った人の処理。持ち主のいないトロッコの片付け

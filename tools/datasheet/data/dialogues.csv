@@ -1,12 +1,18 @@
 ﻿id,話す人,本文,次,選択肢,処理,全員
-elder_hello,elder,ようこそ、旅の人。,,村のことを聞く => elder_village | 村の行く末について => elder_decide ? story:path=0 | 話を終える => elder_bye,,
+elder_hello,elder,ようこそ、旅の人。,,村のことを聞く => elder_village | 見回りを手伝う => elder_patrol ? quest:patrol=none | 村の行く末について => elder_ask ? quest:village=none | 話を終える => elder_bye,,
 elder_village,elder,この村は小さいが、皆で支え合っておる。,elder_village2,,,
 elder_village2,player,なるほど。,elder_bye,,,
 elder_bye,elder,また来なされ。,elder_leave,,,
 elder_leave,,村長はゆっくりとうなずいた。,,,,
+elder_patrol,elder,村の外れを見てきてくれんか。,,,start:patrol,
+elder_ask,elder,皆を集めてから、また話しかけてくれ。,,,start:village,
 elder_decide,elder,村の行く末を、皆で決めてほしい。,,森を守る => elder_forest | 鉱山を広げる => elder_mine,,yes
 elder_forest,elder,森を守るのじゃな。皆に伝えよう。,,,story:path=1,yes
 elder_mine,elder,鉱山を広げるのじゃな。皆に伝えよう。,,,story:path=2,yes
 elder_after,elder,決めたとおりに、村は動き始めておる。,,,,
-herb_hello,herbalist,薬草のことなら任せて。,,,,
+herb_offer,herbalist,薬草が足りなくて困ってるの。手伝ってくれる?,,引き受ける => herb_accept | 断る => herb_bye,,
+herb_accept,herbalist,ありがとう。ゴブリンを倒してから、薬草を3つ持ってきて。,,,start:herb,
+herb_bye,herbalist,そう…また今度ね。,,,,
+herb_wait,herbalist,ゴブリンを倒して、薬草を3つ持ってきてね。,,,,
+herb_thanks,herbalist,薬草、助かったよ。,,,,
 shop_hello,shopkeeper,いらっしゃい。品物は、こっちを見ると出るよ。,,,,

@@ -1,0 +1,6 @@
+﻿クエスト,段階,目標,対象,数,説明
+herb,1,kill,goblin,3,ゴブリンを倒す
+herb,2,deliver,herbalist:material:herb_leaf,3,薬師に薬草を届ける
+patrol,1,reach,-20 0 -30 -10 5 -20,1,村の外れへ行く
+patrol,2,talk,elder,1,村長に知らせる
+village,1,talk,elder,1,皆で村長と話す

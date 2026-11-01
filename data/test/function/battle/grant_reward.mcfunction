@@ -6,6 +6,9 @@
 
 tag @s remove battle_reward_pending
 
+# クエストの討伐の段階(@s = 倒した敵、受け取る人は tag=battle_reward_recipient)
+function test:quest/generated/kill
+
 execute store result score #reward test.temporary run scoreboard players get @s test.status.exp
 
 # 前の敵の結果が残らないよう、先に空にする

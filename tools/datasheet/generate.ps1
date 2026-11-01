@@ -53,6 +53,8 @@ $Tabs = [ordered]@{
   recipes          = 'レシピ'
   npcs             = 'NPC'
   dialogues        = '会話'
+  quests           = 'クエスト'
+  quest_stages     = 'クエストの段階'
 }
 
 # 似た形のものをまとめたタブ。行は「種類」(kind の列)の値で、今までのタブ(to のキー)の行に振り分けてから検証・生成する。
@@ -229,6 +231,8 @@ $RequiredHeaders = @{
   recipes          = @('id','名前','形','材料','出るもの','個数')
   npcs             = @('id','名前','見た目','座標','向き','役割','入口')
   dialogues        = @('id','話す人','本文','次','選択肢','処理','全員')
+  quests           = @('id','名前','種類','説明','報酬')
+  quest_stages     = @('クエスト','段階','目標','対象','数','説明')
 }
 foreach ($key in $Tabs.Keys) {
   $text = Tab-Text $key
@@ -1928,6 +1932,32 @@ function Compile-Act($tab, $row, $col, [string]$text) {
   return $fn
 }
 
+# ---------------------------------------------------------------- クエスト(読み取り。条件と処理が quest:/stage:/start: でクエストを見るので、会話より先に読む)
+
+foreach ($r in $data.quests) {
+  $tab = $Tabs.quests; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($quests.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $kind = Cell $r '種類'
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です' }
+  if ($kind -ne 'main' -and $kind -ne 'sub') { Add-Err $tab $n "「種類」($kind) は main / sub にしてください"; continue }
+  $quests[$id] = @{ name = $name; main = ($kind -eq 'main'); desc = (Cell $r '説明'); reward = (Cell $r '報酬'); row = $n; stages = [ordered]@{} }
+}
+foreach ($r in $data.quest_stages) {
+  $tab = $Tabs.quest_stages; $n = $r.__row
+  $q = Cell $r 'クエスト'; $st = Cell $r '段階'
+  if (-not $quests.Contains($q)) { Add-Err $tab $n "クエスト「$q」が「クエスト」タブにありません"; continue }
+  if (-not (Check-Int $tab $n '段階' $st 1)) { continue }
+  if ($quests[$q].stages.Contains("$([int]$st)")) { Add-Err $tab $n "クエスト「$q」の段階 $st が重複しています"; continue }
+  $quests[$q].stages["$([int]$st)"] = $r
+}
+foreach ($q in $quests.Keys) {
+  $c = $quests[$q].stages.Count
+  if ($c -eq 0) { Add-Err $Tabs.quests $quests[$q].row "クエスト「$q」の段階が「クエストの段階」タブにありません"; continue }
+  for ($s = 1; $s -le $c; $s++) { if (-not $quests[$q].stages.Contains("$s")) { Add-Err $Tabs.quest_stages 0 "クエスト「$q」の段階は1から順に書いてください($s がありません)" } }
+}
+
 # ---------------------------------------------------------------- NPC
 
 # asset.npc.<id> = {id, name, kind, body, x, y, z, yaw, role, shop, counter?, entry?}。body は summon <kind> にそのまま渡す中身。
@@ -2054,6 +2084,68 @@ foreach ($nid in $npcs.Keys) {
   }
   if ($ok) { $genFns["npc\generated\entry\$nid.mcfunction"] = $lines }
 }
+
+# ---------------------------------------------------------------- クエスト(段階のフックと報酬)
+
+# asset.quest.<id> = {id, name, main, desc, last, reward?, stages:{s<段階>:{goal, count, desc}}}。状態はサブが oh_my_dat の test.quest.<id>、
+# メインが storage test: story.quest.<id>(= {state, stage, count})。段階を進めるのは test:quest/、どこで進むかは下のフック:
+#   kill   : test:quest/generated/kill(@s = 倒した敵。battle/grant_reward から)
+#   reach  : test:quest/generated/reach(毎秒。両方のマップの範囲の中の人)
+#   deliver / talk: test:quest/generated/npc/<NPC>(その NPC に話しかけたとき、会話の前)
+$questDecls = New-Object System.Collections.Generic.List[string]
+$killLines = @('# 討伐の段階(@s = 倒した敵。test:battle/grant_reward から。報酬を受け取る人は tag=battle_reward_recipient)', '')
+$reachLines = @('# 場所に行く段階(毎秒。test:action・test:turn の両方で、範囲の中にいる人)', '')
+$npcHookLines = [ordered]@{}
+foreach ($q in $quests.Keys) {
+  $qd = $quests[$q]; $main = if ($qd.main) { '1b' } else { '0b' }
+  $stSnbt = @()
+  foreach ($s in $qd.stages.Keys) {
+    $r = $qd.stages[$s]; $tab = $Tabs.quest_stages; $n = $r.__row
+    $goal = Cell $r '目標'; $target = Cell $r '対象'; $cnt = Cell $r '数'; $sdesc = Cell $r '説明'
+    if ($cnt -eq '') { $cnt = '1' }
+    if (-not (Check-Int $tab $n '数' $cnt 1)) { continue }
+    if ($sdesc -eq '') { Add-Err $tab $n '「説明」が空です' }
+    $hargs = "{id:`"$q`",stage:$s,need:$cnt,main:$main}"
+    switch ($goal) {
+      'kill' {
+        if (-not $enemies.Contains($target)) { Add-Err $tab $n "敵「$target」が「敵」タブにありません"; continue }
+        $killLines += "execute if entity @s[tag=$target] run function test:quest/kill_hit $hargs"
+      }
+      'reach' {
+        $p = Parse-Ints $tab $n '対象' $target 6 '-20 0 -30 -10 5 -20'
+        if ($null -eq $p) { continue }
+        if ($cnt -ne '1') { Add-Err $tab $n '場所に行く段階(reach)の「数」は1にしてください' }
+        $x = [Math]::Min($p[0], $p[3]); $y = [Math]::Min($p[1], $p[4]); $z = [Math]::Min($p[2], $p[5])
+        $sel = "x=$x,y=$y,z=$z,dx=$([Math]::Abs($p[3] - $p[0])),dy=$([Math]::Abs($p[4] - $p[1])),dz=$([Math]::Abs($p[5] - $p[2]))"
+        $reachLines += "execute in test:action as @a[$sel] run function test:quest/reach_hit $hargs"
+        $reachLines += "execute in test:turn as @a[$sel] run function test:quest/reach_hit $hargs"
+      }
+      'talk' {
+        if (-not $npcs.Contains($target)) { Add-Err $tab $n "NPC「$target」が「NPC」タブにありません"; continue }
+        if ($cnt -ne '1') { Add-Err $tab $n '別の NPC と話す段階(talk)の「数」は1にしてください' }
+        if (-not $npcHookLines.Contains($target)) { $npcHookLines[$target] = @() }
+        $npcHookLines[$target] += "function test:quest/talk_hit $hargs"
+      }
+      'deliver' {
+        if ($target -notmatch '^([a-z0-9_]+):(.+)$') { Add-Err $tab $n "納品(deliver)の「対象」($target) は NPCのid:種類:id の形で書いてください"; continue }
+        $nid = $Matches[1]; $it = Item-Spec $tab $n '対象' $Matches[2]
+        if (-not $npcs.Contains($nid)) { Add-Err $tab $n "NPC「$nid」が「NPC」タブにありません"; continue }
+        if ($null -eq $it) { continue }
+        if (-not $npcHookLines.Contains($nid)) { $npcHookLines[$nid] = @() }
+        $npcHookLines[$nid] += "function test:quest/deliver_hit {id:`"$q`",stage:$s,need:$cnt,main:$main,pred:`"$(Esc $it.pred)`"}"
+      }
+      default { Add-Err $tab $n "「目標」($goal) は kill / deliver / talk / reach のどれかにしてください"; continue }
+    }
+    $stSnbt += "s$($s):{goal:`"$goal`",count:$cnt,desc:`"$(Esc $sdesc)`"}"
+  }
+  $rf = Compile-Act $Tabs.quests $qd.row '報酬' $qd.reward
+  $rew = if ($rf) { ",reward:`"$rf`"" } else { '' }
+  $questDecls.Add("data modify storage test: asset.quest.$q set value {id:`"$q`",name:`"$(Esc $qd.name)`",main:$main,desc:`"$(Esc $qd.desc)`",last:$($qd.stages.Count)$rew,stages:{$($stSnbt -join ',')}}")
+  $questDecls.Add("data modify storage test: asset.quest_ids append value `"$q`"")
+}
+$genFns['quest\generated\kill.mcfunction'] = $killLines
+$genFns['quest\generated\reach.mcfunction'] = $reachLines
+foreach ($nid in $npcHookLines.Keys) { $genFns["quest\generated\npc\$nid.mcfunction"] = @("# NPC「$nid」に話しかけたときに進む段階(会話の前。@s = 話しかけた人)", '') + $npcHookLines[$nid] }
 
 # ---------------------------------------------------------------- NPC の書き出し(入口・クエストのフックの印を付ける)
 
@@ -2293,6 +2385,10 @@ $rel = 'init\asset\npc\generated\npcs.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)", '# NPC(スプレッドシートの「NPC」タブ)。asset.npc.<id> = {id, name, kind, body, x, y, z, yaw, role, shop, counter?, entry?}。置くのは test:npc/place/', '')
 $outputs[$rel] = $lines + $npcDecls
 
+$rel = 'init\asset\quest\generated\quests.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)", '# クエスト(スプレッドシートの「クエスト」「クエストの段階」タブ)。asset.quest.<id> = {id, name, main, desc, last, reward?, stages:{s<段階>:{goal, count, desc}}}。進めるのは test:quest/', '')
+$outputs[$rel] = $lines + $questDecls
+
 # 条件・処理・会話のノード・クエストのフックなど、データの中身から作る関数(上の各節が $genFns に入れたもの)
 foreach ($gk in $genFns.Keys) { $outputs[$gk] = @($Header, "#> $(Fn-Name $gk)") + $genFns[$gk] }
 
@@ -2301,7 +2397,8 @@ $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\we
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
   'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated', 'init\asset\crop\generated',
   'init\asset\research\generated', 'init\asset\recipe\generated', 'talk\generated\cond', 'talk\generated\act',
-  'init\asset\npc\generated', 'talk\generated\node', 'npc\generated\entry')
+  'init\asset\npc\generated', 'talk\generated\node', 'npc\generated\entry',
+  'init\asset\quest\generated', 'quest\generated', 'quest\generated\npc')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d

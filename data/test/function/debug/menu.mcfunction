@@ -49,6 +49,7 @@ tellraw @s [{text:"[全部研究する]",color:aqua,click_event:{action:"run_com
 
 tellraw @s {text:"― NPC・クエスト ―",color:gold}
 tellraw @s [{text:"[NPCの一覧]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/npc_list"}},{text:" (押すと移動)",color:dark_gray}]
+tellraw @s [{text:"[クエストの状態]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/quest_list"}},{text:" "},{text:"[フラグ]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/flags"}},{text:" (/trigger test.quest で一覧)",color:dark_gray}]
 tellraw @s [{text:"[口座+100G]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/money_add"}},{text:" "},{text:"[コイン123G]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/money_coins"}}]
 
 tellraw @s {text:"― 工場 ―",color:gold}
