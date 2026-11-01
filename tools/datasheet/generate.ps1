@@ -50,6 +50,7 @@ $Tabs = [ordered]@{
   magic_crops      = '魔法作物'
   scans            = '観測'
   researches       = '研究'
+  recipes          = 'レシピ'
 }
 
 # 似た形のものをまとめたタブ。行は「種類」(kind の列)の値で、今までのタブ(to のキー)の行に振り分けてから検証・生成する。
@@ -223,6 +224,7 @@ $RequiredHeaders = @{
   magic_crops      = @('id','名前','種の見た目','作物の見た目','段階数','成長時間','エッセンス','最小','最大','種が増える確率')
   scans            = @('id','名前','種類','対象','知識')
   researches       = @('id','名前','アイコン','コスト','前提','観測','知識','解放')
+  recipes          = @('id','名前','形','材料','出るもの','個数')
 }
 foreach ($key in $Tabs.Keys) {
   $text = Tab-Text $key
@@ -1555,6 +1557,110 @@ foreach ($r in $data.magic_crops) {
   $magicCropDecls.Add("data modify storage test: asset.magic_crop_ids append value `"$id`"")
 }
 
+# ---------------------------------------------------------------- レシピ(カスタムクラフター)
+
+# 出るものの種類 => その種類の id があるか / clear の条件(取り返すとき)
+$MachineIds = @([regex]::Matches($machineBody, '(?m)^data modify storage test: asset\.machine\.([a-z0-9_]+) set value') | ForEach-Object { $_.Groups[1].Value })
+$MachineItemIds = @([regex]::Matches($machineBody, '(?m)^data modify storage test: asset\.machine_item\.([a-z0-9_]+) set value') | ForEach-Object { $_.Groups[1].Value })
+$MachinePartIds = @($MachineItemIds | Where-Object { $_ -ne 'wrench' }) + @($casings.Keys | ForEach-Object { "casing_$_" })
+$StationIds = @([regex]::Matches((Read-Fn 'init\asset\station.mcfunction'), '(?m)^data modify storage test: asset\.station\.([a-z0-9_]+) set value') | ForEach-Object { $_.Groups[1].Value })
+function Recipe-Out([string]$kind, [string]$id) {
+  # 戻り値: clear の条件(id が無ければ $null)
+  switch ($kind) {
+    'material'     { if ($materials.Contains($id) -and $materials[$id].role -ne 'pattern') { $k = if ($materials[$id].role -eq 'essence') { 'essence' } else { 'material' }; return "*[minecraft:custom_data~{test:{$($k):{kind:`"$id`"}}}]" } }
+    'pickaxe'      { if ($pickaxes.Contains($id)) { return "*[minecraft:custom_data~{test:{pickaxe:{id:`"$id`"}}}]" } }
+    'gather_tool'  { if ($gatherTools.Contains($id)) { return "*[minecraft:custom_data~{test:{gather_tool:{id:`"$id`"}}}]" } }
+    'magic_seed'   { if ($magicCrops.ContainsKey($id)) { return "*[minecraft:custom_data~{test:{magic_seed:`"$id`"}}]" } }
+    'rune'         { if ($runeIds.ContainsKey($id)) { return "*[minecraft:custom_data~{test:{rune:`"$id`"}}]" } }
+    'consumable'   { if ($consumableIds.ContainsKey($id)) { return "*[minecraft:custom_data~{test:{consumable:`"$id`"}}]" } }
+    'machine_part' { if ($MachinePartIds -contains $id) { return "*[minecraft:custom_data~{test:{machine_item:`"$id`"}}]" } }
+    'wrench'       { if ($id -eq 'wrench') { return "*[minecraft:custom_data~{test:{machine_item:`"wrench`"}}]" } }
+    'machine_egg'  { if ($MachineIds -contains $id) { return "*[minecraft:custom_data~{test:{egg:`"machine:$id`"}}]" } }
+    'station_egg'  { if ($StationIds -contains $id) { return "*[minecraft:custom_data~{test:{egg:`"station:$id`"}}]" } }
+    'factory_key'  { return '*[minecraft:custom_data~{test:{factory_key:1b}}]' }
+    'scanner'      { return '*[minecraft:custom_data~{test:{scanner:1b}}]' }
+    'vanilla'      { if ($id -match $ItemPattern) { return "minecraft:$($id -replace '^minecraft:', '')" } }
+  }
+  return $null
+}
+$RecipeOutKinds = @('material', 'pickaxe', 'gather_tool', 'magic_seed', 'rune', 'consumable', 'machine_part', 'wrench', 'machine_egg', 'station_egg', 'factory_key', 'scanner', 'vanilla')
+# 出るものの id を省ける種類(id は決まっている)
+$RecipeFixedId = @{ wrench = 'wrench'; factory_key = 'factory_key'; scanner = 'scanner' }
+
+# レシピ: 形(3行、各3文字。空白か . が空き)と、文字ごとの材料・数。ゲーム側は材料の9マスをそのままキーにして索引を引くので、
+# ここで形を3×3の中の置ける位置すべてに置いたキーを作る(1マスは m:<素材> / v:minecraft:<id> / 空。9マスを , でつなぐ)
+$recipes = [ordered]@{}
+$recipeIndex = [ordered]@{}   # キー => @{ recipe; need }
+foreach ($r in $data.recipes) {
+  $tab = $Tabs.recipes; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($recipes.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $name = Cell $r '名前'; $shapeRaw = "$($r.'形')"; $matText = Cell $r '材料'; $outText = Cell $r '出るもの'; $count = Cell $r '個数'
+  $ok = $true
+  if ($name -eq '') { Add-Err $tab $n '「名前」が空です'; $ok = $false }
+  if (-not (Check-Int $tab $n '個数' $count 1)) { $ok = $false } elseif ([int]$count -gt 64) { Add-Err $tab $n "「個数」($count) は1〜64にしてください"; $ok = $false }
+  # 材料
+  $legend = @{}
+  foreach ($p in (Parse-Pairs $tab $n '材料' $matText ';').GetEnumerator()) {
+    $ch = $p.Key
+    if ($ch.Length -ne 1 -or $ch -eq '.' -or $ch -eq '/') { Add-Err $tab $n "「材料」の「$ch」は形に使う1文字にしてください"; $ok = $false; continue }
+    if ($p.Value -notmatch '^(material|vanilla):([a-z0-9_:./-]+)(\*(\d+))?$') { Add-Err $tab $n "「材料」の「$ch=$($p.Value)」は material:<素材>*数 か vanilla:<アイテム>*数 の形で書いてください"; $ok = $false; continue }
+    $mk = $Matches[1]; $mid = $Matches[2] -replace '^minecraft:', ''; $mn = if ($Matches[4]) { [int]$Matches[4] } else { 1 }
+    if ($mn -lt 1 -or $mn -gt 64) { Add-Err $tab $n "「材料」の「$ch」の数($mn) は1〜64にしてください"; $ok = $false; continue }
+    if ($mk -eq 'material' -and (-not $materials.Contains($mid) -or $materials[$mid].role -eq 'pattern')) { Add-Err $tab $n "素材「$mid」が「アイテム」タブに(型紙以外の素材として)ありません"; $ok = $false; continue }
+    if ($mk -eq 'vanilla' -and $mid -notmatch $ItemPattern) { Add-Err $tab $n "「$mid」がアイテムidの形ではありません"; $ok = $false; continue }
+    $cellKey = if ($mk -eq 'material') { "m:$mid" } else { "v:minecraft:$mid" }
+    $legend[$ch] = @{ kind = $mk; id = $mid; n = $mn; key = $cellKey }
+  }
+  # 形
+  $rows = @($shapeRaw -split '/')
+  if ($rows.Count -ne 3) { Add-Err $tab $n "「形」は / で区切った3行にしてください(今は $($rows.Count) 行)"; continue }
+  $grid = @()
+  $used = @{}
+  foreach ($row in $rows) {
+    if ($row.Length -gt 3) { Add-Err $tab $n "「形」の行「$row」が3文字より長いです"; $ok = $false }
+    $line = @()
+    for ($j = 0; $j -lt 3; $j++) {
+      $ch = if ($j -lt $row.Length) { [string]$row[$j] } else { ' ' }
+      if ($ch -eq ' ' -or $ch -eq '.') { $line += '' } else { $line += $ch; $used[$ch] = $true; if (-not $legend.ContainsKey($ch)) { Add-Err $tab $n "「形」の文字「$ch」が「材料」にありません"; $ok = $false } }
+    }
+    $grid += , $line
+  }
+  foreach ($ch in $legend.Keys) { if (-not $used.ContainsKey($ch)) { Add-Err $tab $n "「材料」の「$ch」が「形」に使われていません"; $ok = $false } }
+  if ($used.Count -eq 0) { Add-Err $tab $n '「形」に材料がありません'; $ok = $false }
+  # 出るもの
+  $ov = $outText -split ':', 2
+  $ok2 = $RecipeOutKinds -contains $ov[0]
+  $oid = if ($ov.Count -eq 2) { $ov[1].Trim() } elseif ($RecipeFixedId.ContainsKey($ov[0])) { $RecipeFixedId[$ov[0]] } else { '' }
+  $pred = if ($ok2) { Recipe-Out $ov[0] $oid } else { $null }
+  if (-not $ok2) { Add-Err $tab $n "「出るもの」($outText) の種類は $($RecipeOutKinds -join ' / ') のどれかにしてください"; $ok = $false }
+  elseif ($null -eq $pred) { Add-Err $tab $n "「出るもの」($outText) の id「$oid」がありません"; $ok = $false }
+  if (-not $ok) { continue }
+  # 置ける位置すべてのキー
+  $rs = @(0..2 | Where-Object { ($grid[$_] -join '') -ne '' }); $cs = @(0..2 | Where-Object { $c = $_; @(0..2 | Where-Object { $grid[$_][$c] -ne '' }).Count -gt 0 })
+  $r0 = $rs[0]; $h = $rs[-1] - $r0 + 1; $c0 = $cs[0]; $w = $cs[-1] - $c0 + 1
+  $dupe = $false
+  for ($dr = 0; $dr -le 3 - $h; $dr++) { for ($dc = 0; $dc -le 3 - $w; $dc++) {
+    $cells = @(); $need = @()
+    for ($i = 0; $i -lt 3; $i++) { for ($j = 0; $j -lt 3; $j++) {
+      $si = $i - $dr + $r0; $sj = $j - $dc + $c0
+      $ch = if ($si -ge $r0 -and $si -lt $r0 + $h -and $sj -ge $c0 -and $sj -lt $c0 + $w) { $grid[$si][$sj] } else { '' }
+      if ($ch -eq '') { $cells += ''; $need += 0 } else { $cells += $legend[$ch].key; $need += $legend[$ch].n }
+    } }
+    $key = $cells -join ','
+    if ($recipeIndex.Contains($key)) { if (-not $dupe) { Add-Err $tab $n "形と材料が、レシピ「$($recipeIndex[$key].recipe)」と同じです(ずらすと同じになるものを含む。材料の数だけの違いも同じ扱い)" }; $dupe = $true; continue }
+    $recipeIndex[$key] = @{ recipe = $id; need = $need }
+  } }
+  if ($dupe) { continue }
+  # 1回分の材料(デバッグで配る用)
+  $inputs = [ordered]@{}
+  foreach ($row in $grid) { foreach ($ch in $row) { if ($ch -ne '') { $l = $legend[$ch]; $ik = "$($l.kind):$($l.id)"; if (-not $inputs.Contains($ik)) { $inputs[$ik] = @{ kind = $l.kind; id = $l.id; n = 0 } }; $inputs[$ik].n += $l.n } } }
+  $inSnbt = @($inputs.Values | ForEach-Object { "{kind:`"$($_.kind)`",id:`"$($_.id)`",count:$($_.n)}" }) -join ','
+  $shapeText = (@($grid | ForEach-Object { ($_ | ForEach-Object { if ($_ -eq '') { '.' } else { $_ } }) -join '' }) -join '/')
+  $recipes[$id] = @{ snbt = "id:`"$id`",name:`"$(Esc $name)`",shape_text:`"$(Esc $shapeText)`",mat_text:`"$(Esc $matText)`",out:{kind:`"$($ov[0])`",id:`"$oid`",count:$count},pred:`"$(Esc $pred)`",inputs:[$inSnbt]" }
+}
+
 # ---------------------------------------------------------------- 研究(観測・研究)
 
 # 知識の種類(6属性)。id => 表示名
@@ -1655,7 +1761,7 @@ foreach ($r in $data.researches) {
     if ($uk -eq 'magic' -and -not $magicReg.Contains($ui)) { Add-Err $tab $n "魔法要素「$ui」がありません(init/asset/magic/types・effects)"; continue }
     if ($uk -eq 'crop' -and -not $magicCrops.ContainsKey($ui)) { Add-Err $tab $n "魔法作物「$ui」が「魔法作物」タブにありません"; continue }
     if ($uk -eq 'machine' -and $MachineIds -notcontains $ui) { Add-Err $tab $n "機械「$ui」がありません(init/asset/machine)"; continue }
-    # recipe はカスタムクラフターがまだ無いので確かめない
+    if ($uk -eq 'recipe' -and -not $recipes.Contains($ui)) { Add-Err $tab $n "レシピ「$ui」が「レシピ」タブにありません"; continue }
     $ukey = "$uk`:$ui"
     if ($unlockedBy.ContainsKey($ukey)) { Add-Warn $tab $n "「$ukey」は研究「$($unlockedBy[$ukey])」も解放しています" } else { $unlockedBy[$ukey] = $id }
     $unl += "{kind:`"$uk`",id:`"$ui`",path:`"$($UnlockPath[$uk])`"}"
@@ -1679,6 +1785,18 @@ if ($cyclic.Count -gt 0) { Add-Err $Tabs.researches 0 "前提が循環してい�
 # どの研究も解放しない魔法作物・機械は、誰も使えない
 foreach ($c in $magicCrops.Keys) { if (-not $unlockedBy.ContainsKey("crop:$c")) { Add-Warn $Tabs.researches 0 "魔法作物「$c」を解放する研究がありません(誰も植えられません)" } }
 foreach ($m in $MachineIds) { if (-not $unlockedBy.ContainsKey("machine:$m")) { Add-Warn $Tabs.researches 0 "機械「$m」を解放する研究がありません(誰も置けません)" } }
+
+# レシピの書き出し(研究がそのレシピを解放するなら locked:1b。どの研究にも無いレシピは最初から作れる)
+$recipeDecls = New-Object System.Collections.Generic.List[string]
+foreach ($id in $recipes.Keys) {
+  $locked = if ($unlockedBy.ContainsKey("recipe:$id")) { ',locked:1b' } else { '' }
+  $recipeDecls.Add("data modify storage test: asset.recipe.$id set value {$($recipes[$id].snbt)$locked}")
+  $recipeDecls.Add("data modify storage test: asset.recipe_ids append value `"$id`"")
+}
+foreach ($key in $recipeIndex.Keys) {
+  $e = $recipeIndex[$key]
+  $recipeDecls.Add("data modify storage test: asset.recipe_index.`"$key`" set value {recipe:`"$($e.recipe)`",need:[$($e.need -join ',')]}")
+}
 
 # ---------------------------------------------------------------- 誤りがあれば何も書かずに終える
 
@@ -1892,11 +2010,17 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# asset.research.<id> / asset.research_ids、asset.knowledge_types(知識の6属性)。調べるのは test:research/scan/、研究は craft/magic/research/', '')
 $outputs[$rel] = $lines + $researchDecls
 
+$rel = 'init\asset\recipe\generated\recipes.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# カスタムクラフターのレシピ(スプレッドシートの「レシピ」タブ)。asset.recipe.<id> = {id, name, shape_text, mat_text, out:{kind,id,count}, pred, locked?, inputs}、',
+  '# asset.recipe_index."<9マスのキー>" = {recipe, need:[9マスの必要数]}(形を3×3の置ける位置すべてに置いたもの)。作るのは test:craft/custom/', '')
+$outputs[$rel] = $lines + $recipeDecls
+
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
 $managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
   'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
   'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated', 'init\asset\crop\generated',
-  'init\asset\research\generated')
+  'init\asset\research\generated', 'init\asset\recipe\generated')
 $removed = @()
 foreach ($d in $managedDirs) {
   $dir = Join-Path $fnRoot $d

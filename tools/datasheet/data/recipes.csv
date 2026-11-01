@@ -1,0 +1,30 @@
+﻿id,名前,形,材料,出るもの,個数
+factory_key,工場の鍵,.a./.a./.b.,a=material:copper_ingot; b=material:iron_ingot,factory_key,1
+scanner,観測鏡,.a./aba/.a.,a=material:copper_ingot; b=material:mana_shard,scanner,1
+casing_copper,銅の筐体,aaa/a.a/aaa,a=material:copper_ingot*2,machine_part:casing_copper,4
+casing_iron,鉄の筐体,aaa/a.a/aaa,a=material:iron_ingot*2,machine_part:casing_iron,4
+port_in,搬入口,aaa/a.a/a.a,a=material:copper_ingot,machine_part:port_in,1
+port_out,搬出口,a.a/a.a/aaa,a=material:copper_ingot,machine_part:port_out,1
+wrench,レンチ,a.a/.a./.b.,a=material:iron_ingot; b=vanilla:stick,wrench,1
+crusher_egg,粉砕機,aba/bcb/aba,a=material:iron_ingot; b=material:stone_dust; c=material:steel,machine_egg:crusher,1
+smelter_egg,精錬炉,aba/bcb/aba,a=material:iron_ingot; b=material:slag; c=material:pure_copper,machine_egg:smelter,1
+novice_pickaxe,見習いのツルハシ,aaa/.b./.b.,a=material:copper_ingot; b=vanilla:stick,pickaxe:novice_pickaxe,1
+miner_pickaxe,鉱夫のツルハシ,aaa/.b./.b.,a=material:iron_ingot; b=vanilla:stick,pickaxe:miner_pickaxe,1
+copper_sickle,銅の鎌,.aa/.b./b..,a=material:copper_ingot; b=vanilla:stick,gather_tool:copper_sickle,1
+iron_sickle,鉄の鎌,.aa/.b./b..,a=material:iron_ingot; b=vanilla:stick,gather_tool:iron_sickle,1
+earth_seed,土の作物の種,.a./aba/.a.,a=material:herb_leaf; b=material:earth_essence,magic_seed:earth_crop,2
+water_seed,水の作物の種,.a./aba/.a.,a=material:herb_leaf; b=material:water_essence,magic_seed:water_crop,2
+wheat_seeds,小麦の種,a../.../...,a=material:herb_leaf,vanilla:wheat_seeds,2
+carrot,ニンジン,a../.../...,a=material:medicinal_root,vanilla:carrot,1
+potato,ジャガイモ,ab./.../...,a=material:medicinal_root; b=material:herb_leaf,vanilla:potato,1
+beetroot_seeds,ビートルートの種,a../.../...,a=material:flower_petal,vanilla:beetroot_seeds,2
+power_rune,力のルーン,.a./aba/.a.,a=material:mana_shard; b=material:bone,rune:power_rune,1
+guard_rune,守りのルーン,.a./aba/.a.,a=material:mana_shard; b=material:goblin_hide,rune:guard_rune,1
+vigor_rune,活力のルーン,.a./aba/.a.,a=material:mana_shard; b=material:medicinal_root,rune:vigor_rune,1
+mana_rune,知識のルーン,.a./aaa/.a.,a=material:mana_shard,rune:mana_rune,1
+healing_potion,回復薬,a../b../...,a=material:herb_leaf; b=material:small_fish,consumable:healing_potion,1
+mana_dust,魔力の粉,ab./.../...,a=material:mana_shard; b=material:stone_dust,consumable:mana_dust,2
+power_dust,力の粉,ab./.../...,a=material:bone; b=material:stone_dust,consumable:power_dust,2
+revive_feather,蘇生の羽,.a./aba/.a.,a=material:flower_petal; b=material:big_fish,consumable:revive_feather,1
+earth_essence_iron,土のエッセンスから鉄,aaa/a.a/aaa,a=material:earth_essence,material:iron_ingot,1
+water_essence_mana,水のエッセンスから魔力,aaa/a.a/aaa,a=material:water_essence,material:mana_shard,1

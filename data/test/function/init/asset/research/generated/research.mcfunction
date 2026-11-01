@@ -43,9 +43,7 @@ data modify storage test: asset.research.earth_crop set value {id:"earth_crop",n
 data modify storage test: asset.research_ids append value "earth_crop"
 data modify storage test: asset.research.water_crop set value {id:"water_crop",name:"水の作物",icon:"pumpkin_seeds",cost:1,pre:["earth_crop"],scans:[],knowledge:[{el:"water",label:"水",n:1},{el:"wood",label:"木",n:3}],unlock:[{kind:"crop",id:"water_crop",path:"unlock.crop"}]}
 data modify storage test: asset.research_ids append value "water_crop"
-data modify storage test: asset.research.crusher set value {id:"crusher",name:"粉砕機",icon:"lodestone",cost:1,pre:[],scans:["goblin","iron_ore"],knowledge:[{el:"metal",label:"金",n:3}],unlock:[{kind:"machine",id:"crusher",path:"unlock.machine"}]}
+data modify storage test: asset.research.crusher set value {id:"crusher",name:"粉砕機",icon:"lodestone",cost:1,pre:[],scans:["goblin","iron_ore"],knowledge:[{el:"metal",label:"金",n:3}],unlock:[{kind:"machine",id:"crusher",path:"unlock.machine"},{kind:"recipe",id:"crusher_egg",path:"unlock.recipe"}]}
 data modify storage test: asset.research_ids append value "crusher"
-data modify storage test: asset.research.smelter set value {id:"smelter",name:"精錬炉",icon:"waxed_chiseled_copper",cost:2,pre:["crusher"],scans:["bone"],knowledge:[{el:"metal",label:"金",n:3},{el:"physics",label:"物理",n:3}],unlock:[{kind:"machine",id:"smelter",path:"unlock.machine"}]}
+data modify storage test: asset.research.smelter set value {id:"smelter",name:"精錬炉",icon:"waxed_chiseled_copper",cost:2,pre:["crusher"],scans:["bone"],knowledge:[{el:"metal",label:"金",n:3},{el:"physics",label:"物理",n:3}],unlock:[{kind:"machine",id:"smelter",path:"unlock.machine"},{kind:"recipe",id:"smelter_egg",path:"unlock.recipe"},{kind:"recipe",id:"casing_iron",path:"unlock.recipe"}]}
 data modify storage test: asset.research_ids append value "smelter"
-data modify storage test: asset.research.sync_test set value {id:"sync_test",name:"移行の確認",icon:"blaze_powder",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"fire",path:"magic.known"},{kind:"recipe",id:"sync_test",path:"unlock.recipe"}]}
-data modify storage test: asset.research_ids append value "sync_test"
