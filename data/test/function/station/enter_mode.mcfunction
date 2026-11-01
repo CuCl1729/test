@@ -16,6 +16,12 @@ data remove entity @s data.station.craft
 data modify entity @s data.station.main set from storage test: station_work.mode.main
 data modify entity @s data.station.craft set from storage test: station_work.mode.craft
 
+# 板ガラスで埋めないスロット(test:station/fill_empty): モードの keep(プレイヤーが物を置くスロット)と、下の切り替えボタン・作るボタン
+data modify entity @s data.station.keep set value {}
+data modify entity @s data.station.keep merge from storage test: station_work.mode.keep
+execute if score #station_modes test.temporary matches 2.. run data modify entity @s data.station.keep.s20 set value 1b
+execute if data storage test: station_work.mode.craft run data modify entity @s data.station.keep.s26 set value 1b
+
 # GUIの題名(モードが1つなら名前だけ)
 tag @s remove station_multi
 execute if score #station_modes test.temporary matches 2.. run tag @s add station_multi

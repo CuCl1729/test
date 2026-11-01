@@ -10,18 +10,20 @@
 #     craft:         ボタン型。スロット26の緑ガラスを取るとこの関数を呼ぶ
 #     main:          独自の画面。毎tickこの関数を呼ぶ
 #     enter:         モードに入ったときに画面を作る関数(任意)
+#     keep:          プレイヤーが物を置くスロット {s<番号>:1b,…}(任意)。それ以外の空きスロットは灰色の板ガラスで埋める
+#                    (test:station/fill_empty。切り替えボタン20・作るボタン26は自動で除く)。新しいモードも必ず書く
 # 関数はすべて test: を省いたパスで書く
 
 data modify storage test: asset.station set value {}
 
 data modify storage test: asset.station.smithy set value {name:"工房",color:"gold",icon:"anvil",modes:[\
-  {id:"weapon",label:"武器",icon:"iron_sword",craft:"craft/weapon/forge/craft"},\
-  {id:"armor",label:"防具",icon:"iron_chestplate",craft:"craft/equip/craft"}\
+  {id:"weapon",label:"武器",icon:"iron_sword",craft:"craft/weapon/forge/craft",keep:{s9:1b,s10:1b}},\
+  {id:"armor",label:"防具",icon:"iron_chestplate",craft:"craft/equip/craft",keep:{s9:1b,s10:1b}}\
 ]}
 
 data modify storage test: asset.station.enhance set value {name:"強化台",color:"red",icon:"blast_furnace",modes:[\
-  {id:"upgrade",label:"強化",icon:"experience_bottle",craft:"craft/weapon/upgrade/craft"},\
-  {id:"imbue",label:"付与",icon:"enchanting_table",craft:"craft/equip_magic/craft"}\
+  {id:"upgrade",label:"強化",icon:"experience_bottle",craft:"craft/weapon/upgrade/craft",keep:{s9:1b,s10:1b}},\
+  {id:"imbue",label:"付与",icon:"enchanting_table",craft:"craft/equip_magic/craft",keep:{s9:1b,s10:1b,s11:1b,s12:1b}}\
 ]}
 
 data modify storage test: asset.station.magic set value {name:"魔法台",color:"light_purple",icon:"enchanted_book",breakable:1b,modes:[\
@@ -37,7 +39,7 @@ data modify storage test: asset.station.job set value {name:"Jobステーショ�
 # ほかのステーションの画面と合わないので、モードではなく別のステーションにしている。町に置くもの(壊せない)と、
 # 工場でエッグから置くものがあるので breakable。材料の枠 3〜5・12〜14・21〜23、結果の枠 16
 data modify storage test: asset.station.crafter set value {name:"カスタムクラフター",color:"aqua",icon:"crafting_table",breakable:1b,modes:[\
-  {id:"craft",label:"作成",icon:"crafting_table",main:"craft/custom/main",enter:"craft/custom/enter",keep:[3,4,5,12,13,14,21,22,23,16]}\
+  {id:"craft",label:"作成",icon:"crafting_table",main:"craft/custom/main",enter:"craft/custom/enter",keep:{s3:1b,s4:1b,s5:1b,s12:1b,s13:1b,s14:1b,s21:1b,s22:1b,s23:1b,s16:1b}}\
 ]}
 
 # デバッグメニューの「ステーション」欄に並べる順
