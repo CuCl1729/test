@@ -162,9 +162,9 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   (PowerShell 5.1; run `generate.cmd`, or `generate.cmd -Offline` to use `tools/datasheet/data/*.csv`).
   **Balance numbers belong in the sheet, not in function literals** — when adding a feature with tunable
   values, add them to a tab (or `params`) and read them via macro args/storage.
-  - Tabs (31), in 5 spreadsheet files (`config.json` `sheets.<file> = {sheet_id, tabs:{<key>: gid}}`; the old
+  - Tabs (32), in 5 spreadsheet files (`config.json` `sheets.<file> = {sheet_id, tabs:{<key>: gid}}`; the old
     single-file `sheet_id`/`tabs` still works as a fallback):
-    - common: stats, items, tools, drops, constants, player base stats
+    - common: stats, items, tools, drops, constants, player base stats, recipes
     - equip: weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop recipes
     - battle: enemies, enemy gimmicks, jobs, job skills, magic values, buff values
     - industry: mines, veins, refining main / by-products, pre-processing by-products, fuels, machine casings
@@ -188,7 +188,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     hand**; the next run overwrites them. Change the sheet/CSV and regenerate instead.
   - Generated files: `init/asset/generated/{weapons,stats,config}`, `init/asset/equip/generated/{items,sets}`,
     `craft/weapon/forge/recipe/<material>`, `craft/equip/recipe/<material>`,
-    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine,gather,fish,crop,research}/generated/*`.
+    `init/asset/{rune,consumable,material,enemy,job,magic,buff,status,ore,mine,pickaxe,refine,machine,gather,fish,crop,research,recipe}/generated/*`.
     Stale generated `.mcfunction` files in those folders are deleted. The only generated loot tables are the
     veins' ore blocks (a fixed single token, no rolls), the machine casings' blocks (the casing item inside
     the factory, vanilla elsewhere), `data/minecraft/loot_table/blocks/<block>.json`, the four vanilla crops' blocks (see "Farming"), and **vanilla fishing,
@@ -576,6 +576,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   | `enhance` 強化台 | 強化 `craft/weapon/upgrade/craft` / 付与 `craft/equip_magic/craft` |
   | `magic` 魔法台 (breakable) | 作成 `magic/crafter/{main,enter}` / 研究 `craft/magic/research/{main,enter}` (see "Research") |
   | `job` Jobステーション | one mode, `job/station/{main,enter}` (7 per page: slots 1–7, arrows 0/8, 戻る 18) |
+  | `crafter` カスタムクラフター (breakable) | one mode, `craft/custom/{main,enter}` (see "Custom crafter") |
   - Markers are tagged `station` with `data.station = {id, mode, main|craft}`; `tick` has one line for all of
     them → `station/tick`: re-place a missing barrel (or, if `breakable`, return a spawn egg via
     `station/give_egg` and remove itself), decorate (`station/decorate`), enter the mode
@@ -590,10 +591,49 @@ generic driver — it means adding a declaration plus a small per-id handler fun
     barrel GUI, first check whether it fits as a mode of a station with a similar role (e.g. another
     "make an item from materials" screen → a mode of 工房; another "modify the item in slot 9" screen →
     a mode of 強化台). Likewise, if existing stations turn out to overlap in role, merge them into one
-    station with modes. Only add a separate station when no existing one fits.
+    station with modes. Only add a separate station when no existing one fits. The one exception so far is
+    `crafter`: it needs its own screen (a 3×3 grid of input slots plus a result slot) that doesn't fit any
+    existing station's layout.
+  - **Empty slots are filled with gray glass panes** (`minecraft:gray_stained_glass_pane`, `tooltip_display`
+    `hide_tooltip`, `station_ui`) by `station/fill_empty`, called at the end of every `station/tick`. Only the
+    mode's `keep` slots (`keep:{s<n>:1b,…}` in the registry: the slots players put items into) stay empty;
+    `enter_mode` copies them to `data.station.keep` and adds slot 20 (mode button) / 26 (craft button). **Every
+    new mode must declare `keep`**, and a mode that redraws must `data remove` a slot before appending to it
+    (all current ones do). Markers without `keep` re-enter their mode once.
+  - `station/tick` also breaks a hopper (`setblock … destroy`) or hopper minecart directly under the barrel,
+    since in the factory (survival) they could pull results, buttons and panes out of it.
   - A new station or mode is a registry line plus its `craft` (or `main`/`enter`) function. Place one with
     `test:debug/spawn_station {id:<id>}` (also listed in the debug menu). `station/migrate` (run from
     `init/`) converts markers placed before stations were merged (old per-station tags).
+- **Custom crafter** (`craft/custom/`, station `crafter`): a workbench with fixed-shape recipes from the sheet's
+  レシピ tab. **Everything that has no other way to be obtained is made here; to add a way to get something,
+  add a recipe.** Town crafters are placed on the map (they re-place their barrel); in the factory one is placed
+  from its egg (`station_egg:crafter`, itself a recipe) and breaking it returns the egg.
+  - Screen: input slots 3–5 / 12–14 / 21–23, result slot 16, everything else glass panes. Inputs stay in the
+    barrel like other stations' input slots.
+  - Registry (`init/asset/recipe/generated/recipes`): `asset.recipe.<id> = {id, name, shape_text, mat_text,
+    out:{kind,id,count}, pred, locked?, inputs}`, `asset.recipe_ids`, and the index `asset.recipe_index."<key>" =
+    {recipe, need:[9]}`. A key is the 9 grid cells joined by `,` (`m:<material id>` for materials incl.
+    essences, `v:minecraft:<id>` for items without `custom_data`, empty otherwise); the script inserts every
+    position the shape can take in the 3×3, so a shifted shape matches and two recipes that coincide when
+    shifted (even with different counts) are an error. Mirrored shapes are different recipes.
+  - Matching (`eval`): build the key from the grid (anything else with `custom_data` never matches), look it up,
+    then every cell's count must be ≥ `need`. Unlocked if the recipe has no `locked` (no research's 解放 lists
+    it, so it's available from the start) or the nearest player has `test.unlock.recipe.<id>`. Craftable → the
+    real item (`out/<kind>`, built like the debug givers; runes, consumables and eggs get `loot/give`'s
+    `tooltip_display` so they stack with debug ones) is placed in slot 16; locked → a 未研究 barrier.
+  - `main` every tick: compares slot 16 with what it placed (`data.crafter.show`, read back from the block so the
+    comparison uses the saved form) and re-evaluates when the grid changed (`data.crafter.grid`). When the real
+    result is gone (cursor, shift-click, anything; a partial take gives the rest to the player), `taken`
+    re-evaluates: same recipe and enough → each cell loses `need`; otherwise (inputs pulled in the same tick)
+    `reclaim` takes the result back with `clear <pred> <count>` (26.3's `clear` also reaches the cursor) and then
+    from dropped items nearby. Items a player puts into slot 16 are handed back. A broken barrel's unclaimed
+    result is killed in `station/no_barrel` (`drop_kill`).
+  - Eggs carry `custom_data.test.egg:"machine:<id>"` / `"station:<id>"` (`machine/build_egg`,
+    `station/build_egg`) so `pred` can tell them apart. The factory key and scanner are built by
+    `item/factory_key/build` / `item/scanner/build`.
+  - Debug menu ステーション: crafter placement, [レシピ一覧] (`debug/recipe_list`), [全レシピの材料]
+    (`debug/recipe_materials`).
 
 ## Battle/combat pipeline
 
