@@ -3,6 +3,6 @@
 
 $scoreboard players set #sidebar_request test.temporary $(value)
 execute if score #sidebar_request test.temporary matches 1 run function test:debug/on
-execute if score #sidebar_request test.temporary matches 1 run function test:debug/menu/done {msg:"サイドバー表示をONにしました"}
+execute if score #sidebar_request test.temporary matches 1 run function test:debug/menu/done {msg:"サイドバー表示をONにしました",page:""}
 execute if score #sidebar_request test.temporary matches 0 run function test:debug/off
-execute if score #sidebar_request test.temporary matches 0 run function test:debug/menu/done {msg:"サイドバー表示をOFFにしました"}
+execute if score #sidebar_request test.temporary matches 0 run function test:debug/menu/done {msg:"サイドバー表示をOFFにしました",page:""}

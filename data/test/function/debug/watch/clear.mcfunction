@@ -6,4 +6,4 @@ data modify storage test: debug_work.watch_queue set from storage test: debug.wa
 function test:debug/watch/clear_loop
 data modify storage test: debug.watch set value []
 
-function test:debug/menu/done {msg:"監視をすべて外しました"}
+function test:debug/menu/done {msg:"監視をすべて外しました",page:"/page/watch"}

@@ -4,4 +4,4 @@
 $data remove storage test: debug.watch[{name:"$(name)",objective:"$(objective)"}]
 $scoreboard players reset $(objective)/$(name) test.debug.display
 
-$function test:debug/menu/done {msg:"$(name) $(objective) を監視から外しました"}
+$function test:debug/menu/done {msg:"$(name) $(objective) を監視から外しました",page:"/page/watch"}

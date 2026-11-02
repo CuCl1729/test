@@ -4,4 +4,4 @@
 $data modify storage test: debug.rng.$(key).mode set value "value"
 $data modify storage test: debug.rng.$(key).value set value $(value)
 
-$function test:debug/menu/done {msg:"$(key) を値 $(value) に固定しました"}
+$function test:debug/menu/done {msg:"$(key) を値 $(value) に固定しました",page:"/page/rng {p:0}"}

@@ -6,4 +6,4 @@ $random reset test:$(key) $(seed)
 $data modify storage test: debug.rng.$(key).key set value "$(key)"
 $data modify storage test: debug.rng.$(key).seed set value $(seed)
 
-$function test:debug/menu/done {msg:"$(key) の乱数列をシード $(seed) で巻き戻しました"}
+$function test:debug/menu/done {msg:"$(key) の乱数列をシード $(seed) で巻き戻しました",page:"/page/rng {p:0}"}

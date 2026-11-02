@@ -1,82 +1,13 @@
 #> test:debug/menu
-# @s = メニューを開いたプレイヤー。デバッグ機能の一覧をチャットに出し、各ボタンはクリックで実行する
-# (値の入力が要るものはsuggest_commandで入力欄に入れる)
+# @s = メニューを開いたプレイヤー。デバッグメニューの目次。欄ごとのページ(test:debug/menu/page/<欄>)を開くボタンを出す
+# (全部を1回で出すと100行を超え、チャットの上の方がクリックできなくなるため)
 
+tellraw @s ""
 tellraw @s {text:"===== デバッグメニュー =====",color:gold}
 
 # サイドバー(戦闘情報・監視中の値)
 execute if score #debug test.debug.enabled matches 1 run tellraw @s [{text:"サイドバー表示 ",color:gray},{text:"[ON]",color:green,bold:true},{text:" "},{text:"[OFF]",color:dark_gray,click_event:{action:"run_command",command:"/function test:debug/menu/set_sidebar {value:0}"}}]
 execute unless score #debug test.debug.enabled matches 1 run tellraw @s [{text:"サイドバー表示 ",color:gray},{text:"[ON]",color:dark_gray,click_event:{action:"run_command",command:"/function test:debug/menu/set_sidebar {value:1}"}},{text:" "},{text:"[OFF]",color:red,bold:true}]
-
-tellraw @s {text:"― ログ ―",color:gold}
-function test:debug/menu/log_line {cat:"damage",label:"ダメージ計算"}
-function test:debug/menu/log_line {cat:"battle",label:"戦闘の進行"}
-
-tellraw @s {text:"― 乱数 ―",color:gold}
-data modify storage test: debug_work.rng_queue set from storage test: asset.debug.rng
-function test:debug/menu/rng_loop
-
-tellraw @s {text:"― 状態の表示 ―",color:gold}
-tellraw @s [{text:"[自分]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/inspect/self"}},{text:" "},{text:"[近くの対象]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/inspect/nearest"}},{text:" (16ブロック以内で最も近い、HPを持つプレイヤー以外)",color:dark_gray}]
-
-tellraw @s {text:"― アイテム ―",color:gold}
-tellraw @s [{text:"[素材全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_materials"}},{text:" (工房の材料・触媒・特殊素材・型紙)",color:dark_gray}]
-tellraw @s [{text:"[ルーン全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_runes"}},{text:" "},{text:"[消耗品全種×16]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_consumables"}},{text:" (強化台の付与モードで装備の枠に入れる)",color:dark_gray}]
-
-tellraw @s {text:"― 採掘 ―",color:gold}
-tellraw @s [{text:"[ツルハシ全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_pickaxes"}},{text:" (アドベンチャーモードで鉱山の鉱石だけ掘れる)",color:dark_gray}]
-tellraw @s [{text:"[原石全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_ores"}},{text:" (全種類×レア度1〜5を10個ずつ)",color:dark_gray}]
-tellraw @s [{text:"[鉱山リセット]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/reset_mine"}},{text:" "},{text:"[鉱山の状態]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/mine_status"}},{text:" (リセットは今いる鉱山を、間隔を無視して元に戻す)",color:dark_gray}]
-tellraw @s [{text:"[鉱山を読み込む]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/mine_load {mode:add}"}},{text:" "},{text:"[やめる]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/mine_load {mode:remove}"}},{text:" (両マップで forceload。鉱脈を置く・消す・調べる前に)",color:dark_gray}]
-data modify storage test: debug_work.vein_queue set from storage test: asset.vein_ids
-function test:debug/menu/vein_loop
-tellraw @s [{text:"[鉱脈のずれを調べる]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/check_veins"}},{text:" (片方のマップにだけある鉱脈など)",color:dark_gray}]
-tellraw @s [{text:"[近くの鉱脈を消す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/remove_vein"}},{text:" "},{text:"[鉱脈の名前を表示]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/show_veins {visible:1b}"}},{text:" "},{text:"[隠す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/show_veins {visible:0b}"}}]
-
-tellraw @s {text:"― 採取 ―",color:gold}
-tellraw @s [{text:"[採取の道具全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_gather_tools"}},{text:" "},{text:"[近くの採取ポイント]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/gather_status"}},{text:" "},{text:"[近くを今すぐ復活]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/gather_respawn"}}]
-tellraw @s [{text:"[ここの釣り場]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/fishing_here"}},{text:" (当てはまる行と中身)",color:dark_gray}]
-data modify storage test: debug_work.fish_pool_queue set from storage test: asset.fish_pool_ids
-function test:debug/menu/fish_loop
-
-tellraw @s {text:"― 農耕 ―",color:gold}
-tellraw @s [{text:"[魔法の種全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_magic_seeds"}},{text:" "},{text:"[普通の種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_crop_seeds"}},{text:" "},{text:"[エッセンス全種]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_essences"}}]
-tellraw @s [{text:"[近くの魔法作物]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/farm_status"}},{text:" "},{text:"[近くを育ちきらせる]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/farm_mature"}}]
-
-tellraw @s {text:"― 研究 ―",color:gold}
-tellraw @s [{text:"[観測鏡]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_scanner"}},{text:" "},{text:"[知識+10]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/research_knowledge"}},{text:" "},{text:"[調べ済みと知識]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/research_show"}}]
-tellraw @s [{text:"[全部研究する]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/research_all"}},{text:" "},{text:"[研究を全部消す]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/research_reset"}},{text:" (知識・調べ済みも)",color:dark_gray}]
-
-tellraw @s {text:"― NPC・クエスト ―",color:gold}
-tellraw @s [{text:"[NPCの一覧]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/npc_list"}},{text:" (押すと移動)",color:dark_gray}]
-tellraw @s [{text:"[クエストの状態]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/quest_list"}},{text:" "},{text:"[フラグ]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/flags"}},{text:" (/trigger test.quest で一覧)",color:dark_gray}]
-tellraw @s [{text:"[口座+100G]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/money_add"}},{text:" "},{text:"[コイン123G]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/money_coins"}}]
-
-tellraw @s {text:"― 工場 ―",color:gold}
-tellraw @s [{text:"[工場の鍵]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/give_factory_key"}},{text:" "},{text:"[区画へ / 戻る]",color:aqua,click_event:{action:"run_command",command:"/function test:factory/use"}},{text:" (鍵と同じ動き)",color:dark_gray}]
-tellraw @s [{text:"[区画の情報]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/factory_info"}},{text:" "},{text:"[番号を指定して移る…]",color:aqua,click_event:{action:"suggest_command",command:"/function test:debug/factory_goto {n:1}"}},{text:" (クリエイティブ向け)",color:dark_gray}]
-
-tellraw @s {text:"― 機械 ―",color:gold}
-data modify storage test: debug_work.casing_queue set from storage test: asset.casing_ids
-function test:debug/menu/casing_loop
-tellraw @s [{text:"[搬入口×8]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:port_in,count:8}"}},{text:" "},{text:"[搬出口×8]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:port_out,count:8}"}},{text:" "},{text:"[ホッパー×16]",color:aqua,click_event:{action:"run_command",command:"/give @s minecraft:hopper 16"}},{text:" "},{text:"[レンチ]",color:aqua,click_event:{action:"run_command",command:"/function test:item/machine/give {id:wrench,count:1}"}}]
-data modify storage test: debug_work.machine_queue set from storage test: asset.machine_ids
-function test:debug/menu/machine_loop
-tellraw @s [{text:"[石炭×16]",color:aqua,click_event:{action:"run_command",command:"/give @s minecraft:coal 16"}},{text:" "},{text:"[近くの機械の状態]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/machine_status"}},{text:" (形・燃料・処理中のもの)",color:dark_gray}]
-
-tellraw @s {text:"― 敵 ―",color:gold}
-data modify storage test: debug_work.enemy_queue set from storage test: asset.enemy_ids
-function test:debug/menu/enemy_loop
-
-tellraw @s {text:"― ステーション ―",color:gold}
-data modify storage test: debug_work.station_queue set from storage test: asset.station_ids
-function test:debug/menu/station_loop
-tellraw @s [{text:"[レシピ一覧]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/recipe_list"}},{text:" "},{text:"[全レシピの材料]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/recipe_materials"}},{text:" (カスタムクラフター。1回分ずつ)",color:dark_gray}]
-tellraw @s [{text:"[古いステーションを移行]",color:aqua,click_event:{action:"run_command",command:"/function test:station/migrate"}},{text:" (統合する前に置いたステーションを直す)",color:dark_gray}]
-
-tellraw @s {text:"― 監視(サイドバー) ―",color:gold}
-data modify storage test: debug_work.watch_queue set value []
-data modify storage test: debug_work.watch_queue set from storage test: debug.watch
-function test:debug/menu/watch_loop
-execute unless data storage test: debug.watch[0] run tellraw @s {text:"(監視中の値はありません)",color:dark_gray}
-tellraw @s [{text:"[追加…]",color:aqua,click_event:{action:"suggest_command",command:"/function test:debug/watch/add {name:\"#damage\",objective:\"test.physics_damage\"}"}},{text:" "},{text:"[全部消す]",color:red,click_event:{action:"run_command",command:"/function test:debug/watch/clear"}}]
+tellraw @s [{text:"[ログ]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/log"}},{text:" "},{text:"[乱数]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/rng {p:0}"}},{text:" "},{text:"[状態の表示]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/state"}},{text:" "},{text:"[アイテム]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/item"}},{text:" "},{text:"[監視]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/watch"}}]
+tellraw @s [{text:"[採掘]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/mine"}},{text:" "},{text:"[採取]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/gather"}},{text:" "},{text:"[農耕]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/farm"}},{text:" "},{text:"[研究]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/research"}},{text:" "},{text:"[工場]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/factory"}},{text:" "},{text:"[機械]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/machine"}}]
+tellraw @s [{text:"[敵]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/enemy"}},{text:" "},{text:"[ステーション]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/station"}},{text:" "},{text:"[NPC・クエスト]",color:aqua,click_event:{action:"run_command",command:"/function test:debug/menu/page/npc"}}]

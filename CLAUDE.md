@@ -32,7 +32,11 @@ There isn't any — verification is manual, in-game:
 - `/function test:debug/spawn_enemy` or `test:debug/spawn_goblin` (see `data/test/function/debug/`)
   to summon test enemies; `test:debug/goto_turn` / `goto_action` / `goto_arena_<n>` to jump between
   the pack's dimensions.
-- `/function test:debug/menu` opens a clickable chat menu for all debug tooling:
+- `/function test:debug/menu` opens a clickable chat menu for all debug tooling. It is an index of pages
+  (`debug/menu/page/<section>`, each with a [目次] link back), because the whole menu at once is longer than the
+  chat history, which hides the top buttons. The 乱数 page shows 8 rolls per page (`page/rng {p}`). A button's
+  confirmation (`debug/menu/done {msg, page}`) links back to its page. Add a new tool to its section's page, and
+  keep each page within one chat screen (about 20 lines). The menu covers:
   - sidebar on/off (`test:debug/on`/`off`, `#debug test.debug.enabled`)
   - built-in logs that can be switched on: damage calculation (`#log_damage`) and battle flow
     (`#log_battle`), both on `test.debug.enabled`; the output lives in `debug/trace/`

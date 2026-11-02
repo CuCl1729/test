@@ -5,4 +5,4 @@ $data remove storage test: debug.rng.$(key).value
 $data modify storage test: debug.rng.$(key).mode set value "$(mode)"
 $execute if data storage test: debug.rng.$(key){mode:"random"} run data remove storage test: debug.rng.$(key).mode
 
-$function test:debug/menu/done {msg:"$(key) を $(mode) にしました"}
+$function test:debug/menu/done {msg:"$(key) を $(mode) にしました",page:"/page/rng {p:0}"}

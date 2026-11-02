@@ -6,4 +6,4 @@ $data remove storage test: debug.watch[{name:"$(name)",objective:"$(objective)"}
 $data modify storage test: debug.watch append value {name:"$(name)",objective:"$(objective)"}
 
 function test:debug/on
-$function test:debug/menu/done {msg:"$(name) $(objective) を監視に追加しました"}
+$function test:debug/menu/done {msg:"$(name) $(objective) を監視に追加しました",page:"/page/watch"}
