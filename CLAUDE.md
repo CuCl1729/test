@@ -744,7 +744,9 @@ Turn-based battle (`battle/`) uses the same formulas as real time, through share
   cached at turn start (`turn_start_player`), because the item UI swaps the main hand for action items.
 - Magic: `magic/pay` (MP + burnout, magic_efficiency; fails when MP is short) and `magic/prepare_damage`
   (magic_damage_bonus, `damage/pre_magic`, effect_damage) are used by both `magic/` and
-  `battle/action/skill_cast/apply_*`.
+  `battle/action/skill_cast/apply_*`. The real-time entry `magic/` refuses a caster with `test.battle.id` ≥ 1
+  (戦闘中は使えない). Without that, a wand right-clicked off turn could kill a battle enemy that no reward
+  pays for; see the `kill-rewards-model` skill.
 - Stats are recalculated with `status/refresh {status}`, which skips non-players and players holding a
   battle UI item in the main hand (`status/ui_in_hand`: `battle_action` / `active_skill` / `battle_item_pick`).
   `equip/recalc` and `status/recalc` use the same check, so armor changed outside your own action applies at
