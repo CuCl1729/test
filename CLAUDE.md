@@ -166,13 +166,13 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   (PowerShell 5.1; run `generate.cmd`, or `generate.cmd -Offline` to use `tools/datasheet/data/*.csv`).
   **Balance numbers belong in the sheet, not in function literals** — when adding a feature with tunable
   values, add them to a tab (or `params`) and read them via macro args/storage.
-  - Tabs (37), in 5 spreadsheet files (`config.json` `sheets.<file> = {sheet_id, tabs:{<key>: gid}}`; the old
+  - Tabs (36), in 5 spreadsheet files (`config.json` `sheets.<file> = {sheet_id, tabs:{<key>: gid}}`; the old
     single-file `sheet_id`/`tabs` still works as a fallback):
     - common: stats, items, tools, drops, constants, player base stats, recipes
     - equip: weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop recipes
     - battle: enemies, enemy gimmicks, jobs, job skills, magic values, buff values
     - industry: mines, veins, refining main / by-products, pre-processing by-products, fuels, machine casings
-    - field: gathering kinds and points, fishing spots, magic crops, scans, researches, NPCs, dialogues, quests,
+    - field: gathering kinds, fishing spots, magic crops, scans, researches, NPCs, dialogues, quests,
       quest stages, shops
 
     A tab without a gid is not downloaded; its local CSV is used. Downloaded CSVs are written to `data/` only
@@ -329,7 +329,9 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   shape structure) placed anywhere by **vein markers**: invisible marker armor stands tagged `mine_vein` with
   `data.vein = "<vein id>"`. A marker belongs to whichever mine's area contains it. The two maps share terrain
   and coordinates, so markers are placed once for both: `debug/spawn_vein {id}` puts one at the block corner
-  under you in **both** `test:action` and `test:turn` (coordinates passed as numbers to `debug/vein_place`;
+  under you in **both** `test:action` and `test:turn`. A vein's spawn egg (`mine/egg/give {id}`,
+  `custom_data.test.egg:"vein:<id>"`, the debug menu's [エッグ]) does the same at the block in front of the face it
+  is used on (`trigger/place` → `mine/egg/place`). Both go through `debug/vein_put` (coordinates passed as numbers to `debug/vein_place`;
   an existing marker at that spot is kept if it's the same vein, replaced otherwise), and `debug/remove_vein`
   removes within 2 blocks in both. The other map is usually unloaded, so these (and `debug/check_veins`) do
   nothing and offer `debug/mine_load {mode:add|remove}` (forceloads every mine area in both maps; saved with
@@ -472,16 +474,28 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - Debug menu 工場: key, `factory/use` (go / return), `debug/factory_info` (number, corners, built,
     `forceload query`), `debug/factory_goto {n}` (any plot, for creative).
 - **Gathering points** (採取ポイント; `gather/`), in both `test:action` and `test:turn` at the same coordinates.
-  - Registries (sheet tabs 採取物 / 採取ポイント, plus the 採取 rows of ドロップ and the non-pickaxe rows of 道具 → `init/asset/gather/generated/gather`):
+  - Registries (sheet tab 採取物, plus the 採取 rows of ドロップ and the non-pickaxe rows of 道具 → `init/asset/gather/generated/gather`):
     `asset.gather.<id> = {name, block, after, tool, respawn, drops:[{material, rank, chance, chance_rank, min,
     max}]}` (`after` is `minecraft:air` when the sheet leaves it empty), `asset.gather_tool.<id> = {item, model,
-    name, kind, rank}`, `asset.gather_point.<id> = {type, block, x, y, z}`, plus the `*_ids` lists.
+    name, kind, rank}`, plus the `*_ids` lists.
+  - **Where the points are is world data, not sheet data.** It lives in `storage test: gather_world`, which init
+    never wipes:
+    - `point.<id> = {type, x, y, z}`
+    - `ids: [{id}]`
+    - `migrated` (`gather/migrate` moved the 3 points of the old 採取ポイント tab once, with their ids)
+
+    A map maker places a point with a spawn egg per kind (`gather/egg/give {type}`, `custom_data.test.egg:"gather:<type>"`).
+    Using it on a block face → `trigger/place` → `gather/egg/place` adds the block in front of that face as point
+    `p<n>` (`#gather_next test.time`) and places it at once. It refuses outside `test:action`/`test:turn` and on a
+    block that already has a point. `debug/remove_gather` (`gather/egg/remove`) deletes the nearest point within 3
+    blocks from the record and its respawn state.
   - Placement is self-healing, no manual step: every 5 s (`tick` → `gather/tick_second` → `gather/place/all`)
-    each listed point is placed in both maps where its block is loaded and nothing is there yet (an
+    each recorded point is placed in both maps where its block is loaded and nothing is there yet (an
     `interaction` 1×1, `tag=gather_point`, `data.gather = {point, type, dim, def}`, and a separate
-    `block_display` `tag=gather_display` at the block corner), and every placed point whose `def` no longer
-    equals `asset.gather_point.<point>` (removed, moved, retyped, new look) is removed (`place/check`), so the
-    next pass re-places it.
+    `block_display` `tag=gather_display` at the block corner). `def` is the record plus the kind's `block`
+    (`gather/place/def`). Every placed point whose `def` no longer matches (removed, moved, retyped, new look) is
+    removed (`place/check`), so the next pass re-places it. A point whose kind left the sheet is not placed. So
+    the other map's copy of an egg-placed or removed point follows when that map is next loaded.
   - Right click: advancement `trigger/gather` (`player_interacted_with_entity` on an interaction) →
     `gather/interact` finds the point whose `interaction.player` is the clicker's UUID (`gather/match`), clears
     that `interaction` data so one press is handled once, and runs `gather/take`.

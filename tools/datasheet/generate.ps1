@@ -45,7 +45,6 @@ $Tabs = [ordered]@{
   fuels            = '燃料'
   casings          = '筐体'
   gathers          = '採取物'
-  gather_points    = '採取ポイント'
   fishing_spots    = '釣り場'
   magic_crops      = '魔法作物'
   scans            = '観測'
@@ -224,7 +223,6 @@ $RequiredHeaders = @{
   fuels            = @('アイテム','回数')
   casings          = @('id','名前','ブロック','処理速度','副産物の確率','燃料の消費量')
   gathers          = @('id','名前','見た目','採った後の見た目','道具','復活時間')
-  gather_points    = @('id','採取物','座標')
   fishing_spots    = @('id','範囲','天気','時間帯','中身')
   magic_crops      = @('id','名前','種の見た目','作物の見た目','段階数','成長時間','エッセンス','最小','最大','種が増える確率')
   scans            = @('id','名前','種類','対象','知識')
@@ -1340,25 +1338,6 @@ foreach ($r in $data.gathers) {
 }
 foreach ($g in $gatherDrops.Keys) { if (-not $gathers.Contains($g)) { Add-Err $Tabs.gather_drops 0 "採取物「$g」が「採取物」タブにありません" } }
 
-# 採取ポイント: asset.gather_point.<id> = {type, block, x, y, z}。両方のマップ(test:action と test:turn)の同じ座標に置く。
-# block も持たせるのは、置いてあるエンティティと定義を比べて、見た目を変えたときも置き直すため(test:gather/place/check)
-$gatherPoints = [ordered]@{}
-$gatherPointAt = @{}
-foreach ($r in $data.gather_points) {
-  $tab = $Tabs.gather_points; $n = $r.__row
-  $id = Cell $r 'id'
-  if (-not (Check-Id $tab $n 'id' $id)) { continue }
-  if ($gatherPoints.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
-  $type = Cell $r '採取物'
-  if (-not $gathers.Contains($type)) { Add-Err $tab $n "採取物「$type」が「採取物」タブにありません"; continue }
-  $pos = Parse-Ints $tab $n '座標' (Cell $r '座標') 3 '120 64 -30'
-  if ($null -eq $pos) { continue }
-  $key = "$($pos[0]) $($pos[1]) $($pos[2])"
-  if ($gatherPointAt.ContainsKey($key)) { Add-Err $tab $n "座標 $key はポイント「$($gatherPointAt[$key])」と重なっています"; continue }
-  $gatherPointAt[$key] = $id; $gatherPoints[$id] = $true
-  $gatherDecls.Add("data modify storage test: asset.gather_point.$id set value {type:`"$type`",block:`"$($gathers[$type].block)`",x:$($pos[0]),y:$($pos[1]),z:$($pos[2])}")
-  $gatherDecls.Add("data modify storage test: asset.gather_point_ids append value `"$id`"")
-}
 
 # ---------------------------------------------------------------- 釣り(釣り場・釣りの中身)
 
@@ -2382,7 +2361,7 @@ $rel = 'init\asset\gather\generated\gather.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
   '# 採取(スプレッドシートの「採取物」「採取ポイント」タブと、「ドロップ」「道具」タブの採取の行)。',
   '#   asset.gather.<id> = {name, block, after, tool, respawn(秒), drops:[{material, rank, chance, chance_rank, min, max}]}',
-  '#   asset.gather_tool.<id> = {item, model, name, kind, rank} / asset.gather_point.<id> = {type, block, x, y, z}', '')
+  '#   asset.gather_tool.<id> = {item, model, name, kind, rank}', '')
 $outputs[$rel] = $lines + $gatherDecls
 
 $rel = 'init\asset\fish\generated\fish.mcfunction'
