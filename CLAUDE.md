@@ -151,6 +151,36 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   targets a compound another effect also writes to, use `merge value`, not `set value` — `set`
   silently destroys sibling keys other effects already wrote (this was a real bug: an atk-boost effect
   overwriting a fire effect's sibling key in the same compound).
+- **Chained magic (段とつなぎ)**. Types with `role:"link"` (つなぎ: `on_land` 着弾で, `on_recast` 再使用で,
+  `on_touch` 接触で, `on_timer` 時間で) have no effect of their own. Each has `after`, the form the stage before it
+  must have.
+  - **Crafting**: the crafter's ordered `build` is split at links into stages (`magic/crafter/rebuild` →
+    `stage_loop` / `stage_close` / `stage_assemble`). Each stage is built and validated like a whole magic used to
+    be. The item keeps stage 1 as today's status, plus `chain: [{link, link_params, stage}]` and a `uid`
+    (`#magic_uid`). A magic without links is unchanged.
+  - **Stage rules** (`magic.loot.invalid`):
+    - a stage needs a delivery
+    - a 設置 (`place`) stage is `place` alone and must be followed by a link
+    - effects' `requires_type` must be inside the same stage
+  - **Runtime**:
+    - The carrier holds `data.chain` / `data.uid` and `test.owner`. A projectile tagged `on_land` uses
+      `projectile/on/<event>/on_land`. A device is an armor stand `tag=magic_device`, made by `magic/place/put`
+      and run by `tick` → `magic/place/tick` (life, owner present, timer, touch).
+    - When its event happens, it calls `magic/chain/next`. That starts the next stage at that spot as the owner
+      (`chain/start` → `prepare_damage` → `chain/form_<type>`). MP is paid once at the first cast.
+    - `magic/` accepts a chained magic only on a fresh press (`chain/press`; `using_item` fires every tick). A press
+      fires the caster's own `on_recast` device with the same `uid` instead of casting (`place/recast`).
+    - `battle:0b` in a type/effect registry entry hides it from the turn-based skill UI. Battle can't place or
+      chain; an equipment slot's battle cast skips `place` and runs only stage 1.
+  - Effect 爆風 (`blast`, needs 範囲) pushes the players and non-battle enemies within the radius outward from the
+    center (`magic/aoe/blast` → `blast_one`). Velocity is `power` along the unit vector plus `lift` upward, in 0.01
+    blocks/tick.
+- **Player velocity** (`motion/player/push`): set `#motion test.X0/Y0/Z0` (world axes, 0.01 blocks/tick) and run it
+  as the player. It converts to look-relative axes with markers summoned at the player into `@s test.impulse.x/y/z`.
+  The enchantments `test:move/add_impulse_{x,y,z}` (`apply_impulse`, bit-split levels read by `impulse/pre_*`) apply
+  it on the next tick, so several players in one tick don't mix. They sit on a `test_block` in the player's saddle
+  slot, which only accepts an item with `equippable={slot:"saddle"}` (vanishing curse, so it never drops).
+  Non-players just get `Motion`.
 - **Weapons / armor / accessories share one item data shape** in `custom_data`:
   - Keys: `status_bonus` (main stat), `substatus[]` (`{type, value, grow}`), `level`/`max_level`, and
     `{type, value}` entries whose `type` is `<stat>_add` / `<stat>_m` or `<element>_resist_add`.

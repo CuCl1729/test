@@ -41,7 +41,14 @@ data modify storage test: magic_buff.src set value []
 execute if data storage test: magic.player.buff[0] run data modify storage test: magic_buff.src set from storage test: magic.player.buff
 function test:magic/buff/prepare
 
-execute at @s run function test:magic/aoe/scan
-execute at @s run function test:magic/aoe/apply
+# 爆風(効果 blast)。外向き・上向きの速さと、範囲の半径
+data remove storage test: magic_blast
+execute if data storage test: magic.player.blast run data modify storage test: magic_blast set from storage test: magic.player.blast
+execute if data storage test: magic.player.blast run data modify storage test: magic_blast.radius set from storage test: magic.player.aoe.radius
+
+# 中心は実行位置。ふつうは詠唱者の位置だが、つないだ魔法の次の段(test:magic/chain/start)では
+# 前の段の弾や設置物の位置になる
+function test:magic/aoe/scan
+function test:magic/aoe/apply
 
 tag @s remove damage_attacker

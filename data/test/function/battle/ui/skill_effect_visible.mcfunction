@@ -7,6 +7,8 @@
 scoreboard players set #effect_visible test.temporary 0
 
 $execute unless data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.magic.known{$(id):1b} run return 0
+# 戦闘では使わない効果(battle:0b。爆風)は出さない
+$execute if data storage test: asset.magic.effects[{id:"$(id)",battle:0b}] run return 0
 $execute unless data storage test: registry_work.combo.categories{$(category):1b} run return 0
 
 # requires_typeが指定されている場合はそのタイプが選ばれているかも見る(未指定なら無条件で通す)

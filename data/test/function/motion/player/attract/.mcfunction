@@ -16,6 +16,4 @@ scoreboard players operation #motion test.X0 /= #100 test.constant
 scoreboard players operation #motion test.Y0 /= #100 test.constant
 scoreboard players operation #motion test.Z0 /= #100 test.constant
 
-function test:motion/player/pre
-
-item modify entity @s saddle test:move/add_impulse
+function test:motion/player/push

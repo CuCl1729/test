@@ -10,3 +10,9 @@ range,60,per_stack=2; max_stacks=3
 atk_up,120,max_stacks=3
 poison,90,max_stacks=3
 revive,300,percent=30
+place,30,life=30
+on_land,0,
+on_recast,0,
+on_touch,10,radius=2
+on_timer,10,seconds=3
+blast,60,power=120; lift=80

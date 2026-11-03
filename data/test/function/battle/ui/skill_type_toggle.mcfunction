@@ -3,6 +3,7 @@
 # 選択中なら外し、そうでなければ付ける。切り替え前の状態を先に控えてから書き換える
 # (書き換えた後の値を見て逆判定してしまうのを防ぐため)
 
+$execute if data storage test: asset.magic.types[{id:"$(id)",battle:0b}] run return 0
 function #oh_my_dat:please
 
 scoreboard players set #was_selected test.temporary 0

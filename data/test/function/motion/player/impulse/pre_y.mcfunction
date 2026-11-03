@@ -1,4 +1,4 @@
-scoreboard players operation #motion test.temporary = #motion test.Y1
+scoreboard players operation #motion test.temporary = @s test.impulse.y
 
 scoreboard players set #-1 test.Y0 0
 scoreboard players set #1 test.Y0 0

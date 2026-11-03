@@ -6,3 +6,5 @@ data remove storage test: registry_work.combo
 data modify storage test: registry_work.combo.type_flags set from storage test: magic.loot.status.type_flags
 
 function test:magic/crafter/validate_combo
+# つなぎで区切った段のどれかが決まりに合わない(test:magic/crafter/rebuild が magic.loot.invalid を立てる)
+execute if data storage test: magic.loot.invalid run scoreboard players set #combo_invalid test.temporary 1

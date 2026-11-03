@@ -47,3 +47,15 @@ data modify storage test: asset.research.crusher set value {id:"crusher",name:"�
 data modify storage test: asset.research_ids append value "crusher"
 data modify storage test: asset.research.smelter set value {id:"smelter",name:"精錬炉",icon:"waxed_chiseled_copper",cost:2,pre:["crusher"],scans:["bone"],knowledge:[{el:"metal",label:"金",n:3},{el:"physics",label:"物理",n:3}],unlock:[{kind:"machine",id:"smelter",path:"unlock.machine"},{kind:"recipe",id:"smelter_egg",path:"unlock.recipe"},{kind:"recipe",id:"casing_iron",path:"unlock.recipe"}]}
 data modify storage test: asset.research_ids append value "smelter"
+data modify storage test: asset.research.magic_place set value {id:"magic_place",name:"設置",icon:"lodestone",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"place",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_place"
+data modify storage test: asset.research.magic_on_land set value {id:"magic_on_land",name:"着弾で",icon:"arrow",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"on_land",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_on_land"
+data modify storage test: asset.research.magic_on_recast set value {id:"magic_on_recast",name:"再使用で",icon:"lever",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"on_recast",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_on_recast"
+data modify storage test: asset.research.magic_on_touch set value {id:"magic_on_touch",name:"接触で",icon:"tripwire_hook",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"on_touch",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_on_touch"
+data modify storage test: asset.research.magic_on_timer set value {id:"magic_on_timer",name:"時間で",icon:"clock",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"on_timer",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_on_timer"
+data modify storage test: asset.research.magic_blast set value {id:"magic_blast",name:"爆風",icon:"wind_charge",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"blast",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_blast"

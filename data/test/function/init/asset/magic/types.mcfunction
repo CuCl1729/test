@@ -26,3 +26,11 @@ data remove storage test: asset.magic.types
 data modify storage test: asset.magic.types append value {id:"self",label:"自己",color:"aqua",item:"glass_bottle",role:"delivery",conflicts:["aoe"],effect_categories:["support"],name:{italic:0b,color:"white",text:"Self"},folder:"type"}
 data modify storage test: asset.magic.types append value {id:"projectile",label:"投射",color:"gold",item:"snowball",role:"delivery",conflicts:[],effect_categories:["attack"],name:{italic:0b,text:"Ball"},folder:"type"}
 data modify storage test: asset.magic.types append value {id:"aoe",label:"範囲",color:"light_purple",item:"tnt",role:"modifier",conflicts:["self"],effect_categories:["attack","support","modifier"],projectile_events:{hit_entity:1b,hit_block:1b,expire:1b},name:{italic:0b,color:"light_purple",text:"Nova"},folder:"type"}
+# 設置と「つなぎ」(role:"link")。battle:0b はターン制の戦闘のタイプ選択に出さない(戦闘の中では置けず、つなげない)。
+# つなぎはそれ自体は効果を持たず、前後の段の関係(after = 前の段の形態、何が起きたら次の段を始めるか)を決める。
+# 魔法台は組み立て列をつなぎで「段」に区切る(test:magic/crafter/rebuild)
+data modify storage test: asset.magic.types append value {id:"place",label:"設置",color:"yellow",item:"lodestone",role:"delivery",conflicts:[],effect_categories:[],battle:0b,name:{italic:0b,color:"yellow",text:"Trap"},folder:"type"}
+data modify storage test: asset.magic.types append value {id:"on_land",label:"着弾で",color:"gray",item:"arrow",role:"link",after:"projectile",conflicts:[],effect_categories:[],battle:0b,projectile_events:{hit_entity:1b,hit_block:1b,expire:1b},folder:"type"}
+data modify storage test: asset.magic.types append value {id:"on_recast",label:"再使用で",color:"gray",item:"lever",role:"link",after:"place",conflicts:[],effect_categories:[],battle:0b,folder:"type"}
+data modify storage test: asset.magic.types append value {id:"on_touch",label:"接触で",color:"gray",item:"tripwire_hook",role:"link",after:"place",conflicts:[],effect_categories:[],battle:0b,folder:"type"}
+data modify storage test: asset.magic.types append value {id:"on_timer",label:"時間で",color:"gray",item:"clock",role:"link",after:"place",conflicts:[],effect_categories:[],battle:0b,folder:"type"}

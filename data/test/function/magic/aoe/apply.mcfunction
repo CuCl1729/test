@@ -22,4 +22,7 @@ execute if data storage test: magic_buff.buff[0] as @a[tag=hit] run function tes
 # 蘇生(#aoe_revive は呼び出し元が指定する)。ダウン中のプレイヤーは scan で拾わない(HPが0)ので、半径で探す
 execute if score #aoe_revive test.temporary matches 1 run function test:magic/aoe/revive with storage test: magic_revive
 
+# 爆風(magic_blast は呼び出し元が用意する)。周りを中心から外へ吹き飛ばす
+execute if data storage test: magic_blast.power run function test:magic/aoe/blast with storage test: magic_blast
+
 tag @e remove hit

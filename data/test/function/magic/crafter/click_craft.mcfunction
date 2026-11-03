@@ -12,6 +12,9 @@ execute unless data entity @s data.crafter_ui.build[0] run scoreboard players se
 execute if score #craft_ok test.buff.work matches 0 run function test:magic/crafter/failure
 
 execute if score #craft_ok test.buff.work matches 1 run data modify storage test: loot.context set value "loot"
+# つないだ魔法には通し番号を付ける(「再使用で」が、自分の置いた物のうちどの魔法のものかを見分けるため)
+execute if score #craft_ok test.buff.work matches 1 if data storage test: magic.loot.status.chain[0] run scoreboard players add #magic_uid test.time 1
+execute if score #craft_ok test.buff.work matches 1 if data storage test: magic.loot.status.chain[0] store result storage test: magic.loot.status.uid int 1 run scoreboard players get #magic_uid test.time
 execute if score #craft_ok test.buff.work matches 1 positioned ~ ~1 ~ run function test:item/magic/give
 execute if score #craft_ok test.buff.work matches 1 run function test:magic/crafter/success
 execute if score #craft_ok test.buff.work matches 1 run data modify entity @s data.crafter_ui.build set value []

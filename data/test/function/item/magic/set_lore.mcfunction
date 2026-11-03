@@ -41,3 +41,6 @@ execute if data storage test: loot.item.components.minecraft:custom_data.test.da
 execute if data storage test: loot.item.components.minecraft:custom_data.test.heal.power run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:green,text:"回復量:"}]
 execute if data storage test: loot.item.components.minecraft:custom_data.test.heal.power run data modify entity @n[tag=text] text set value {color:aqua,type:"nbt",storage:"test:",nbt:"loot.item.components.minecraft:custom_data.test.heal.power"}
 execute if data storage test: loot.item.components.minecraft:custom_data.test.heal.power run data modify storage test: loot.item.components.minecraft:lore[-1] append from entity @n[tag=text] text
+
+# つないだ魔法の流れ(例: 投射 →着弾で→ 設置 →再使用で→ 範囲 爆風)
+function test:item/magic/set_lore_flow

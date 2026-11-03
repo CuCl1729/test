@@ -251,6 +251,16 @@ Googleスプレッドシートに書いたゲームデータから、`.mcfunctio
 `params` は要素の関数(`asset/magic/<type|effect|status>/<要素>.mcfunction`)の `$(…)` で、内部の値で書きます
 (例: 投射 `speed=100; range=20`、威力上昇 `per_stack=1000; max_stacks=3`)。
 
+設置・つなぎ・爆風の params:
+
+| 要素 | params |
+| --- | --- |
+| 設置 `place` | `life`: 置いた物が残る秒数 |
+| 接触で `on_touch` | `radius`: 起動する距離(ブロック) |
+| 時間で `on_timer` | `seconds`: 起動するまでの秒数 |
+| 着弾で `on_land` / 再使用で `on_recast` | なし(行は要ります) |
+| 爆風 `blast` | `power`: 外向きの速さ / `lift`: 足す上向きの速さ(どちらも 0.01 ブロック/tick。120 で約7ブロック飛ぶ) |
+
 ### バフの数値(列: `バフ` / `時間` / `最大段数` / `間隔` / `params`)
 
 - **時間**: 続く秒数(ターン制では10秒で1ターン)

@@ -16,4 +16,14 @@ data modify storage test: status.aoe_radius set from storage test: magic.player.
 # リストなので[]付きで全要素をまとめてコピーできる
 data modify storage test: status.Tags append from storage test: magic.player.types[]
 
+# 爆風(範囲と組んだときに着弾で破裂させる数)と、つないだ魔法の残りの段・通し番号も弾に運ばせる。
+# 次の段が「着弾で」なら、弾にそのタグを付けて着弾の出来事(test:projectile/on/<出来事>/on_land)を受け取る
+execute if data storage test: magic.player.blast run data modify storage test: status.data.blast set from storage test: magic.player.blast
+execute if data storage test: magic.player.chain[0] run data modify storage test: status.data.chain set from storage test: magic.player.chain
+execute if data storage test: magic.player.uid run data modify storage test: status.data.uid set from storage test: magic.player.uid
+execute if data storage test: magic.player.cast run data modify storage test: status.data.cast set from storage test: magic.player.cast
+data remove storage test: chain_work.peek
+data modify storage test: chain_work.peek set from storage test: magic.player.chain[0]
+execute if data storage test: chain_work{peek:{link:"on_land"}} run data modify storage test: status.Tags append value "on_land"
+
 function test:projectile/shot

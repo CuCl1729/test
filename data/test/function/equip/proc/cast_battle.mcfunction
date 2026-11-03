@@ -5,6 +5,8 @@
 # 投射 → 1体(test:equip/proc/cast_battle_projectile)。自分の発動では予約しない(equip_proc_casting)
 
 data modify storage test: magic.player set from storage test: equip_work.proc_queue[0].magic
+# 設置の魔法は戦闘の中では置けないので唱えない(つないだ魔法は、ここでは1段目だけが動く)
+execute if data storage test: magic.player{magic_type:"place"} run return 0
 
 tag @s add equip_proc_casting
 tellraw @a[distance=..64] ["",{selector:"@s"},{text:" の防具の魔法！",color:light_purple}]

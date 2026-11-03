@@ -34,6 +34,4 @@ scoreboard players operation #motion test.temporary /= #power test.multiplier
 
 execute if score #motion test.temporary matches -10..10 run tag @s remove attract
 
-function test:motion/player/pre
-
-item modify entity @s saddle test:move/add_impulse
+function test:motion/player/push

@@ -3,6 +3,14 @@
 # @Within function test:init/
 
 scoreboard objectives add test.X0 dummy
+scoreboard objectives add test.impulse.x dummy
+scoreboard objectives add test.impulse.y dummy
+scoreboard objectives add test.impulse.z dummy
+scoreboard objectives add test.magic_uid dummy
+scoreboard objectives add test.magic_cast dummy
+scoreboard objectives add test.device.life dummy
+scoreboard objectives add test.device.timer dummy
+scoreboard objectives add test.magic.press dummy
 scoreboard objectives add test.Y0 dummy
 scoreboard objectives add test.Z0 dummy
 

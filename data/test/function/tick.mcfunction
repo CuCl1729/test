@@ -50,6 +50,8 @@ execute as @a[gamemode=adventure] at @s if dimension test:factory run gamemode s
 execute as @a[gamemode=survival] at @s unless dimension test:factory run gamemode adventure @s
 
 scoreboard players add @e[tag=time] test.time 1
+# 設置の魔法で置いた物(起動の条件・残る時間・持ち主)
+execute as @e[type=armor_stand,tag=magic_device] at @s run function test:magic/place/tick
 
 # 全体共通の1秒クロック。バフ/デバフの継続時間は「秒」で持っているためここで進める
 scoreboard players add #clock test.time 1

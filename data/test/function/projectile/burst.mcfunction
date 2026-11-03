@@ -13,5 +13,10 @@ function test:projectile/prepare_buff
 scoreboard players set #aoe_heal test.temporary 0
 scoreboard players set #aoe_revive test.temporary 0
 
+# 爆風(効果 blast)は投射体が運んできた速さと、この爆発の半径で
+data remove storage test: magic_blast
+execute if data entity @s data.blast run data modify storage test: magic_blast set from entity @s data.blast
+execute if data entity @s data.blast store result storage test: magic_blast.radius int 1 run scoreboard players get #aoe_radius test.temporary
+
 execute at @s run function test:magic/aoe/scan
 execute at @s run function test:magic/aoe/apply
