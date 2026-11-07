@@ -149,7 +149,14 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   the stats; it runs on acquiring a passive, on `/reload` (`test:load`) and on login (`tick`). Passives never enter
   `test.job.skill_order`, the list the skill bundle and the battle skill lists are built from. Those lists and the
   entry points (`job/skill/use`, `battle/action/job_skill_cast`) still skip or refuse any node whose current kind is
-  `stat_bonus` (`job/skill/is_active`), so a sheet change or an old marker item can't cast one.
+  `stat_bonus` (`job/skill/is_active`), so a sheet change or an old marker item can't cast one. `job/skill/use` also
+  refuses a node the player no longer has.
+- **Job skill reset** (`job/reset/`): the tree's slot 26 (ticketed, so only the clicker) records a per-player pending
+  reset `test.job.reset = {job, station, seq}` and shows `[実行]` / `[キャンセル]` chat buttons (`/trigger test.job_reset
+  set <seq×10+1|2>`). Only the current `seq` acts; pressing, relogging or moving more than 6 from the station clears
+  it. `run` re-checks battle, unlock and distance, empties that job's `skills`, sets `skill_point` to level − 1 (the
+  total ever earned, never derived from current costs), drops that job's `skill_order` entries, then `refresh_bonus`
+  and `bundle/rebuild`.
 - **Magic**: `init/asset/magic/{types,effects}.mcfunction` register the catalog; `asset/magic/type/<t>`
   and `asset/magic/{effect,status}/<e>` hold the per-id logic. Each element's `cost` and `params` (speed,
   radius, base damage, max stacks…) come from the sheet's 魔法の数値 tab (merged by

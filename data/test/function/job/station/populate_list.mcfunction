@@ -24,6 +24,7 @@ data remove block ~ ~ ~ Items[{Slot:6b}]
 data remove block ~ ~ ~ Items[{Slot:7b}]
 data remove block ~ ~ ~ Items[{Slot:8b}]
 data remove block ~ ~ ~ Items[{Slot:18b}]
+data remove block ~ ~ ~ Items[{Slot:26b}]
 
 data modify entity @s data.job_ui.page_ids set value []
 scoreboard players set #job_slot test.temporary 1

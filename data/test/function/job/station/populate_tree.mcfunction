@@ -18,6 +18,12 @@ data remove block ~ ~ ~ Items[{Slot:18b}]
 
 data modify block ~ ~ ~ Items append value {Slot:18b,id:"barrier",count:1,components:{"minecraft:custom_name":{text:"戻る",italic:false},"minecraft:custom_data":{test:{job_ui:1b}}}}
 
+# スキルのリセット(押した本人に確認を出す。test:job/station/click_reset)
+data remove block ~ ~ ~ Items[{Slot:26b}]
+data modify storage test: job_work.reset_item set value {Slot:26b,id:"tnt",count:1,components:{"minecraft:custom_name":{text:"スキルをリセット",color:"red",italic:false},"minecraft:custom_data":{test:{job_ui:1b}}}}
+function test:station/action/stamp {item:"job_work.reset_item",slot:26}
+data modify block ~ ~ ~ Items append from storage test: job_work.reset_item
+
 data modify entity @s data.job_ui.node_ids set value []
 
 data modify storage test: registry_work.tree_job set value {id:""}

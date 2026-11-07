@@ -18,6 +18,7 @@ kill @e[type=item,nbt={Item:{components:{"minecraft:custom_data":{test:{station_
 execute as @e[tag=attract] at @s run function test:motion/player/attract/main
 # ログインし直したプレイヤー(職業のボーナスを組み直す。戦闘中にログアウトしていたら、戦闘の続きに戻すか元の場所へ帰す)
 execute as @a[scores={test.leave_game=1..}] run function test:job/refresh_bonus
+execute as @a[scores={test.leave_game=1..}] run function test:job/reset/clear
 execute as @a[scores={test.leave_game=1..}] at @s run function test:battle/rejoin
 execute in test:arena as @e[tag=battle_marker] at @s run function test:battle/tick
 # 戦闘中の入り口(フィールドに残る。叩くと途中参加できる)を見えるようにする
@@ -79,6 +80,9 @@ execute as @e[type=!interaction,tag=npc_body,tag=npc_looking] at @s unless entit
 # 会話: 選択肢のボタン(/trigger test.talk)を押した人。毎秒、NPC から離れた人の会話を終える
 execute as @a[scores={test.talk=1..}] at @s run function test:talk/press
 execute if score #clock test.time matches 0 as @a[tag=talking] at @s run function test:talk/range
+# 職業スキルのリセット: 確認ボタンを押した人。毎秒、ステーションから離れた人の確認待ちを消す(ログインし直しても消す)
+execute as @a[scores={test.job_reset=1..}] at @s run function test:job/reset/press
+execute if score #clock test.time matches 0 as @a[tag=job_reset_pending] at @s run function test:job/reset/range
 
 # クエスト: 毎秒、場所に行く段階を見て、一覧の trigger を使えるようにする。一覧を押した人に出す
 execute if score #clock test.time matches 0 run function test:quest/generated/reach

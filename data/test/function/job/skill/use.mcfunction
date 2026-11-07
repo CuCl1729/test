@@ -5,6 +5,9 @@
 # ダウン中は使えない
 execute if entity @s[tag=downed] run return 0
 # パッシブ(stat_bonus)は発動しない(パッシブに変わる前に作られた古い印アイテムから呼ばれても何もしない)
+# 今は取得していない(リセットした)スキルの古い印アイテムからは発動しない
+function #oh_my_dat:please
+$execute unless data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.job.data.$(job).skills{$(node):1b} run return 0
 $execute store result score #job_active test.job.work run function test:job/skill/is_active {job:"$(job)",node:"$(node)"}
 execute if score #job_active test.job.work matches 0 run return 0
 

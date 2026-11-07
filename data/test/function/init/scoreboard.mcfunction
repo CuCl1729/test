@@ -300,6 +300,8 @@ scoreboard objectives add test.owner dummy
  scoreboard objectives add test.talk_seq dummy
 # クエストの一覧(/trigger test.quest。いつでも使える)
  scoreboard objectives add test.quest trigger
+# 職業スキルのリセットの確認ボタン(/trigger test.job_reset set <通し番号×10+1(実行)/2(キャンセル)>。確認待ちの間だけ使える)
+ scoreboard objectives add test.job_reset trigger
 # 店・銀行のトロッコ: 持ち主の番号(トロッコ)と、目線がNPCから外れて続いたtick数(プレイヤー)
  scoreboard objectives add test.npc.cart_owner dummy
  scoreboard objectives add test.npc.cart_lost dummy
