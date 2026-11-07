@@ -1,7 +1,7 @@
 #> test:job/recalc_bonus
-# @s = 対象プレイヤー(please実行済みであること)。解放済みの全職業のgrowth×現在レベルを合算して
-# test.job_bonus.<stat>を組み立て直す(test.buff.<stat>と同じくstatus/updateの最後で加算される)。
-# レベルアップ・職業解放のときだけ呼べば十分(バフのような差分更新の仕組みは不要なほど頻度が低い)
+# @s = 対象プレイヤー(please実行済みであること)。解放済みの全職業のgrowth×現在レベルと、取得済みのパッシブ
+# (stat_bonus)を合算して test.job_bonus.<stat> をゼロから組み立て直す(test.buff.<stat>と同じくstatus/updateの最後で
+# 加算される)。毎回ゼロからなので何度呼んでも重ならない。実効ステータスまで直すときは test:job/refresh_bonus
 
 scoreboard players set @s test.job_bonus.atk 0
 scoreboard players set @s test.job_bonus.def 0

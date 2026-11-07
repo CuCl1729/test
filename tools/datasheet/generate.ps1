@@ -373,6 +373,7 @@ $substatArmor = New-Object System.Collections.Generic.List[string]
 $statDisplay = New-Object System.Collections.Generic.List[string]
 $statGrow = New-Object System.Collections.Generic.List[string]
 $statSeen = @{}
+$StatLabel = @{}
 foreach ($r in $data.stats) {
   $tab = $Tabs.stats; $n = $r.__row
   $t = Cell $r '種類'
@@ -382,6 +383,7 @@ foreach ($r in $data.stats) {
   $icon = Cell $r 'アイコン'; $label = Cell $r '名前'; $color = Cell $r '色'; $unit = Cell $r '単位'
   if ($icon -eq '' -or $label -eq '' -or $color -eq '') { Add-Err $tab $n '「アイコン」「名前」「色」は空にできません' }
   $statDisplay.Add("{type:`"$t`",icon:`"$(Esc $icon)`",label:`"$(Esc $label)`",color:`"$color`",unit:`"$(Esc $unit)`"}")
+  $StatLabel[$t] = @{ label = $label; color = $color; unit = $unit }
 
   $roll = Cell $r '抽選値'; $weapon = Cell $r '武器'; $grow = Cell $r '成長'
   if ($weapon -ne '' -and $weapon -ne '1') { Add-Err $tab $n "「武器」($weapon) は 1 か空にしてください(1 なら武器でも抽選に出る)" }
@@ -811,7 +813,7 @@ foreach ($r in $data.jobs) {
   $gp = Parse-Pairs $tab $n '成長' (Cell $r '成長') ';'
   foreach ($k in $gp.Keys) {
     if ($JobStats -notcontains $k) { Add-Err $tab $n "「成長」の $k は職業で伸ばせるステータスではありません(使えるもの: $($JobStats -join ' / '))"; continue }
-    $growth.Add("{stat:`"$k`",per_level:$(To-Internal $tab $n '成長' $gp[$k])}")
+    $growth.Add("{stat:`"$k`",amount:$(To-Internal $tab $n '成長' $gp[$k])}")
   }
   $jobs[$id] = @{ row = $n; label = $label; color = $color; coef = $coef; growth = ($growth -join ','); requires = (Parse-Pairs $tab $n '前提' (Cell $r '前提') ';'); skills = [ordered]@{} }
 }
@@ -831,11 +833,29 @@ foreach ($r in $data.job_skills) {
   if ($label -eq '') { Add-Err $tab $n '「名前」が空です' }
   [void](Check-Int $tab $n '必要レベル' $lv 1)
   [void](Check-Int $tab $n 'コスト' $cost 0)
+  $reqs = @(((Cell $r '前提スキル') -split ';') | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' })
+  # パッシブ(stat_bonus): 取ると常にステータスが上がる。発動しないのでハンドラは無く、params は「ステータス=増加量」(表示の単位)
+  if ($kind -eq 'stat_bonus') {
+    $bonus = New-Object System.Collections.Generic.List[string]
+    $lore = New-Object System.Collections.Generic.List[string]
+    $bp = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
+    if ($bp.Count -eq 0) { Add-Err $tab $n '種類「stat_bonus」の params が空です(例: atk=5; hp_max=20)' }
+    foreach ($k in $bp.Keys) {
+      $raw = $bp[$k]
+      if ($JobStats -notcontains $k) { Add-Err $tab $n "params の $k は職業で伸ばせるステータスではありません(使えるもの: $($JobStats -join ' / '))"; continue }
+      if ($raw -match $NumPattern -and [decimal]::Parse($raw, [Globalization.CultureInfo]::InvariantCulture) -le 0) { Add-Err $tab $n "params の $k ($raw) は0より大きくしてください"; continue }
+      $bonus.Add("{stat:`"$k`",amount:$(To-Internal $tab $n "params の $k" $raw)}")
+      # 説明文は装備と同じ「ステータス」タブの <stat>_add の名前・色・単位。その行が無いステータスは id のまま出す
+      $d = $StatLabel["$($k)_add"]; if ($null -eq $d) { $d = @{ label = $k; color = 'white'; unit = '' } }
+      $lore.Add("{text:`"$(Esc "$($d.label) +$raw$($d.unit)")`",color:`"$($d.color)`",italic:false}")
+    }
+    $jobs[$jid].skills[$id] = @{ row = $n; reqs = $reqs; snbt = "label:`"$(Esc $label)`",requires_level:$lv,requires_nodes:[REQS],cost:$cost,kind:`"stat_bonus`",bonus:[$($bonus -join ',')],lore:[$($lore -join ',')]" }
+    continue
+  }
   if (-not $SkillParams.ContainsKey($kind)) { Add-Err $tab $n "種類「$kind」の関数 job/skill/handler/$kind.mcfunction がありません(今あるもの: $(@($SkillParams.Keys) -join ' / '))"; continue }
   $params = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
   foreach ($need in $SkillParams[$kind]) { if (-not $params.Contains($need)) { Add-Err $tab $n "種類「$kind」には params の $need が必要です" } }
   $ps = @($params.Keys | ForEach-Object { "$($_):$(Snbt-Value $params[$_])" }) -join ','
-  $reqs = @(((Cell $r '前提スキル') -split ';') | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' })
   $jobs[$jid].skills[$id] = @{ row = $n; reqs = $reqs; snbt = "label:`"$(Esc $label)`",requires_level:$lv,requires_nodes:[REQS],cost:$cost,kind:`"$kind`",params:{$ps}" }
 }
 $jobDecls = New-Object System.Collections.Generic.List[string]

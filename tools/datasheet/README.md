@@ -242,6 +242,8 @@ Googleスプレッドシートに書いたゲームデータから、`.mcfunctio
   `revive` 倒れた味方を1人起こす)。ターン制で使うには `battle/action/job_skill/handler/<種類>.mcfunction` も要ります
 - **params**: その種類に渡す値(例: `angle=60; multiplier=150; mp_cost=10; reach=5`。
   `revive` は `mp_cost=30; percent=30; radius=8` = 消費MP・戻すHP(最大HPの%)・リアルタイムで届く距離)
+- **`stat_bonus`(パッシブ)**: 取ると常にステータスが上がり、発動はしません(バンドルや戦闘の一覧に出ません)。
+  params は `atk=5; hp_max=20`(表示の単位。使えるステータスは職業の「成長」と同じ)。増加量は0より大きく
 - 1つの職業にいくつでも書けます(Jobステーションでは7つずつページを送って表示)。並び順が表示順です
 
 ### 魔法の数値(列: `要素` / `コスト` / `params`)

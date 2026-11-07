@@ -1,7 +1,8 @@
 #> test:init/asset/job/
 # 職業(job)レジストリを組み立て直す(test:init/asset/から呼ばれる)。
-# asset.job.jobs = [{id, label, color, requires:[{job,level}], exp_coefficient, growth:[{stat,per_level}],
-#   skills:[{id, label, requires_level, requires_nodes, cost, kind, params}]}]
+# asset.job.jobs = [{id, label, color, requires:[{job,level}], exp_coefficient, growth:[{stat,amount}](1レベルごと),
+#   skills:[{id, label, requires_level, requires_nodes, cost, kind, params}
+#     | {…, kind:"stat_bonus", bonus:[{stat,amount}], lore:[説明文]}(パッシブ。取得済みなら常に加算)]}]
 # 並び順がJobステーションの表示順。前提条件はプレイヤー側のoh_my_datを見て判定する
 
 data remove storage test: asset.job.jobs

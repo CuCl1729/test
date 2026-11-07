@@ -16,7 +16,8 @@ execute as @a if items entity @s player.cursor *[custom_data~{test:{station_acti
 clear @a *[custom_data~{test:{station_action:{}}}]
 kill @e[type=item,nbt={Item:{components:{"minecraft:custom_data":{test:{station_action:{}}}}}}]
 execute as @e[tag=attract] at @s run function test:motion/player/attract/main
-# ログインし直したプレイヤー(戦闘中にログアウトしていたら、戦闘の続きに戻すか元の場所へ帰す)
+# ログインし直したプレイヤー(職業のボーナスを組み直す。戦闘中にログアウトしていたら、戦闘の続きに戻すか元の場所へ帰す)
+execute as @a[scores={test.leave_game=1..}] run function test:job/refresh_bonus
 execute as @a[scores={test.leave_game=1..}] at @s run function test:battle/rejoin
 execute in test:arena as @e[tag=battle_marker] at @s run function test:battle/tick
 # 戦闘中の入り口(フィールドに残る。叩くと途中参加できる)を見えるようにする

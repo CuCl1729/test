@@ -22,5 +22,10 @@ execute if score #node_state test.temporary matches 2 run data modify storage te
 execute if score #node_state test.temporary matches 1 run data modify storage test: job_work.tree_item.components."minecraft:custom_name".color set value "yellow"
 execute if score #node_state test.temporary matches 0 run data modify storage test: job_work.tree_item.components."minecraft:custom_name".color set value "gray"
 
+# パッシブ(stat_bonus)は増加量と取得状態を説明文に出す
+data modify storage test: job_work.tree_item.components."minecraft:lore" set from storage test: registry_work.tree_entry.lore
+execute if data storage test: registry_work.tree_entry{kind:"stat_bonus"} if score #node_state test.temporary matches 2 run data modify storage test: job_work.tree_item.components."minecraft:lore" append value {text:"取得済み",color:"green",italic:false}
+execute if data storage test: registry_work.tree_entry{kind:"stat_bonus"} unless score #node_state test.temporary matches 2 run data modify storage test: job_work.tree_item.components."minecraft:lore" append value {text:"未取得",color:"gray",italic:false}
+
 $function test:station/action/stamp {item:"job_work.tree_item",slot:$(slot)}
 data modify block ~ ~ ~ Items append from storage test: job_work.tree_item

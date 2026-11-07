@@ -22,6 +22,9 @@ $execute store result storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.
 
 $data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.job.data.$(job).skills.$(node) set value 1b
 
+# パッシブは発動しないので skill_order(バンドルと戦闘のスキル一覧の元)に入れず、ステータスだけ組み直す
+execute if data storage test: job_work.skill_entry{kind:"stat_bonus"} run return run function test:job/refresh_bonus
+
 data modify storage test: job_work.new_skill_ref set value {job:"",node:""}
 $data modify storage test: job_work.new_skill_ref.job set value "$(job)"
 $data modify storage test: job_work.new_skill_ref.node set value "$(node)"

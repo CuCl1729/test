@@ -15,4 +15,4 @@ execute if score #known_type_count test.temporary matches 1.. run scoreboard pla
 
 scoreboard players set #has_active_skill test.temporary 0
 execute if score @s test.battle.weapon_aoe matches 1 run scoreboard players set #has_active_skill test.temporary 1
-execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.job.skill_order[0] run scoreboard players set #has_active_skill test.temporary 1
+execute if function test:job/skill/has_active run scoreboard players set #has_active_skill test.temporary 1

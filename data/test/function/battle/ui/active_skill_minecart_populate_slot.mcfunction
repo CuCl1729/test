@@ -3,6 +3,8 @@
 # トロッコのスロット0〜25に並べ、26件を超える分は飛ばす
 
 execute if score #active_slot test.temporary matches 26.. run return 0
+$execute store result score #job_active test.job.work run function test:job/skill/is_active {job:"$(job)",node:"$(node)"}
+execute if score #job_active test.job.work matches 0 run return 0
 
 $function test:job/skill/load_entry {job:"$(job)",node:"$(node)"}
 

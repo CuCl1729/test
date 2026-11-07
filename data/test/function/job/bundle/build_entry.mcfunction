@@ -4,6 +4,9 @@
 # 組み立て、job_work.bundle_itemsの先頭へ差し込む(build_queueは末尾から取り出しているため、
 # 先頭挿入で元のskill_order順に戻る)
 
+$execute store result score #job_active test.job.work run function test:job/skill/is_active {job:"$(job)",node:"$(node)"}
+execute if score #job_active test.job.work matches 0 run return 0
+
 $function test:job/skill/load_entry {job:"$(job)",node:"$(node)"}
 
 data modify storage test: job_work.built_item set value {id:"nether_star",count:1,components:{"minecraft:custom_name":{text:"",italic:false,color:"light_purple"},"minecraft:max_stack_size":1,"minecraft:custom_data":{test:{skill_marker:1b,kind:"job"}}}}

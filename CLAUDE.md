@@ -143,6 +143,13 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   real weapon — there it patches the score directly instead, matching `damage/pre_magic`'s handling of
   the same situation); non-players (no equipment) just add onto the `test.status.base.<stat>` recorded
   at summon time.
+- **Job bonuses** (`test.job_bonus.<stat>`, added at the end of `status/update`): `job/recalc_bonus` rebuilds them
+  from zero every time, from each unlocked job's `growth` × level and its acquired passive skills (kind `stat_bonus`,
+  `bonus:[{stat, amount}]` from the 職業スキル tab's params, plus `lore` for the tree). `job/refresh_bonus` also rebuilds
+  the stats; it runs on acquiring a passive, on `/reload` (`test:load`) and on login (`tick`). Passives never enter
+  `test.job.skill_order`, the list the skill bundle and the battle skill lists are built from. Those lists and the
+  entry points (`job/skill/use`, `battle/action/job_skill_cast`) still skip or refuse any node whose current kind is
+  `stat_bonus` (`job/skill/is_active`), so a sheet change or an old marker item can't cast one.
 - **Magic**: `init/asset/magic/{types,effects}.mcfunction` register the catalog; `asset/magic/type/<t>`
   and `asset/magic/{effect,status}/<e>` hold the per-id logic. Each element's `cost` and `params` (speed,
   radius, base damage, max stacks…) come from the sheet's 魔法の数値 tab (merged by
@@ -246,7 +253,8 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - The script validates everything before writing anything:
     - stat types against the ステータス tab rows that have a `成長` (also rune stats)
     - effect `kind`s against the files in `equip/effect/` (4-piece), `consumable/effect/` (consumables,
-      which also need `consumable/lore/<kind>`), `job/skill/handler/` (job skills), gimmick ids against
+      which also need `consumable/lore/<kind>`), `job/skill/handler/` (job skills, except the passive `stat_bonus`, whose params must be job-growth stats
+      with values > 0), gimmick ids against
       `battle/enemy_ai/gimmick/`, and required `params` against that file's `$(…)` names (magic: the
       per-id file; buffs: all `buff/on/*/<id>`)
     - cross-references (series, recipe materials by role, drops, enemy buffs/equip drops, job prerequisites)

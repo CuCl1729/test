@@ -11,3 +11,8 @@ $execute store result score #level test.job.work run data get storage oh_my_dat:
 
 data modify storage test: job_work.growth_queue set from storage test: job_work.recalc_entry.growth
 function test:job/recalc_bonus_growth_loop
+
+# 取得済みのパッシブ(種類 stat_bonus)の加算
+data modify storage test: job_work.passive_queue set value []
+data modify storage test: job_work.passive_queue append from storage test: job_work.recalc_entry.skills[{kind:"stat_bonus"}]
+$function test:job/recalc_bonus_passive_loop {job:"$(id)"}
