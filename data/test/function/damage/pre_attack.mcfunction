@@ -1,3 +1,5 @@
+execute if entity @s[type=player,tag=!attack_bonus_split] run function test:damage/migrate_attack_bonus
+
 function test:status/refresh {status:"atk"}
 function test:status/refresh {status:"hp_max"}
 function test:status/refresh {status:"def"}

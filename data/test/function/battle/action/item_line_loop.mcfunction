@@ -1,5 +1,5 @@
 #> test:battle/action/item_line_loop
-# @s = プレイヤー。registry_work.item_queue(battle.temporary.item_slot のコピー)を1件ずつ、番号付きの行にして出す
+# @s = プレイヤー。registry_work.item_queue(data.turn.item_slot のコピー)を1件ずつ、番号付きの行にして出す
 
 execute unless data storage test: registry_work.item_queue[0] run return 0
 

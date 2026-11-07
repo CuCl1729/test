@@ -3,6 +3,8 @@
 # @s の data.chain(残りの段。[0] が次)から次の段を取り出し、持ち主(test.owner = 詠唱者の OhMyDatID)として、
 # この位置でその段を始める(test:magic/chain/start)。持ち主がいなければ何もしない
 execute unless data entity @s data.chain[0] run return 0
+data modify storage test: chain_work.from_device set value 0b
+execute if entity @s[tag=magic_device] run data modify storage test: chain_work.from_device set value 1b
 data modify storage test: chain_work.rest set from entity @s data.chain
 data remove storage test: chain_work.uid
 data modify storage test: chain_work.uid set from entity @s data.uid

@@ -4,6 +4,7 @@
 
 execute as @p[distance=..6] run function #oh_my_dat:please
 
+data modify entity @s data.station.buttons set value {}
 data modify storage test: registry_work.reverse_src set from storage test: asset.job.jobs
 data remove storage test: registry_work.reverse_dst
 function test:magic/registry/reverse_loop

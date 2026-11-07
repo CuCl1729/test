@@ -7,6 +7,8 @@ execute if score #item_kinds test.temporary matches 0 run return run execute sto
 
 execute anchored eyes positioned ^ ^-0.35 ^ run summon chest_minecart ~ ~ ~ {Tags:[item_minecart],NoGravity:1b,Invulnerable:1b}
 
-data modify storage test: registry_work.item_queue set from storage test: battle.temporary.item_slot
+data modify storage test: registry_work.item_queue set from entity @n[tag=battle_marker,distance=..64] data.turn.item_slot
 scoreboard players set #item_line test.temporary 0
 function test:battle/ui/item_minecart_populate_loop
+
+execute as @n[tag=item_minecart,distance=..4] at @s run function test:battle/ui/cart_bind {screen:"item"}

@@ -1,30 +1,30 @@
 #> test:battle/ui/item_cart_tick
 # @s = アイテムのトロッコ本体(test:tickから毎tick、at @s)。取られたスロットの消耗品を、取ったプレイヤーが使う
-# (スロット番号は battle.temporary.item_slot の位置。test:battle/ui/item_hover_summon が並べた順)
+# (スロット番号は data.turn.item_slot の位置。test:battle/ui/item_hover_summon が並べた順)
 
-execute if data storage test: battle.temporary.item_slot[0] unless entity @s[nbt={Items:[{Slot:0b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:0}
-execute if data storage test: battle.temporary.item_slot[1] unless entity @s[nbt={Items:[{Slot:1b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:1}
-execute if data storage test: battle.temporary.item_slot[2] unless entity @s[nbt={Items:[{Slot:2b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:2}
-execute if data storage test: battle.temporary.item_slot[3] unless entity @s[nbt={Items:[{Slot:3b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:3}
-execute if data storage test: battle.temporary.item_slot[4] unless entity @s[nbt={Items:[{Slot:4b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:4}
-execute if data storage test: battle.temporary.item_slot[5] unless entity @s[nbt={Items:[{Slot:5b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:5}
-execute if data storage test: battle.temporary.item_slot[6] unless entity @s[nbt={Items:[{Slot:6b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:6}
-execute if data storage test: battle.temporary.item_slot[7] unless entity @s[nbt={Items:[{Slot:7b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:7}
-execute if data storage test: battle.temporary.item_slot[8] unless entity @s[nbt={Items:[{Slot:8b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:8}
-execute if data storage test: battle.temporary.item_slot[9] unless entity @s[nbt={Items:[{Slot:9b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:9}
-execute if data storage test: battle.temporary.item_slot[10] unless entity @s[nbt={Items:[{Slot:10b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:10}
-execute if data storage test: battle.temporary.item_slot[11] unless entity @s[nbt={Items:[{Slot:11b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:11}
-execute if data storage test: battle.temporary.item_slot[12] unless entity @s[nbt={Items:[{Slot:12b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:12}
-execute if data storage test: battle.temporary.item_slot[13] unless entity @s[nbt={Items:[{Slot:13b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:13}
-execute if data storage test: battle.temporary.item_slot[14] unless entity @s[nbt={Items:[{Slot:14b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:14}
-execute if data storage test: battle.temporary.item_slot[15] unless entity @s[nbt={Items:[{Slot:15b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:15}
-execute if data storage test: battle.temporary.item_slot[16] unless entity @s[nbt={Items:[{Slot:16b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:16}
-execute if data storage test: battle.temporary.item_slot[17] unless entity @s[nbt={Items:[{Slot:17b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:17}
-execute if data storage test: battle.temporary.item_slot[18] unless entity @s[nbt={Items:[{Slot:18b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:18}
-execute if data storage test: battle.temporary.item_slot[19] unless entity @s[nbt={Items:[{Slot:19b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:19}
-execute if data storage test: battle.temporary.item_slot[20] unless entity @s[nbt={Items:[{Slot:20b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:20}
-execute if data storage test: battle.temporary.item_slot[21] unless entity @s[nbt={Items:[{Slot:21b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:21}
-execute if data storage test: battle.temporary.item_slot[22] unless entity @s[nbt={Items:[{Slot:22b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:22}
-execute if data storage test: battle.temporary.item_slot[23] unless entity @s[nbt={Items:[{Slot:23b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:23}
-execute if data storage test: battle.temporary.item_slot[24] unless entity @s[nbt={Items:[{Slot:24b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:24}
-execute if data storage test: battle.temporary.item_slot[25] unless entity @s[nbt={Items:[{Slot:25b}]}] as @p[distance=..3] at @s run return run function test:battle/ui/item_pick {index:25}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:0b}] unless entity @s[nbt={Items:[{Slot:0b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:0,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:1b}] unless entity @s[nbt={Items:[{Slot:1b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:1,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:2b}] unless entity @s[nbt={Items:[{Slot:2b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:2,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:3b}] unless entity @s[nbt={Items:[{Slot:3b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:3,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:4b}] unless entity @s[nbt={Items:[{Slot:4b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:4,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:5b}] unless entity @s[nbt={Items:[{Slot:5b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:5,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:6b}] unless entity @s[nbt={Items:[{Slot:6b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:6,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:7b}] unless entity @s[nbt={Items:[{Slot:7b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:7,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:8b}] unless entity @s[nbt={Items:[{Slot:8b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:8,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:9b}] unless entity @s[nbt={Items:[{Slot:9b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:9,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:10b}] unless entity @s[nbt={Items:[{Slot:10b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:10,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:11b}] unless entity @s[nbt={Items:[{Slot:11b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:11,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:12b}] unless entity @s[nbt={Items:[{Slot:12b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:12,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:13b}] unless entity @s[nbt={Items:[{Slot:13b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:13,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:14b}] unless entity @s[nbt={Items:[{Slot:14b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:14,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:15b}] unless entity @s[nbt={Items:[{Slot:15b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:15,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:16b}] unless entity @s[nbt={Items:[{Slot:16b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:16,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:17b}] unless entity @s[nbt={Items:[{Slot:17b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:17,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:18b}] unless entity @s[nbt={Items:[{Slot:18b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:18,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:19b}] unless entity @s[nbt={Items:[{Slot:19b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:19,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:20b}] unless entity @s[nbt={Items:[{Slot:20b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:20,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:21b}] unless entity @s[nbt={Items:[{Slot:21b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:21,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:22b}] unless entity @s[nbt={Items:[{Slot:22b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:22,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:23b}] unless entity @s[nbt={Items:[{Slot:23b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:23,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:24b}] unless entity @s[nbt={Items:[{Slot:24b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:24,action:"item_pick"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.item[{Slot:25b}] unless entity @s[nbt={Items:[{Slot:25b}]}] run return run function test:battle/ui/cart_pick {screen:"item",slot:25,action:"item_pick"}

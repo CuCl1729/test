@@ -627,7 +627,7 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   |---|---|
   | `smithy` 工房 | 武器 `craft/weapon/forge/craft` / 防具 `craft/equip/craft` |
   | `enhance` 強化台 | 強化 `craft/weapon/upgrade/craft` / 付与 `craft/equip_magic/craft` |
-  | `magic` 魔法台 (breakable) | 作成 `magic/crafter/{main,enter}` / 研究 `craft/magic/research/{main,enter}` (see "Research") |
+  | `magic` 魔法台 (breakable) | 作成 `magic/crafter/{main,enter}` (up to 27 elements: the middle row pages 9 at a time, `crafter_ui.bpage` / `view`, arrows 19/21; slot 23 is the name slot, keep, where a 本と羽根ペン's first page replaces the auto name, `crafter/book_name`) / 研究 `craft/magic/research/{main,enter}` (see "Research") |
   | `job` Jobステーション | one mode, `job/station/{main,enter}` (7 per page: slots 1–7, arrows 0/8, 戻る 18) |
   | `crafter` カスタムクラフター (breakable) | one mode, `craft/custom/{main,enter}` (see "Custom crafter") |
   - Markers are tagged `station` with `data.station = {id, mode, main|craft}`; `tick` has one line for all of

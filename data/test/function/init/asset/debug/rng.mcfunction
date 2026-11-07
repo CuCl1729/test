@@ -31,3 +31,5 @@ data modify storage test: asset.debug.rng append value {key:"fish_count",label:"
 data modify storage test: asset.debug.rng append value {key:"crop_drop",label:"作物のドロップの個数",range:"最小..最大 (行ごと)",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"crop_yield",label:"エッセンスの個数",range:"最小..最大",fixable:1b}
 data modify storage test: asset.debug.rng append value {key:"crop_seed",label:"種が増えるか",range:"1..100 (確率以下で増える)",fixable:1b}
+
+data modify storage test: asset.debug.rng append value {key:"device_direction",label:"設置物の発射方向",range:"0..359999 (度 × 1000)",fixable:1b}

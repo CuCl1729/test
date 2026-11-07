@@ -1,7 +1,7 @@
 #> test:battle/ui/target_minecart_toggle
 # @s = 対象アイコンを取ったプレイヤー(トロッコ式)。$(index) = 取られたスロット番号(0〜7)
 
-$execute store result score #picked_turn_order test.temporary run data get storage test: battle.temporary.target_slot[$(index)]
+$execute store result score #picked_turn_order test.temporary run data get entity @n[tag=battle_marker,distance=..64] data.turn.target_slot[$(index)]
 
 # target_toggleは敵を@sにして呼ぶので、手番の人(@s)の選択できる数をここで控えておく
 scoreboard players operation #target_max test.battle.target_max = @s test.battle.target_max

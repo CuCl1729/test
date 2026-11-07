@@ -240,6 +240,13 @@ foreach ($key in $Tabs.Keys) {
   $first = ($text -split "`r?`n")[0]
   $heads = @($first | ConvertFrom-Csv -Header (1..64) | ForEach-Object { $_.PSObject.Properties.Value } | Where-Object { $_ })
   foreach ($h in $RequiredHeaders[$key]) { if ($heads -notcontains $h) { Add-Err $Tabs[$key] 1 "見出し「$h」の列がありません" } }
+  foreach ($r in $data[$key]) {
+    foreach ($h in $RequiredHeaders[$key]) {
+      if ($h -notin @('本文','説明') -and [string]$r.$h -match '[\r\n]') {
+        Add-Err $Tabs[$key] $r.__row "「$h」に改行は使えません"
+      }
+    }
+  }
 }
 
 # まとめたタブの行を、今までのタブの見出しを持つ行に作り直して $data.<今までのキー> に入れる(シートの順のまま。行番号はまとめたタブのもの)。
@@ -310,8 +317,8 @@ $ItemPattern = '^([a-z0-9_.-]+:)?[a-z0-9_./-]+$'
 $CommonBaseItem = 'minecraft:recovery_compass'
 $NumPattern = '^-?\d+(\.\d+)?$'
 
-function Esc([string]$s) { return $s.Replace('\', '\\').Replace('"', '\"') }
-function Json-Str([string]$s) { return '"' + $s.Replace('\', '\\').Replace('"', '\"') + '"' }
+function Esc([string]$s) { return $s.Replace('\', '\\').Replace('"', '\"').Replace("`r", '\r').Replace("`n", '\n').Replace("`t", '\t') }
+function Json-Str([string]$s) { return (ConvertTo-Json -InputObject $s -Compress) }
 
 function Check-Id($tab, $row, $col, $value) {
   if ($value -eq '') { Add-Err $tab $row "「$col」が空です"; return $false }
@@ -2062,8 +2069,10 @@ foreach ($id in $nodes.Keys) {
   $lines = @("# 会話のノード「$id」(スプレッドシートの「会話」タブ)。@s = 話しかけた人、実行位置 = NPC", '')
   if ($all) { $lines += 'execute unless function test:talk/party_ready run return run function test:talk/not_ready' }
   $lines += "function test:talk/begin {node:`"$id`"}"
-  $lines += "tellraw $tgt `"`""
-  $lines += "tellraw $tgt [$who$body]"
+  if ($next -ne '') { $lines += "data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.talk.next set value `"$next`"" }
+  else { $lines += 'function test:talk/skip_stop' }
+  $lines += "execute unless entity @s[tag=talk_skipping] run tellraw $tgt `"`""
+  $lines += "execute unless entity @s[tag=talk_skipping] run tellraw $tgt [$who$body]"
   if ($af -ne '') { $lines += "function $af" }
   $lines += $buttons
   $lines += 'function test:talk/finish'

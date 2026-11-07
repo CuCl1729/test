@@ -1,34 +1,34 @@
 #> test:battle/ui/skill_effect_cart_tick
 # @s = 効果選択トロッコ本体(test:tickから毎tick呼ばれる)。自分のスロットが取られたか確認する
-# (戦闘マーカー経由の手番判定は使わず、カートの近くにいるプレイヤー=所有者とする)
-# スロット番号と効果idの対応はpopulate時にbattle.temporary.effect_slotへ控えてある
+# 現在の手番と、取ったボタンの印を照合して入力を受け付ける。
+# スロット番号と効果idの対応はpopulate時にdata.turn.effect_slotへ控えてある
 
-execute if data storage test: battle.temporary.effect_slot[0] unless entity @s[nbt={Items:[{Slot:0b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:0}
-execute if data storage test: battle.temporary.effect_slot[1] unless entity @s[nbt={Items:[{Slot:1b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:1}
-execute if data storage test: battle.temporary.effect_slot[2] unless entity @s[nbt={Items:[{Slot:2b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:2}
-execute if data storage test: battle.temporary.effect_slot[3] unless entity @s[nbt={Items:[{Slot:3b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:3}
-execute if data storage test: battle.temporary.effect_slot[4] unless entity @s[nbt={Items:[{Slot:4b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:4}
-execute if data storage test: battle.temporary.effect_slot[5] unless entity @s[nbt={Items:[{Slot:5b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:5}
-execute if data storage test: battle.temporary.effect_slot[6] unless entity @s[nbt={Items:[{Slot:6b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:6}
-execute if data storage test: battle.temporary.effect_slot[7] unless entity @s[nbt={Items:[{Slot:7b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:7}
-execute if data storage test: battle.temporary.effect_slot[8] unless entity @s[nbt={Items:[{Slot:8b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:8}
-execute if data storage test: battle.temporary.effect_slot[9] unless entity @s[nbt={Items:[{Slot:9b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:9}
-execute if data storage test: battle.temporary.effect_slot[10] unless entity @s[nbt={Items:[{Slot:10b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:10}
-execute if data storage test: battle.temporary.effect_slot[11] unless entity @s[nbt={Items:[{Slot:11b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:11}
-execute if data storage test: battle.temporary.effect_slot[12] unless entity @s[nbt={Items:[{Slot:12b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:12}
-execute if data storage test: battle.temporary.effect_slot[13] unless entity @s[nbt={Items:[{Slot:13b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:13}
-execute if data storage test: battle.temporary.effect_slot[14] unless entity @s[nbt={Items:[{Slot:14b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:14}
-execute if data storage test: battle.temporary.effect_slot[15] unless entity @s[nbt={Items:[{Slot:15b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:15}
-execute if data storage test: battle.temporary.effect_slot[16] unless entity @s[nbt={Items:[{Slot:16b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:16}
-execute if data storage test: battle.temporary.effect_slot[17] unless entity @s[nbt={Items:[{Slot:17b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:17}
-execute if data storage test: battle.temporary.effect_slot[18] unless entity @s[nbt={Items:[{Slot:18b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:18}
-execute if data storage test: battle.temporary.effect_slot[19] unless entity @s[nbt={Items:[{Slot:19b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:19}
-execute if data storage test: battle.temporary.effect_slot[20] unless entity @s[nbt={Items:[{Slot:20b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:20}
-execute if data storage test: battle.temporary.effect_slot[21] unless entity @s[nbt={Items:[{Slot:21b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:21}
-execute if data storage test: battle.temporary.effect_slot[22] unless entity @s[nbt={Items:[{Slot:22b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:22}
-execute if data storage test: battle.temporary.effect_slot[23] unless entity @s[nbt={Items:[{Slot:23b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:23}
-execute if data storage test: battle.temporary.effect_slot[24] unless entity @s[nbt={Items:[{Slot:24b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:24}
-execute if data storage test: battle.temporary.effect_slot[25] unless entity @s[nbt={Items:[{Slot:25b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_toggle {index:25}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:0b}] unless entity @s[nbt={Items:[{Slot:0b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:0,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:1b}] unless entity @s[nbt={Items:[{Slot:1b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:1,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:2b}] unless entity @s[nbt={Items:[{Slot:2b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:2,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:3b}] unless entity @s[nbt={Items:[{Slot:3b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:3,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:4b}] unless entity @s[nbt={Items:[{Slot:4b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:4,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:5b}] unless entity @s[nbt={Items:[{Slot:5b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:5,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:6b}] unless entity @s[nbt={Items:[{Slot:6b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:6,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:7b}] unless entity @s[nbt={Items:[{Slot:7b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:7,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:8b}] unless entity @s[nbt={Items:[{Slot:8b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:8,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:9b}] unless entity @s[nbt={Items:[{Slot:9b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:9,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:10b}] unless entity @s[nbt={Items:[{Slot:10b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:10,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:11b}] unless entity @s[nbt={Items:[{Slot:11b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:11,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:12b}] unless entity @s[nbt={Items:[{Slot:12b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:12,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:13b}] unless entity @s[nbt={Items:[{Slot:13b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:13,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:14b}] unless entity @s[nbt={Items:[{Slot:14b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:14,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:15b}] unless entity @s[nbt={Items:[{Slot:15b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:15,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:16b}] unless entity @s[nbt={Items:[{Slot:16b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:16,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:17b}] unless entity @s[nbt={Items:[{Slot:17b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:17,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:18b}] unless entity @s[nbt={Items:[{Slot:18b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:18,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:19b}] unless entity @s[nbt={Items:[{Slot:19b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:19,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:20b}] unless entity @s[nbt={Items:[{Slot:20b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:20,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:21b}] unless entity @s[nbt={Items:[{Slot:21b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:21,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:22b}] unless entity @s[nbt={Items:[{Slot:22b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:22,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:23b}] unless entity @s[nbt={Items:[{Slot:23b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:23,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:24b}] unless entity @s[nbt={Items:[{Slot:24b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:24,action:"skill_effect_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:25b}] unless entity @s[nbt={Items:[{Slot:25b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:25,action:"skill_effect_minecart_toggle"}
 
 # 詠唱ボタンはスロット26(0〜25は効果)
-execute unless entity @s[nbt={Items:[{Slot:26b}]}] as @p[distance=..3] at @s run function test:battle/ui/skill_effect_minecart_resolve
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.skill_effect[{Slot:26b}] unless entity @s[nbt={Items:[{Slot:26b}]}] run return run function test:battle/ui/cart_pick {screen:"skill_effect",slot:26,action:"skill_effect_minecart_resolve"}

@@ -2,10 +2,12 @@
 # @s = 詠唱者(手番)。装備中の武器(範囲攻撃剣)で、生存している敵全員へ範囲攻撃を当てる
 # (ターン制には実際の位置関係が無いため対象選択を挟まない)。ダメージはリアルタイムの test:attack/aoe と同じく、
 # 通常攻撃のダメージ(test:attack/prepare_damage)× aoe_multiplier。
-# 武器は手番の開始時に控えた battle.actor_weapon.item から読む(アイテム式UIはメインハンドが行動アイテムのため)
+# 武器は手番の開始時に控えた data.turn.actor_weapon.item から読む(アイテム式UIはメインハンドが行動アイテムのため)
 
+execute unless function test:battle/ui/current_actor run return 0
+execute unless score @s test.battle.weapon_aoe matches 1 run return 0
 data modify storage test: attack.player set value {}
-data modify storage test: attack.player set from storage test: battle.actor_weapon.item
+data modify storage test: attack.player set from entity @n[tag=battle_marker,distance=..64] data.turn.actor_weapon.item
 execute unless data storage test: attack.player.damage run data modify storage test: attack.player.damage set value {physics:{atk:100}}
 
 scoreboard players set #mp_cost test.job.work 0

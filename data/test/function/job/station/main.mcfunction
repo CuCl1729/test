@@ -1,6 +1,8 @@
 #> test:job/station/main
 # @s = Jobステーションのマーカー(バレルの位置、test:station/tickから毎tick呼ばれる)
 
+execute unless data entity @s data.station.buttons if entity @s[nbt={data:{job_ui:{view:"list"}}}] run function test:job/station/populate_list
+execute unless data entity @s data.station.buttons if entity @s[nbt={data:{job_ui:{view:"tree"}}}] run function test:job/station/populate_tree
 execute if entity @s[nbt={data:{job_ui:{view:"list"}}}] run function test:job/station/main_list
 execute if entity @s[nbt={data:{job_ui:{view:"tree"}}}] run function test:job/station/main_tree
 

@@ -1,13 +1,8 @@
-#> test:craft/custom/main
-# @s = カスタムクラフターのマーカー(test:station/tick から毎tick。実行位置は樽)。
-# 材料の枠 3〜5・12〜14・21〜23、結果の枠 16。結果の枠には本物を置き、取られたら材料を減らす(取り方は問わない)。
-# 記録(マーカーの data.crafter): grid = 前に判定した材料の枠の写し、show = 結果の枠に置いたもの、real = 本物か、recipe
-#   1. 結果の枠が show と違えば、取られた(本物)・取られた(バリア)・何か置かれた、を処理する
-#   2. 材料の枠が grid と違えば(または 1 で何かあれば)、判定し直して結果の枠を置き直す
-
+# @s = カスタムクラフター。材料の変化で作成ボタンを更新し、取られたら本人の持ち物へ渡す。
 data modify storage test: craft_work.now set value {}
 data modify storage test: craft_work.now set from block ~ ~ ~ Items[{Slot:16b}]
 data remove storage test: craft_work.now.Slot
+execute if data entity @s data.crafter{real:1b} run function test:craft/custom/migrate_result
 scoreboard players set #cc_reeval test.temporary 0
 execute if data entity @s data.crafter.show run function test:craft/custom/check_show
 execute unless data entity @s data.crafter.show if data storage test: craft_work.now.id run function test:craft/custom/return_slot

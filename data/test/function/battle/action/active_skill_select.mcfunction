@@ -2,7 +2,7 @@
 # @s = 詠唱者(チャット式)。使用可能な剣スキル+解放済み職業スキルを番号付きで一覧し、選んだものを
 # 即座に発動する(魔法のタイプ/効果選択と違い組み合わせを作らないため、トグルではなく単発選択)
 
-data remove storage test: battle.temporary.active_skill_slot
+data remove entity @n[tag=battle_marker,distance=..64] data.turn.active_skill_slot
 
 tellraw @s [{text:"使うスキルを選んでください",color:gold}]
 

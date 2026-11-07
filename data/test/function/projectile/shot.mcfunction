@@ -1,3 +1,4 @@
+execute if data storage test: status{radial:1b} run return run function test:projectile/radial
 
 scoreboard players operation @s test.temporary = @s test.multi_shot
 scoreboard players add @s test.temporary 1

@@ -16,7 +16,7 @@ execute if entity @e[tag=battle_attacker,limit=1,type=!player] run data modify s
 
 # プレイヤーは武器のcustom_dataに持つが、アイテム式UIではメインハンドが行動アイテムに
 # 入れ替わっているため直接は読めない。手番開始時に控えておいたものを使う(battle/turn_start_player)
-execute if entity @e[tag=battle_attacker,limit=1,type=player] run data modify storage test: buff_work.pending set from storage test: battle.actor_weapon.buff_on_hit
+execute if entity @e[tag=battle_attacker,limit=1,type=player] run data modify storage test: buff_work.pending set from entity @n[tag=battle_marker,distance=..64] data.turn.actor_weapon.buff_on_hit
 
 execute if data storage test: buff_work.pending[0] run function test:buff/apply_list
 

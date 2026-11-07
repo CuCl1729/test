@@ -3,6 +3,7 @@
 # 矢印をスロット0/8へ、自分の知識の量をスロット13へ描画する。各項目は近くのプレイヤーの状態(済・研究できる・足りない)で色を変える
 
 # 研究を入れる前の進み具合を移す(1人1回だけ。2回目からは何もしない)。どちらでも oh_my_dat はこのプレイヤーを指したままになる
+data modify entity @s data.station.buttons set value {}
 execute as @p[distance=..6] run function test:research/sync_known
 
 data modify storage test: registry_work.top_known set from storage test: asset.research_ids

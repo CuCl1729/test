@@ -6,7 +6,7 @@
 tag @n[tag=skill_minecart,tag=!target_minecart,tag=!skill_effect_minecart] add active_skill_minecart
 
 data modify entity @n[tag=active_skill_minecart] Items set value []
-data remove storage test: battle.temporary.active_skill_slot
+data remove entity @n[tag=battle_marker,distance=..64] data.turn.active_skill_slot
 
 scoreboard players set #active_slot test.temporary 0
 
@@ -16,3 +16,5 @@ function #oh_my_dat:please
 data modify storage test: registry_work.active_skill_queue set from storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.job.skill_order
 
 function test:battle/ui/active_skill_minecart_populate_loop
+
+execute as @n[tag=active_skill_minecart,distance=..4] at @s run function test:battle/ui/cart_bind {screen:"active_skill"}

@@ -22,4 +22,5 @@ execute if score #node_state test.temporary matches 2 run data modify storage te
 execute if score #node_state test.temporary matches 1 run data modify storage test: job_work.tree_item.components."minecraft:custom_name".color set value "yellow"
 execute if score #node_state test.temporary matches 0 run data modify storage test: job_work.tree_item.components."minecraft:custom_name".color set value "gray"
 
+$function test:station/action/stamp {item:"job_work.tree_item",slot:$(slot)}
 data modify block ~ ~ ~ Items append from storage test: job_work.tree_item

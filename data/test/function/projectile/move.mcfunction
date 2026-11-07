@@ -16,8 +16,8 @@ execute as @a if score @s OhMyDatID = #owner test.temporary run tag @s add damag
 
 # 射程が尽きた(expire)。既定では静かに消えるが、タイプ側で処理を差し込める
 execute if score @s test.time = @s test.range run function test:projectile/event {event:"expire"}
-execute if score @s test.time = @s test.range if score #event_result test.temporary matches 0 run function test:projectile/kill
-execute if score @s test.time = @s test.range if score #event_result test.temporary matches 2 run function test:projectile/kill
+execute if score @s test.time = @s test.range if score #event_result test.temporary matches 0 run return run function test:projectile/kill
+execute if score @s test.time = @s test.range if score #event_result test.temporary matches 2 run return run function test:projectile/kill
 
 execute store result score @s test.X0 run data get entity @s Pos[0] 100
 execute store result score @s test.Y0 run data get entity @s Pos[1] 100
@@ -51,7 +51,7 @@ scoreboard players operation @s test.Z0 /= #100 test.constant
 # 反射はこのタイミングでないと今tickの移動計算に反映されないため、判定位置はここから動かさない
 execute if entity @s[tag=block] run function test:projectile/event {event:"hit_block"}
 execute if entity @s[tag=block] if score #event_result test.temporary matches 0 run function test:projectile/reflect
-execute if entity @s[tag=block] if score #event_result test.temporary matches 2 run function test:projectile/kill
+execute if entity @s[tag=block] if score #event_result test.temporary matches 2 run return run function test:projectile/kill
 
 execute at @s run summon area_effect_cloud ^ ^ ^1.0 {Tags:[mark],Radius:0,WaitTime:0}
 
@@ -116,6 +116,6 @@ execute if score #hit_entity test.temporary matches 1 run function test:projecti
 execute if score #hit_entity test.temporary matches 1 if score #event_result test.temporary matches 0 run function test:projectile/prepare_buff
 # 当てるのは命中判定と同じ「HPを持つプレイヤー以外」だけ(自分や味方、HP表示の文字やアイテムには当てない)
 execute if score #hit_entity test.temporary matches 1 if score #event_result test.temporary matches 0 as @e[type=!player,tag=!projectile,scores={test.status.hp=1..},dx=-0.25,dy=-0.25,dz=-0.25] positioned ~-1 ~-1 ~-1 if entity @s[dx=0.25,dy=0.25,dz=0.25] run function test:magic/hit
-execute if score #hit_entity test.temporary matches 1 if score #event_result test.temporary matches 2 run function test:projectile/kill
+execute if score #hit_entity test.temporary matches 1 if score #event_result test.temporary matches 2 run return run function test:projectile/kill
 
 tag @a remove damage_attacker

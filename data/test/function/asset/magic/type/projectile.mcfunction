@@ -1,4 +1,4 @@
-$data modify storage test: magic.loot.status.projectile merge value {behavior:[],speed:$(speed),range:$(range)}
+$data modify storage test: magic.loot.status.projectile merge value {speed:$(speed),range:$(range)}
 
 # デリバリタイプはmagic_typeを無条件に上書きする(修飾子タイプは未設定のときだけ書き込むため、
 # 素材を置くスロットの順番に関係なくデリバリ側が勝つ)
@@ -12,3 +12,4 @@ data modify storage test: magic.loot.status.types append value "projectile"
 
 scoreboard players add #delivery_count test.temporary 1
 $scoreboard players add #cost test.temporary $(cost)
+

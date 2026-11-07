@@ -8,6 +8,8 @@ function test:station/enter_mode_def with entity @s data.station
 
 execute store result score #station_all test.temporary if data block ~ ~ ~ Items[]
 scoreboard players set #station_ui test.temporary 0
+execute store result score #station_n test.temporary if data block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{station_action:{}}}}}]
+scoreboard players operation #station_ui test.temporary += #station_n test.temporary
 execute store result score #station_n test.temporary if data block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{station_ui:1b}}}}]
 scoreboard players operation #station_ui test.temporary += #station_n test.temporary
 execute store result score #station_n test.temporary if data block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{button:1b}}}}]

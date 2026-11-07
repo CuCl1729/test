@@ -4,5 +4,6 @@
 scoreboard players add @s test.talk_seq 1
 $data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.talk.node set value "$(node)"
 data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.talk.opts set value {}
+data remove storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.talk.next
 scoreboard players set @s test.talk 0
 scoreboard players enable @s test.talk

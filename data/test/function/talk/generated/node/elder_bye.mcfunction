@@ -3,7 +3,8 @@
 # 会話のノード「elder_bye」(スプレッドシートの「会話」タブ)。@s = 話しかけた人、実行位置 = NPC
 
 function test:talk/begin {node:"elder_bye"}
-tellraw @s ""
-tellraw @s [{text:"[村長] ",color:"yellow"},{text:"また来なされ。",color:"white"}]
+data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.talk.next set value "elder_leave"
+execute unless entity @s[tag=talk_skipping] run tellraw @s ""
+execute unless entity @s[tag=talk_skipping] run tellraw @s [{text:"[村長] ",color:"yellow"},{text:"また来なされ。",color:"white"}]
 function test:talk/btn {i:1,label:"次へ",node:"elder_leave"}
 function test:talk/finish

@@ -8,6 +8,7 @@
 # 対象選択が不要なので右クリックで即座に確定する(範囲攻撃剣の自動全体攻撃は撤去し、
 # アクティブスキル一覧から選ぶ形に変更したため、attackの挙動は武器に関わらず常に同じ)
 
+execute unless function test:battle/ui/current_actor run return 0
 scoreboard players set #enemy_count test.temporary 0
 execute as @e[tag=battle_member,tag=enemy,distance=..64,scores={test.status.hp=1..}] run scoreboard players add #enemy_count test.temporary 1
 

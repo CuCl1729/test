@@ -3,6 +3,7 @@
 # 会話のノード「elder_after」(スプレッドシートの「会話」タブ)。@s = 話しかけた人、実行位置 = NPC
 
 function test:talk/begin {node:"elder_after"}
-tellraw @s ""
-tellraw @s [{text:"[村長] ",color:"yellow"},{text:"決めたとおりに、村は動き始めておる。",color:"white"}]
+function test:talk/skip_stop
+execute unless entity @s[tag=talk_skipping] run tellraw @s ""
+execute unless entity @s[tag=talk_skipping] run tellraw @s [{text:"[村長] ",color:"yellow"},{text:"決めたとおりに、村は動き始めておる。",color:"white"}]
 function test:talk/finish

@@ -6,5 +6,6 @@ data modify storage test: magic.player set from storage test: chain_work.next.st
 execute if data storage test: chain_work.rest[0] run data modify storage test: magic.player.chain set from storage test: chain_work.rest
 execute if data storage test: chain_work.uid run data modify storage test: magic.player.uid set from storage test: chain_work.uid
 execute if data storage test: chain_work.cast run data modify storage test: magic.player.cast set from storage test: chain_work.cast
+execute if data storage test: chain_work{from_device:1b} run data modify storage test: magic.player.device_radial set value 1b
 function test:magic/prepare_damage
 function test:magic/chain/form with storage test: magic.player

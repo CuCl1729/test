@@ -1,6 +1,6 @@
 #> test:craft/custom/eval
-# 実行位置 = カスタムクラフターの樽(oh_my_dat は近くのプレイヤーを指している)。材料の枠を判定する。
-#   #cc_ok = 0 当てはまらない / 1 作れる / 2 当てはまるが未研究。1・2 なら craft_work.match = {recipe, need}、craft_work.rec = レシピの定義
+# 実行位置 = カスタムクラフターの樽。材料の種類・配置・個数だけでレシピを決める。
+#   #cc_ok = 0 不一致 / 1 一致。研究条件はボタンを取った人について make が確かめる。
 # 9マスを1マスの文字(素材 m:<id> / custom_data の無いアイテム v:<id> / 空)にして , でつなぎ、asset.recipe_index を引く
 # (索引には、生成スクリプトが形を3×3の置ける位置すべてに置いたキーを入れてあるので、ずらして置いても当たる)
 
@@ -41,4 +41,5 @@ execute if score #cn7 test.temporary < #cc_nd test.temporary run return 0
 execute store result score #cc_nd test.temporary run data get storage test: craft_work.match.need[8]
 execute if score #cn8 test.temporary < #cc_nd test.temporary run return 0
 
-function test:craft/custom/unlocked with storage test: craft_work.match
+scoreboard players set #cc_ok test.temporary 1
+function test:craft/custom/load_recipe with storage test: craft_work.match

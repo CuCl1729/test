@@ -21,6 +21,7 @@ execute if score #forge_count test.temporary matches 20.. run data modify storag
 
 data modify storage test: loot.base_kind set from block ~ ~ ~ Items[{Slot:9b}].components."minecraft:custom_data".test.material.kind
 
+execute if data block ~ ~ ~ Items[{Slot:10b}] unless data block ~ ~ ~ Items[{Slot:10b}].components."minecraft:custom_data".test.material.kind run return run tellraw @p[distance=..6] {text:"この触媒では鍛造できません",color:"red"}
 data modify storage test: loot.catalyst_kind set value "none"
 execute if data block ~ ~ ~ Items[{Slot:10b}].components."minecraft:custom_data".test.material.kind run data modify storage test: loot.catalyst_kind set from block ~ ~ ~ Items[{Slot:10b}].components."minecraft:custom_data".test.material.kind
 
@@ -28,6 +29,7 @@ execute if data block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{ma
 execute if data block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{material:{kind:"poison_fang"}}}}}] run data modify storage test: loot.poison_fang set value 1b
 
 function test:craft/weapon/forge/recipe with storage test: loot
+execute unless data storage test: loot.item.id run return run tellraw @p[distance=..6] {text:"この組み合わせの鍛冶レシピはありません",color:"red"}
 
 data remove block ~ ~ ~ Items[{Slot:9b}]
 data remove block ~ ~ ~ Items[{Slot:10b}]

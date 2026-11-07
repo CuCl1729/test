@@ -3,6 +3,7 @@
 # 会話のノード「herb_wait」(スプレッドシートの「会話」タブ)。@s = 話しかけた人、実行位置 = NPC
 
 function test:talk/begin {node:"herb_wait"}
-tellraw @s ""
-tellraw @s [{text:"[薬師] ",color:"yellow"},{text:"ゴブリンを倒して、薬草を3つ持ってきてね。",color:"white"}]
+function test:talk/skip_stop
+execute unless entity @s[tag=talk_skipping] run tellraw @s ""
+execute unless entity @s[tag=talk_skipping] run tellraw @s [{text:"[薬師] ",color:"yellow"},{text:"ゴブリンを倒して、薬草を3つ持ってきてね。",color:"white"}]
 function test:talk/finish

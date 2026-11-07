@@ -1,8 +1,5 @@
-#> test:craft/custom/place_out
-# 実行位置 = 樽。@macro kind/id/count: 出るもの。test:craft/custom/out/<種類> で loot.item に作り、個数を入れて結果の枠(16)に置く
-
-$function test:craft/custom/out/$(kind) {id:"$(id)"}
-$data modify storage test: loot.item.count set value $(count)
-data modify storage test: loot.item.Slot set value 16b
-data modify block ~ ~ ~ Items append from storage test: loot.item
-data remove storage test: loot.item.Slot
+# 作成ボタンはそのまま使っても何も起きない紙。製品のコンポーネントはコピーしない。
+data modify storage test: craft_work.button set value {Slot:16b,id:"minecraft:paper",count:1,components:{"minecraft:custom_name":{text:"作成: ",italic:false,extra:[{text:""}]}}}
+data modify storage test: craft_work.button.components."minecraft:custom_name".extra[0].text set from storage test: craft_work.rec.name
+function test:station/action/stamp {item:"craft_work.button",slot:16}
+data modify block ~ ~ ~ Items append from storage test: craft_work.button

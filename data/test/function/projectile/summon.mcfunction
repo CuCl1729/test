@@ -2,7 +2,8 @@ scoreboard players add @s test.repeat 1
 
 summon armor_stand ^ ^ ^1 {Tags:[projectile,summoned,time],attributes:[{base:0,id:scale}]}
 
-execute as @n[tag=summoned] at @s facing entity @n[type=player] feet facing ^ ^ ^-1 run teleport @s ~ ~1.75 ~ ~ ~
+execute unless data storage test: status{radial:1b} as @n[tag=summoned] at @s facing entity @n[type=player] feet facing ^ ^ ^-1 run teleport @s ~ ~1.75 ~ ~ ~
+execute if data storage test: status{radial:1b} run teleport @n[tag=summoned] ~ ~1.75 ~ ~ ~
 
 execute as @n[tag=summoned] run data modify entity @s Tags append from storage test: status.Tags[]
 execute as @n[tag=summoned] run data modify entity @s data set from storage test: status.data
@@ -35,4 +36,4 @@ scoreboard players operation @n[tag=summoned] test.def.pene = @s test.def.pene
 
 tag @n[tag=summoned] remove summoned
 
-$execute if score @s test.repeat < @s test.multi_shot positioned ^$(out) ^ ^ run function test:projectile/summon with storage test:
+$execute unless data storage test: status{radial:1b} if score @s test.repeat < @s test.multi_shot positioned ^$(out) ^ ^ run function test:projectile/summon with storage test:

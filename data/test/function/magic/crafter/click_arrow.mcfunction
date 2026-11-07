@@ -16,5 +16,3 @@ scoreboard players operation #page test.buff.work += #arrow_step test.buff.work
 execute if score #page test.buff.work matches ..-1 run scoreboard players set #page test.buff.work 0
 
 execute store result entity @s data.crafter_ui.page int 1 run scoreboard players get #page test.buff.work
-
-function test:magic/crafter/populate_top

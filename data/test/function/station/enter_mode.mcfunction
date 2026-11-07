@@ -4,6 +4,8 @@
 # UIアイテムは目印(station_ui / button / crafter_ui / job_ui)の付いた物だけを消す(プレイヤーが置いた物は残す)
 
 data remove block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{station_ui:1b}}}}]
+data remove block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{station_action:{}}}}}]
+data remove entity @s data.station.buttons
 data remove block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{button:1b}}}}]
 data remove block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{crafter_ui:1b}}}}]
 data remove block ~ ~ ~ Items[{components:{"minecraft:custom_data":{test:{job_ui:1b}}}}]

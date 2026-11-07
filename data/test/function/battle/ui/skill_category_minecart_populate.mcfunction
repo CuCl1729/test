@@ -5,3 +5,5 @@
 tag @n[tag=skill_minecart,tag=!target_minecart,tag=!skill_effect_minecart] add skill_category_minecart
 
 data modify entity @n[tag=skill_category_minecart] Items set value [{Slot:0b,id:"ender_pearl",count:1,components:{"minecraft:custom_name":{text:"魔法",italic:false,color:"aqua"},"minecraft:custom_data":{test:{skill_category:"magic"}}}},{Slot:1b,id:"nether_star",count:1,components:{"minecraft:custom_name":{text:"アクティブスキル",italic:false,color:"gold"},"minecraft:custom_data":{test:{skill_category:"active"}}}}]
+
+execute as @n[tag=skill_category_minecart,distance=..4] at @s run function test:battle/ui/cart_bind {screen:"skill_category"}

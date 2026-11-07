@@ -12,8 +12,8 @@ execute store result storage test: job_work.mc_item.Slot byte 1 run scoreboard p
 
 data modify entity @n[tag=active_skill_minecart] Items append from storage test: job_work.mc_item
 
-data modify storage test: battle.temporary.active_skill_slot append value {kind:"job",job:"",node:""}
-$data modify storage test: battle.temporary.active_skill_slot[-1].job set value "$(job)"
-$data modify storage test: battle.temporary.active_skill_slot[-1].node set value "$(node)"
+data modify entity @n[tag=battle_marker,distance=..64] data.turn.active_skill_slot append value {kind:"job",job:"",node:""}
+$data modify entity @n[tag=battle_marker,distance=..64] data.turn.active_skill_slot[-1].job set value "$(job)"
+$data modify entity @n[tag=battle_marker,distance=..64] data.turn.active_skill_slot[-1].node set value "$(node)"
 
 scoreboard players add #active_slot test.temporary 1

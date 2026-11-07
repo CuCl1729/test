@@ -4,9 +4,11 @@
 #  取られた時にどの対象かを引けるようにする)
 
 data remove entity @n[tag=target_minecart] Items
-data remove storage test: battle.temporary.target_slot
+data remove entity @n[tag=battle_marker,distance=..64] data.turn.target_slot
 
 scoreboard players set #target_slot test.temporary 0
 execute as @e[tag=battle_member,tag=enemy,distance=..64,scores={test.status.hp=1..}] run function test:battle/ui/target_minecart_populate_slot
 
 data modify entity @n[tag=target_minecart] Items append value {Slot:8b,id:"ender_eye",count:1,components:{"minecraft:custom_name":{text:"決定する",italic:false},"minecraft:custom_data":{test:{target_pick:"confirm"}}}}
+
+execute as @n[tag=target_minecart,distance=..4] at @s run function test:battle/ui/cart_bind {screen:"target"}

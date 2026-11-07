@@ -1,8 +1,9 @@
 #> test:magic/crafter/click_craft
 # @s = クラフター本体。確定ボタンが取られた。組み合わせを検証し、成立していればアイテムを渡す
-# (magic.loot.statusは直前のadd/remove操作でtest:magic/crafter/rebuild済みのものをそのまま使う)
+# 確定時にこの台から再計算する。別の台や詠唱処理も同じ作業領域を使うため。
 # 不正な場合は素材(=中段の要素)を消費しない。既存の実装が物理素材を消費しなかったのと同じ結果にするため
 
+function test:magic/crafter/calculate
 function test:magic/crafter/validate
 
 scoreboard players set #craft_ok test.buff.work 0
@@ -18,5 +19,3 @@ execute if score #craft_ok test.buff.work matches 1 if data storage test: magic.
 execute if score #craft_ok test.buff.work matches 1 positioned ~ ~1 ~ run function test:item/magic/give
 execute if score #craft_ok test.buff.work matches 1 run function test:magic/crafter/success
 execute if score #craft_ok test.buff.work matches 1 run data modify entity @s data.crafter_ui.build set value []
-
-function test:magic/crafter/rebuild

@@ -12,6 +12,6 @@ execute if score #pt test.temporary < #pn test.temporary run return 0
 clear @s *[minecraft:custom_data~{test:{coin:1}}]
 clear @s *[minecraft:custom_data~{test:{coin:10}}]
 clear @s *[minecraft:custom_data~{test:{coin:100}}]
-execute if score #pc test.temporary >= #pn test.temporary run function test:money/pay_change
-execute if score #pc test.temporary < #pn test.temporary run function test:money/pay_bank
+execute if score #pc test.temporary >= #pn test.temporary run return run function test:money/pay_change
+function test:money/pay_bank
 return 1

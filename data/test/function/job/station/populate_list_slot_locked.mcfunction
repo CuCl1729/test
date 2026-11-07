@@ -7,4 +7,5 @@ data modify storage test: job_work.list_item set value {id:"gray_dye",count:1,co
 $data modify storage test: job_work.list_item.components."minecraft:custom_name".text set value "$(label)(未解放)"
 $data modify storage test: job_work.list_item.Slot set value $(slot)b
 
+$function test:station/action/stamp {item:"job_work.list_item",slot:$(slot)}
 data modify block ~ ~ ~ Items append from storage test: job_work.list_item

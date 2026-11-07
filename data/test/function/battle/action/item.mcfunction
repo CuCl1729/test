@@ -7,7 +7,7 @@ execute if score #item_kinds test.temporary matches 0 run tellraw @s [{text:"使
 execute if score #item_kinds test.temporary matches 0 run return run function test:battle/ui/chat
 
 tellraw @s [{text:"使うアイテムを選んでください",color:gold}]
-data modify storage test: registry_work.item_queue set from storage test: battle.temporary.item_slot
+data modify storage test: registry_work.item_queue set from entity @n[tag=battle_marker,distance=..64] data.turn.item_slot
 scoreboard players set #item_line test.temporary 0
 function test:battle/action/item_line_loop
 

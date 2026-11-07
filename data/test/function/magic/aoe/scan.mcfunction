@@ -14,4 +14,5 @@ data modify storage test: circle.Pitch set value 0.0f
 function test:magic/aoe/probe
 
 scoreboard players operation #aoe_ring test.temporary = #aoe_radius test.temporary
-function test:magic/aoe/ring_loop
+execute summon marker run function test:magic/aoe/scan_rings
+

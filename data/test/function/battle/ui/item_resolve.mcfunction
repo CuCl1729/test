@@ -1,5 +1,5 @@
 #> test:battle/ui/item_resolve
-# @s = アイテムを選んだプレイヤー(チャット式)。選んだ番号(1から)を battle.temporary.item_slot の位置(0から)にして使う
+# @s = アイテムを選んだプレイヤー(チャット式)。選んだ番号(1から)を data.turn.item_slot の位置(0から)にして使う
 
 scoreboard players operation #item_index test.temporary = @s test.battle.item_select
 scoreboard players set @s test.battle.item_select 0

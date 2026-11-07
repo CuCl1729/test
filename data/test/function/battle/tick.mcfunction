@@ -10,7 +10,9 @@
 # skill_effect_cart_tick / target_cart_tickで行う(test:tick参照)。ここでのawaiting_skill/awaiting_targetは
 # 他の処理(敵ターン等)を止めるための状態管理としてのみ使う
 
-execute at @s as @a[tag=battle_member,distance=..64] at @s run function test:battle/ui/skill_hover_tick
+# 更新前の戦闘で入力待ちだった場合、回復や手番タイマーを進めず、新しい選択肢を作り直す。
+execute if score @s test.battle.acting matches 1 if score @s test.battle.turn_timer matches 1.. unless data entity @s data.turn as @a[tag=battle_member,distance=..64] if function test:battle/ui/current_actor at @s run function test:battle/ui/reopen_turn
+execute as @a[tag=battle_member,distance=..64] if function test:battle/ui/current_actor at @s run function test:battle/ui/skill_hover_tick
 
 execute unless score @s test.battle.acting matches 1 run function test:battle/turn_start
 execute if score @s test.battle.acting matches 1 if score @s test.battle.awaiting_skill matches 1 run function test:battle/ui/skill_poll

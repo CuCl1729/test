@@ -8,4 +8,4 @@ $scoreboard players add #tv test.temporary $(i)
 $data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.talk.opts.o$(i) set value "$(node)"
 $data modify storage test: talk_work.b set value {v:0,label:"$(label)"}
 execute store result storage test: talk_work.b.v int 1 run scoreboard players get #tv test.temporary
-function test:talk/btn_show with storage test: talk_work.b
+execute unless entity @s[tag=talk_skipping] run function test:talk/btn_show with storage test: talk_work.b

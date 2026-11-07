@@ -4,7 +4,8 @@
 
 execute unless function test:talk/party_ready run return run function test:talk/not_ready
 function test:talk/begin {node:"elder_forest"}
-tellraw @a[distance=..16] ""
-tellraw @a[distance=..16] [{text:"[村長] ",color:"yellow"},{text:"森を守るのじゃな。皆に伝えよう。",color:"white"}]
+function test:talk/skip_stop
+execute unless entity @s[tag=talk_skipping] run tellraw @a[distance=..16] ""
+execute unless entity @s[tag=talk_skipping] run tellraw @a[distance=..16] [{text:"[村長] ",color:"yellow"},{text:"森を守るのじゃな。皆に伝えよう。",color:"white"}]
 function test:talk/generated/act/a3
 function test:talk/finish

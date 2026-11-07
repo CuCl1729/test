@@ -22,6 +22,7 @@ execute unless data storage test: magic.loot.status.magic_type run data modify s
 execute if data storage test: magic.loot.status.magic_type if score #combo_invalid test.temporary matches 0 run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:green,text:"クラフトできます"}]
 
 data remove block ~ ~ ~ Items[{Slot:22b}]
-data modify block ~ ~ ~ Items append value {Slot:22b,count:1}
-data modify block ~ ~ ~ Items[-1].id set from storage test: loot.item.id
-data modify block ~ ~ ~ Items[-1].components set from storage test: loot.item.components
+# id の無いアイテムは樽が読み込むときに捨てるので、丸ごと組み立ててから1回で足す
+data modify storage test: loot.item.Slot set value 22b
+data modify storage test: loot.item.count set value 1
+data modify block ~ ~ ~ Items append from storage test: loot.item

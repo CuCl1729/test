@@ -9,10 +9,12 @@ function #oh_my_dat:please
 function test:battle/ui/skill_effect_categories
 
 # 取られたスロット番号から効果を引けるよう、スロット順のidを控えておく
-data remove storage test: battle.temporary.effect_slot
+data remove entity @n[tag=battle_marker,distance=..64] data.turn.effect_slot
 
 scoreboard players set #effect_slot test.temporary 0
 function test:magic/registry/queue_effects
 function test:battle/ui/skill_effect_minecart_populate_loop
 
 data modify entity @n[tag=skill_effect_minecart] Items append value {Slot:26b,id:"ender_eye",count:1,components:{"minecraft:custom_name":{text:"詠唱する",italic:false},"minecraft:custom_data":{test:{skill_effect:"cast"}}}}
+
+execute as @n[tag=skill_effect_minecart,distance=..4] at @s run function test:battle/ui/cart_bind {screen:"skill_effect"}

@@ -7,7 +7,7 @@
 execute if score #effect_slot test.temporary matches 26.. run return 0
 
 # 取られたスロットから効果idを引けるようにしておく
-$data modify storage test: battle.temporary.effect_slot append value "$(id)"
+$data modify entity @n[tag=battle_marker,distance=..64] data.turn.effect_slot append value "$(id)"
 
 scoreboard players set #select test.temporary 0
 $execute store result score #select test.temporary run data get storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.magic.select.effect.$(id)

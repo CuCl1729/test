@@ -2,13 +2,13 @@
 # @s = 対象選択トロッコ本体(test:tickから毎tick呼ばれる)。自分のスロットが取られたか確認する
 # (実際に対象が割り当てられているスロットのみ判定する。空きスロットは無視)
 
-execute if data storage test: battle.temporary.target_slot[0] unless entity @s[nbt={Items:[{Slot:0b}]}] as @p[distance=..3] at @s run function test:battle/ui/target_minecart_toggle {index:0}
-execute if data storage test: battle.temporary.target_slot[1] unless entity @s[nbt={Items:[{Slot:1b}]}] as @p[distance=..3] at @s run function test:battle/ui/target_minecart_toggle {index:1}
-execute if data storage test: battle.temporary.target_slot[2] unless entity @s[nbt={Items:[{Slot:2b}]}] as @p[distance=..3] at @s run function test:battle/ui/target_minecart_toggle {index:2}
-execute if data storage test: battle.temporary.target_slot[3] unless entity @s[nbt={Items:[{Slot:3b}]}] as @p[distance=..3] at @s run function test:battle/ui/target_minecart_toggle {index:3}
-execute if data storage test: battle.temporary.target_slot[4] unless entity @s[nbt={Items:[{Slot:4b}]}] as @p[distance=..3] at @s run function test:battle/ui/target_minecart_toggle {index:4}
-execute if data storage test: battle.temporary.target_slot[5] unless entity @s[nbt={Items:[{Slot:5b}]}] as @p[distance=..3] at @s run function test:battle/ui/target_minecart_toggle {index:5}
-execute if data storage test: battle.temporary.target_slot[6] unless entity @s[nbt={Items:[{Slot:6b}]}] as @p[distance=..3] at @s run function test:battle/ui/target_minecart_toggle {index:6}
-execute if data storage test: battle.temporary.target_slot[7] unless entity @s[nbt={Items:[{Slot:7b}]}] as @p[distance=..3] at @s run function test:battle/ui/target_minecart_toggle {index:7}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.target[{Slot:0b}] unless entity @s[nbt={Items:[{Slot:0b}]}] run return run function test:battle/ui/cart_pick {screen:"target",slot:0,action:"target_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.target[{Slot:1b}] unless entity @s[nbt={Items:[{Slot:1b}]}] run return run function test:battle/ui/cart_pick {screen:"target",slot:1,action:"target_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.target[{Slot:2b}] unless entity @s[nbt={Items:[{Slot:2b}]}] run return run function test:battle/ui/cart_pick {screen:"target",slot:2,action:"target_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.target[{Slot:3b}] unless entity @s[nbt={Items:[{Slot:3b}]}] run return run function test:battle/ui/cart_pick {screen:"target",slot:3,action:"target_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.target[{Slot:4b}] unless entity @s[nbt={Items:[{Slot:4b}]}] run return run function test:battle/ui/cart_pick {screen:"target",slot:4,action:"target_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.target[{Slot:5b}] unless entity @s[nbt={Items:[{Slot:5b}]}] run return run function test:battle/ui/cart_pick {screen:"target",slot:5,action:"target_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.target[{Slot:6b}] unless entity @s[nbt={Items:[{Slot:6b}]}] run return run function test:battle/ui/cart_pick {screen:"target",slot:6,action:"target_minecart_toggle"}
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.target[{Slot:7b}] unless entity @s[nbt={Items:[{Slot:7b}]}] run return run function test:battle/ui/cart_pick {screen:"target",slot:7,action:"target_minecart_toggle"}
 
-execute unless entity @s[nbt={Items:[{Slot:8b}]}] as @p[distance=..3] at @s run function test:battle/ui/target_minecart_resolve
+execute if data entity @n[tag=battle_marker,distance=..64] data.turn.menus.target[{Slot:8b}] unless entity @s[nbt={Items:[{Slot:8b}]}] run return run function test:battle/ui/cart_pick {screen:"target",slot:8,action:"target_minecart_resolve"}

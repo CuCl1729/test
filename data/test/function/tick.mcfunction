@@ -11,6 +11,10 @@ execute as @e[type=item,nbt={Item:{components:{"minecraft:custom_data":{test:{sk
 execute as @e[type=player] run function test:ui/status/
 # ステーション(工房・強化台・魔法台・Jobステーション)。種類ごとの違いは init/asset/station のレジストリにある
 execute as @e[tag=station] at @s if entity @e[type=player,distance=..6] run function test:station/tick
+# 期限切れの作業台ボタンを回収する。すべての台が入力を処理した後に行う。
+execute as @a if items entity @s player.cursor *[custom_data~{test:{station_action:{}}}] run item replace entity @s player.cursor with air
+clear @a *[custom_data~{test:{station_action:{}}}]
+kill @e[type=item,nbt={Item:{components:{"minecraft:custom_data":{test:{station_action:{}}}}}}]
 execute as @e[tag=attract] at @s run function test:motion/player/attract/main
 # ログインし直したプレイヤー(戦闘中にログアウトしていたら、戦闘の続きに戻すか元の場所へ帰す)
 execute as @a[scores={test.leave_game=1..}] at @s run function test:battle/rejoin
@@ -40,7 +44,7 @@ execute as @e[tag=damage_pop] run scoreboard players remove @s test.damage_pop.l
 execute as @e[tag=damage_pop,scores={test.damage_pop.life=..0}] run tag @s add kill
 
 function test:debug/tick
-execute as @a[tag=downed] run function test:status/downed_tick
+execute as @a[tag=downed] at @s run function test:status/downed_tick
 
 # 工場(test:factory): 区画ができるのを待っている人を移す(forceload した直後はチャンクがまだ読み込まれていないため)
 execute as @a[tag=factory_going] run function test:factory/go_try

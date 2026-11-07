@@ -121,17 +121,17 @@ scoreboard players operation #damage test.earth_damage += #damage test.temporary
 
 scoreboard players operation @s test.earth_damage = #damage test.earth_damage
 
-scoreboard players operation @s test.fire_damage *= @s test.fire_damage.bonus
+scoreboard players operation @s test.fire_damage *= #spell_multiplier test.temporary
 scoreboard players operation @s test.fire_damage /= #100 test.constant
 
-scoreboard players operation @s test.water_damage *= @s test.water_damage.bonus
+scoreboard players operation @s test.water_damage *= #spell_multiplier test.temporary
 scoreboard players operation @s test.water_damage /= #100 test.constant
 
-scoreboard players operation @s test.wood_damage *= @s test.wood_damage.bonus
+scoreboard players operation @s test.wood_damage *= #spell_multiplier test.temporary
 scoreboard players operation @s test.wood_damage /= #100 test.constant
 
-scoreboard players operation @s test.metal_damage *= @s test.metal_damage.bonus
+scoreboard players operation @s test.metal_damage *= #spell_multiplier test.temporary
 scoreboard players operation @s test.metal_damage /= #100 test.constant
 
-scoreboard players operation @s test.earth_damage *= @s test.earth_damage.bonus
+scoreboard players operation @s test.earth_damage *= #spell_multiplier test.temporary
 scoreboard players operation @s test.earth_damage /= #100 test.constant

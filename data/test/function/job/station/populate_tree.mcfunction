@@ -2,6 +2,7 @@
 # @s = Jobステーション本体。data.job_ui.jobで指定された職業のスキルツリーを表示する。
 # data.job_ui.page 件を読み飛ばして7件をスロット1〜7に並べ、矢印をスロット0/8、戻るをスロット18に置く
 
+data modify entity @s data.station.buttons set value {}
 execute as @p[distance=..6] run function #oh_my_dat:please
 
 data remove block ~ ~ ~ Items[{Slot:0b}]

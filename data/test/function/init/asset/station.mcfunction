@@ -27,7 +27,7 @@ data modify storage test: asset.station.enhance set value {name:"強化台",colo
 ]}
 
 data modify storage test: asset.station.magic set value {name:"魔法台",color:"light_purple",icon:"enchanted_book",breakable:1b,modes:[\
-  {id:"craft",label:"作成",icon:"nether_star",main:"magic/crafter/main",enter:"magic/crafter/enter"},\
+  {id:"craft",label:"作成",icon:"nether_star",main:"magic/crafter/main",enter:"magic/crafter/enter",keep:{s23:1b}},\
   {id:"research",label:"研究",icon:"knowledge_book",main:"craft/magic/research/main",enter:"craft/magic/research/enter"}\
 ]}
 

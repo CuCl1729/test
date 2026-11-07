@@ -1,6 +1,8 @@
 data remove storage test: status
 
+data modify storage test: status.Tags set value []
 data modify storage test: status.Tags set from storage test: magic.player.projectile.behavior
+execute if data storage test: magic.player.projectile.gravity unless data storage test: status{Tags:["gravity"]} run data modify storage test: status.Tags append value "gravity"
 data modify storage test: status.speed set from storage test: magic.player.projectile.speed
 data modify storage test: status.range set from storage test: magic.player.projectile.range
 data modify storage test: status.gravity set from storage test: magic.player.projectile.gravity
@@ -26,4 +28,6 @@ data remove storage test: chain_work.peek
 data modify storage test: chain_work.peek set from storage test: magic.player.chain[0]
 execute if data storage test: chain_work{peek:{link:"on_land"}} run data modify storage test: status.Tags append value "on_land"
 
+execute if data storage test: magic.player{device_radial:1b} run data modify storage test: status.radial set value 1b
 function test:projectile/shot
+

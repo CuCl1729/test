@@ -1,10 +1,5 @@
-#> test:craft/magic/research/click_top
-# @s = 研究ステーション本体。@macro index: 取られたスロットのpage_ids内インデックス(0〜6)
-# クラフターと違い積み上げず、その場で研究を試みる(test:research/try)
-
-data modify storage test: registry_work.click set value {id:""}
-$data modify storage test: registry_work.click.id set from entity @s data.research_ui.page_ids[$(index)]
-
-execute as @p[distance=..3] run function test:research/try with storage test: registry_work.click
-
+# @s = 魔法台。研究のidは描画時に台へ保存したものを使う。
+data modify storage test: station_action.args set value {}
+$data modify storage test: station_action.args.id set from entity @s data.research_ui.page_ids[$(index)]
+$function test:station/action/accept {slot:$(slot),call:"research/try"}
 function test:craft/magic/research/populate_top

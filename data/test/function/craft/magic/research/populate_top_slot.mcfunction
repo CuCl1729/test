@@ -7,4 +7,5 @@ $data modify entity @s data.research_ui.page_ids[-1] set value "$(id)"
 
 $execute as @p[distance=..6] run function test:research/eval {id:"$(id)"}
 $data modify storage test: research_work.item.Slot set value $(slot)b
+$function test:station/action/stamp {item:"research_work.item",slot:$(slot)}
 data modify block ~ ~ ~ Items append from storage test: research_work.item

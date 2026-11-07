@@ -1,5 +1,5 @@
 #> test:battle/ui/item_minecart_populate_loop
-# registry_work.item_queue(battle.temporary.item_slot のコピー)を1件ずつ、スロット0から順にトロッコへ入れる
+# registry_work.item_queue(data.turn.item_slot のコピー)を1件ずつ、スロット0から順にトロッコへ入れる
 
 execute unless data storage test: registry_work.item_queue[0] run return 0
 

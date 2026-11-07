@@ -5,26 +5,9 @@
 
 # 魔法の与ダメ補正 = 魔法そのものの補正 + 両手に持った杖などの「魔法ダメージ%」(test:magic/wand_bonus)
 function test:magic/wand_bonus
-execute store result score @s test.temporary run data get storage test: magic.player.magic_damage_bonus
-scoreboard players operation @s test.temporary += @s test.magic.wand_bonus
-
-scoreboard players set @s test.fire_damage.bonus 100
-scoreboard players operation @s test.fire_damage.bonus += @s test.temporary
-
-scoreboard players set @s test.water_damage.bonus 100
-scoreboard players operation @s test.water_damage.bonus += @s test.temporary
-
-scoreboard players set @s test.wood_damage.bonus 100
-scoreboard players operation @s test.wood_damage.bonus += @s test.temporary
-
-scoreboard players set @s test.metal_damage.bonus 100
-scoreboard players operation @s test.metal_damage.bonus += @s test.temporary
-
-scoreboard players set @s test.earth_damage.bonus 100
-scoreboard players operation @s test.earth_damage.bonus += @s test.temporary
-
-scoreboard players set @s test.physics_damage.bonus 100
-scoreboard players operation @s test.physics_damage.bonus += @s test.temporary
+execute store result score #spell_multiplier test.temporary run data get storage test: magic.player.magic_damage_bonus
+scoreboard players add #spell_multiplier test.temporary 100
+scoreboard players operation #spell_multiplier test.temporary += @s test.magic.wand_bonus
 
 function test:damage/pre_magic
 function test:status/refresh {status:"effect_damage"}

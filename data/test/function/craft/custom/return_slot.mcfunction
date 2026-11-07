@@ -4,4 +4,5 @@
 
 data modify storage test: loot.item set from storage test: craft_work.now
 data remove block ~ ~ ~ Items[{Slot:16b}]
-execute as @p[distance=..6] at @s run function test:item/drop_at
+execute positioned ~ ~1 ~ run function test:item/drop_at
+data modify storage test: craft_work.now set value {}
