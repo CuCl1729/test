@@ -151,6 +151,12 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   entry points (`job/skill/use`, `battle/action/job_skill_cast`) still skip or refuse any node whose current kind is
   `stat_bonus` (`job/skill/is_active`), so a sheet change or an old marker item can't cast one. `job/skill/use` also
   refuses a node the player no longer has.
+- **Level bonuses** (`test.level_bonus.<stat>`, added right after `test.job_bonus` in `status/update`): the common,
+  job-independent growth `asset.level_growth.<stat>` (the プレイヤー初期値 tab's レベル成長, generated
+  `init/asset/status/generated/growth`) × max(`test.status.level` − 1, 0), rebuilt from zero by `status/level_bonus`.
+  It runs inside `job/refresh_bonus` (reload, login, passives, job reset) and from `status/regene/` whenever
+  `test.level_bonus.level` (the level it was built for) differs from the current level, so a multi-level jump is built
+  once at the final level and players from before the feature get it too. It never heals HP/MP.
 - **Job skill reset** (`job/reset/`): the tree's slot 26 (ticketed, so only the clicker) records a per-player pending
   reset `test.job.reset = {job, station, seq}` and shows `[実行]` / `[キャンセル]` chat buttons (`/trigger test.job_reset
   set <seq×10+1|2>`). Only the current `seq` acts; pressing, relogging or moving more than 6 from the station clears

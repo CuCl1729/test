@@ -3,6 +3,8 @@ execute unless score @s test.status.hp_max matches 1.. run function test:init/pl
 execute unless score @s test.def.coefficient matches 1.. run function test:init/asset/status/defense
 
 function test:status/level_up
+# レベルが変わったら(何レベル上がっても最後のレベルで1回)共通の成長を組み直す。前からいるプレイヤーもここで入る
+execute if score @s test.status.level matches 1.. unless score @s test.level_bonus.level = @s test.status.level run function test:job/refresh_bonus
 
 # ターン制のマップ(test:turn とその戦闘用アリーナ test:arena)にいる間は毎秒の回復を止める
 # (回復魔法が意味を持たなくなるため)。代わりにbattle/turn_start_playerで

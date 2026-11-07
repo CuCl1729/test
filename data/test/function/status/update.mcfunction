@@ -63,3 +63,5 @@ $scoreboard players operation @s test.status.$(status) += @s test.buff.$(status)
 # 解放済み職業のレベルによるボーナスも同じ理由でここで合流させる(test:job/recalc_bonus参照。
 # レベルアップ時にしか変わらないため、バフのような差分更新の仕組みは無く単純な加算のみ)
 $scoreboard players operation @s test.status.$(status) += @s test.job_bonus.$(status)
+# プレイヤーレベルによる共通の成長も同じく(test:status/level_bonus)
+$scoreboard players operation @s test.status.$(status) += @s test.level_bonus.$(status)

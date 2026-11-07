@@ -13,6 +13,9 @@ function test:init/asset/magic/generated/values
 function test:init/asset/buff/buffs
 function test:init/asset/buff/generated/values
 
+# プレイヤーレベルによる共通の成長(「プレイヤー初期値」タブの「レベル成長」)
+function test:init/asset/status/generated/growth
+
 function test:init/asset/job/
 
 function test:init/asset/equip/

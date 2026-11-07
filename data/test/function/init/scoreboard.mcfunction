@@ -231,6 +231,19 @@ scoreboard objectives add test.owner dummy
  scoreboard objectives add test.job_bonus.divergence dummy
  scoreboard objectives add test.job_bonus.hp_regene dummy
  scoreboard objectives add test.job_bonus.mp_regene dummy
+# プレイヤーレベルによる共通の成長(test:status/level_bonus。.level は組み直したときのレベル)
+ scoreboard objectives add test.level_bonus.atk dummy
+ scoreboard objectives add test.level_bonus.def dummy
+ scoreboard objectives add test.level_bonus.hp_max dummy
+ scoreboard objectives add test.level_bonus.mp_max dummy
+ scoreboard objectives add test.level_bonus.crit_rate dummy
+ scoreboard objectives add test.level_bonus.crit_damage dummy
+ scoreboard objectives add test.level_bonus.effect_damage dummy
+ scoreboard objectives add test.level_bonus.magic_efficiency dummy
+ scoreboard objectives add test.level_bonus.divergence dummy
+ scoreboard objectives add test.level_bonus.hp_regene dummy
+ scoreboard objectives add test.level_bonus.mp_regene dummy
+ scoreboard objectives add test.level_bonus.level dummy
 
 # 職業関連のループ処理・一時判定用(test.buff.workと同じ理由で専用のobjectiveに分ける。
 # 職業の判定処理からbuff/apply_list等の別系統の関数を呼ぶことがあるため、共有スコアの衝突を避ける)

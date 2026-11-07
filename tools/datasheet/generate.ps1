@@ -207,7 +207,7 @@ $RequiredHeaders = @{
   job_skills       = @('職業','id','名前','必要レベル','前提スキル','コスト','種類','params')
   magic_values     = @('要素','コスト','params')
   buff_values      = @('バフ','時間','最大段数','間隔','params')
-  player_base      = @('ステータス','値')
+  player_base      = @('ステータス','値','レベル成長')
   config           = @('キー','値','説明')
   weapons          = @('id','元アイテム','名前','基礎ステ','基礎ステ値','ボーナス','ボーナス値','最大レベル','ティア','射程','魔法ダメージ%','物理','火','水','木','金','土')
   forge_recipes    = @('素材','触媒','武器id')
@@ -932,6 +932,7 @@ foreach ($id in $BuffIds) { if (-not $buffSeen.ContainsKey($id)) { Add-Err $Tabs
 $BaseStats = @([regex]::Matches((Read-Fn 'init\scoreboard.mcfunction'), 'test\.status\.base\.([a-z_]+) dummy') | ForEach-Object { $_.Groups[1].Value })
 $baseLines = New-Object System.Collections.Generic.List[string]
 $baseSeen = @{}
+$growthPairs = New-Object System.Collections.Generic.List[string]
 foreach ($r in $data.player_base) {
   $tab = $Tabs.player_base; $n = $r.__row
   $s = Cell $r 'ステータス'; $v = Cell $r '値'
@@ -939,6 +940,11 @@ foreach ($r in $data.player_base) {
   if ($baseSeen.ContainsKey($s)) { Add-Err $tab $n "ステータス「$s」が重複しています"; continue }
   $baseSeen[$s] = $true
   $baseLines.Add("scoreboard players set @s test.status.base.$s $(To-Internal $tab $n '値' $v)")
+  # レベル成長: 1レベルごとの加算量(表示の単位、空欄は0)。test:status/level_bonus が ×(レベル−1) する
+  $g = Cell $r 'レベル成長'
+  if ($g -eq '') { $g = '0' }
+  if ($g -match '^-') { Add-Err $tab $n "「レベル成長」($g) は0以上にしてください"; continue }
+  $growthPairs.Add("$($s):$(To-Internal $tab $n 'レベル成長' $g)")
 }
 foreach ($s in $BaseStats) { if (-not $baseSeen.ContainsKey($s)) { Add-Err $Tabs.player_base 0 "ステータス「$s」の行がありません" } }
 
@@ -2326,6 +2332,13 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# @s = プレイヤー。初期の能力値(スプレッドシートの「プレイヤー初期値」タブ。内部の値)。',
   '# test:init/asset/status/vanilla(初めて入ったとき)と test:init/(/reload のとき今いるプレイヤー全員)が呼ぶ', '')
 $outputs[$rel] = $lines + $baseLines
+
+$rel = 'init\asset\status\generated\growth.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# プレイヤーレベルによる共通の成長(スプレッドシートの「プレイヤー初期値」タブの「レベル成長」。内部の値)。',
+  '# asset.level_growth.<stat> = 1レベルごとの加算量。test:status/level_bonus が ×max(レベル−1, 0) して test.level_bonus.<stat> にする', '',
+  "data modify storage test: asset.level_growth set value {$($growthPairs -join ',')}")
+$outputs[$rel] = $lines
 
 $rel = 'init\asset\generated\config.mcfunction'
 $cfgSnbt = @($constCfg.Keys | ForEach-Object { "$($_):$($constCfg[$_])" }) -join ','
