@@ -24,3 +24,5 @@ scoreboard players operation @s test.status.mp = @s test.status.mp_max
 
 # 1=チャット表示 2=頭上ポップアップ 3=両方
 scoreboard players set @s test.settings.damage_display 3
+
+function test:job/advancement/sync

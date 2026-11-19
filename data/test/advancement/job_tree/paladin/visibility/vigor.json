@@ -1,0 +1,6 @@
+{
+  "parent": "test:job_tree/paladin/skills/vigor",
+  "criteria": {
+    "visible": {"trigger": "minecraft:impossible"}
+  }
+}

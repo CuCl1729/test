@@ -1,0 +1,14 @@
+{
+  "parent": "test:job_tree/warrior/skills/might",
+  "display": {
+    "icon": {"id": "minecraft:golden_apple"},
+    "title": {"text": "頑健"},
+    "description": {"text": "必要レベル 3 / 消費SP 1 / 前提: 剛力 / 防御力+0.5、会心率+1%"},
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "learned": {"trigger": "minecraft:impossible"}
+  }
+}

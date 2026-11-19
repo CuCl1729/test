@@ -35,7 +35,7 @@ function B([bool]$v) { if ($v) { 'TRUE' } else { 'FALSE' } }
 $kill = (Lines 'damage\kill.mcfunction') -join "`n"
 $fieldKill = OneLine 'tick.mcfunction' 'run function test:reward/field_kill'
 $attack = OneLine 'attack\damage.mcfunction' 'run function test:attack/hit_apply'
-$projHit = OneLine 'projectile\move.mcfunction' 'run function test:magic/hit'
+$projHit = OneLine 'projectile\move_body.mcfunction' 'run function test:magic/hit'
 $aoeHit = OneLine 'magic\aoe\apply.mcfunction' 'run function test:magic/hit'
 $magicHit = (Lines 'magic\hit.mcfunction') -join "`n"
 # Magic can't reach a battle_member if both hit paths exclude it, if magic/hit returns for it, or if the
@@ -45,6 +45,12 @@ $magicCast = (Lines 'magic\.mcfunction') -join "`n"
 $magicSkips = ($projHit.Contains('tag=!battle_member') -and $aoeHit.Contains('tag=!battle_member')) -or
   ($magicHit -match '@s\[[^\]]*tag=battle_member[^\]]*\] run return') -or
   ($magicCast -match '(?m)^execute if score @s test\.battle\.id matches 1\.\. run return fail')
+# The tick line that pays a battle enemy killed outside turn_end (a buff ending) before `kill @e[tag=kill]` removes it
+$tickLines = Lines 'tick.mcfunction'
+$flushAt = -1
+for ($i = 0; $i -lt $tickLines.Count; $i++) { if ($tickLines[$i].Contains('run function test:battle/reward_flush') -and $tickLines[$i].Contains('tag=battle_reward_pending') -and -not $tickLines[$i].TrimStart().StartsWith('#')) { $flushAt = $i } }
+$flushPays = ($flushAt -ge 0) -and ($flushAt -lt (LineNo 'tick.mcfunction' 'kill @e[tag=kill]')) -and
+  ((Test-Path (Join-Path $Fn 'battle\reward_flush.mcfunction')) -and ((Lines 'battle\reward_flush.mcfunction') -join "`n").Contains('function test:battle/grant_reward'))
 $facts = [ordered]@{
   KillTagsPending            = $kill.Contains('tag=battle_member,tag=!kill] run tag @s add battle_reward_pending')
   KillTagsBattleKilled       = $kill.Contains('tag=battle_member] run tag @s add battle_killed')
@@ -54,6 +60,7 @@ $facts = [ordered]@{
   MagicSkipsMember           = $magicSkips
   BuffStepBeforeProcAll      = (LineNo 'battle\turn_end.mcfunction' 'function test:buff/step') -lt (LineNo 'battle\turn_end.mcfunction' 'function test:battle/proc_all')
   ProcAllBeforeCheckEnd      = (LineNo 'battle\turn_end.mcfunction' 'function test:battle/proc_all') -lt (LineNo 'battle\turn_end.mcfunction' 'function test:battle/check_end')
+  FlushPaysPending           = $flushPays
 }
 Write-Output 'facts read from the code:'
 foreach ($k in $facts.Keys) { Write-Output ("  {0,-27} {1}" -f $k, (B $facts[$k])) }

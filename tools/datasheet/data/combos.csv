@@ -1,0 +1,17 @@
+﻿id,適用,必須要素,禁止要素,発生元,挙動,支払い,params,説明
+shot,段,projectile,continuous; self; place,player,shot,前払い,,投射
+radial,段,projectile,continuous; homing; self; place,source,radial,前払い,,放射
+aimed,段,projectile; homing,continuous; self; place,source,aimed,前払い,,追尾
+nova,段,aoe,continuous; homing; projectile; self; place,any,nova,前払い,,範囲
+self_cast,段,self,continuous; homing; projectile; aoe; place,any,self,前払い,,自己
+device,段,place,continuous; homing; projectile; self; aoe,player,device,前払い,,設置
+device_at,段,place,continuous; homing; projectile; self; aoe,source,device_at,前払い,,設置
+beam,段,continuous; projectile,homing; aoe; self; place,player,beam,維持,endpoint_aoe=0,ビーム(押している間)
+beam_aoe,段,continuous; projectile; aoe,homing; self; place,player,beam,維持,endpoint_aoe=1,ビーム(押している間・行き止まりで範囲)
+beam_auto,段,continuous; projectile,aoe; self; place,source,beam_auto,前払い,endpoint_aoe=0,自動ビーム
+beam_auto_aoe,段,continuous; projectile; aoe,self; place,source,beam_auto,前払い,endpoint_aoe=1,自動ビーム(行き止まりで範囲)
+field,段,continuous; aoe,homing; projectile; self; place,any,field,前払い,,継続する場
+self_sustain,段,continuous; self,homing; projectile; aoe; place,any,self_sustain,前払い,,自己持続
+periodic_device,つなぎ,periodic; place,projectile; self,any,emit,前払い,,設置物から一定間隔
+periodic_projectile,つなぎ,periodic; projectile,place; self,any,emit,前払い,,飛んでいる弾から一定間隔
+periodic_self,つなぎ,periodic; self,place; projectile,any,emit,前払い,,自分から一定間隔

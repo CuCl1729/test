@@ -6,12 +6,7 @@
 # サンプル点ごとにパーティクルも出すので、表示される扇と判定範囲は一致する。
 # #aoe_half_angle/#aoe_reach(いずれもtest.temporary)は呼び出し元(attack/aoe、job/skill/handler/damage_cone)で設定済み
 
-# 角度は0.1°単位で扱う(外側の弧では1°より細かい刻みが要るため)
-scoreboard players operation #aoe_half_tenths test.temporary = #aoe_half_angle test.temporary
-scoreboard players operation #aoe_half_tenths test.temporary *= #10 test.constant
-scoreboard players set #aoe_ring test.temporary 1
-
 # at @sで上下の角度も含めた向きを引き継ぐ(positionedで基準点は足元に戻るので、以降の^ ^ ^はずれない)
-execute at @s anchored eyes positioned ^ ^ ^ run function test:scan/aoe/ring
+execute at @s anchored eyes positioned ^ ^ ^ run function test:scan/aoe/collect
 
 function test:attack/damage

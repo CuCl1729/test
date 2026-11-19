@@ -41,6 +41,11 @@ function test:battle/join
 execute as @a[distance=..8] at @s unless score @s test.battle.id matches 1.. run function test:battle/join
 execute as @e[tag=enemy,distance=..8] at @s unless score @s test.battle.id matches 1.. run function test:battle/join
 
+# ビーム・投射の着弾(hit)で狙われた敵は8ブロックを超えていてもこの戦闘に参加させる。
+# enter_arenaはエンティティNBTの帰還座標を使うので、ここで`at @s`してしまうと
+# 遠くの対象の位置が「この戦闘の入り口」として記録されてしまう(distance=0..は次元のみ絞り込む)
+execute as @e[tag=hit,tag=enemy,distance=0..,scores={test.status.hp=1..}] unless score @s test.battle.id matches 1.. run function test:battle/join
+
 scoreboard players set #battle_weather test.temporary 0
 execute if predicate test:weather/rain run scoreboard players set #battle_weather test.temporary 1
 execute if predicate test:weather/thunder run scoreboard players set #battle_weather test.temporary 2

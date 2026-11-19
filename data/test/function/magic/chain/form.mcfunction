@@ -1,5 +1,13 @@
 #> test:magic/chain/form
-# @s = 持ち主のプレイヤー。実行位置 = この段を始める所。@macro magic_type: この段の形態(ほかのキーも渡ってくるが使わない)
-#   範囲: この位置を中心に爆発 / 設置: この位置に置く / 投射: この位置から撃つ(弾の向きは今までどおり、
-#   いちばん近いプレイヤーと反対向き) / 自己: 持ち主に掛かる
-$function test:magic/chain/form_$(magic_type)
+# @s = 持ち主のプレイヤー。実行位置 = この段を始める所。
+# つないだ段は「設置物や弾が起こした」段なので、発生元 source として組み合わせの表を引く。
+# 同じ要素でも、プレイヤーが直接唱えたとき(投射 → 視線の扇)と、設置物が起こしたとき
+# (投射 → 水平の放射。持ち主の位置やカメラによらない)で違う行が当たる
+data remove storage test: combo_work.flags
+data modify storage test: combo_work.flags set from storage test: magic.player.type_flags
+data modify storage test: combo_work.apply set value "stage"
+data modify storage test: combo_work.emitter set value "source"
+function test:magic/combo/match
+
+execute if score #combo_found test.temporary matches 0 run return 0
+function test:magic/combo/run

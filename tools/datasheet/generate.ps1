@@ -34,7 +34,11 @@ $Tabs = [ordered]@{
   jobs             = '職業'
   job_skills       = '職業スキル'
   magic_values     = '魔法の数値'
+  combos           = '組み合わせ'
+  action_recipes   = '魔法構成'
+  special_material_effects = '特殊素材効果'
   buff_values      = 'バフの数値'
+  buff_effects     = 'バフ効果'
   player_base      = 'プレイヤー初期値'
   config           = '定数'
   mines            = '鉱山'
@@ -206,7 +210,11 @@ $RequiredHeaders = @{
   jobs             = @('id','名前','色','前提','経験値係数','成長')
   job_skills       = @('職業','id','名前','必要レベル','前提スキル','コスト','種類','params')
   magic_values     = @('要素','コスト','params')
+  combos           = @('id','適用','必須要素','禁止要素','発生元','挙動','支払い','params','説明')
+  action_recipes   = @('id','段','要素','params','MPコスト','次のつなぎ','つなぎparams','つなぎMPコスト')
+  special_material_effects = @('素材','発動条件','魔法構成','params')
   buff_values      = @('バフ','時間','最大段数','間隔','params')
+  buff_effects     = @('バフ','効果','イベント','params')
   player_base      = @('ステータス','値','レベル成長')
   config           = @('キー','値','説明')
   weapons          = @('id','元アイテム','名前','基礎ステ','基礎ステ値','ボーナス','ボーナス値','最大レベル','ティア','射程','魔法ダメージ%','物理','火','水','木','金','土')
@@ -305,6 +313,9 @@ if (Test-Path $consumableEffectDir) {
 # 割合(percent)と固定値(flat)を組み合わせる回復の効果。無い方は0で補う
 $HealKinds = @('heal_hp','heal_mp')
 
+# ステータスの名前(test.status.base.<名前>)。「プレイヤー初期値」タブと「バフ効果」タブの両方で使う
+$BaseStats = @([regex]::Matches((Read-Fn 'init\scoreboard.mcfunction'), 'test\.status\.base\.([a-z_]+) dummy') | ForEach-Object { $_.Groups[1].Value })
+
 $Events = @('magic_cast','attack_hit','damaged')
 $Parts = @('head','chest','legs','feet','accessory')
 
@@ -316,6 +327,9 @@ $ItemPattern = '^([a-z0-9_.-]+:)?[a-z0-9_./-]+$'
 # 燃料・コンポスター・醸造・ディスペンサーの特別な動き・右クリック・設置のどれにも当たらず、64個まで重なる
 $CommonBaseItem = 'minecraft:recovery_compass'
 $NumPattern = '^-?\d+(\.\d+)?$'
+
+# 「バフ効果」タブの効果の書き方を読むもの(関数を足すだけ)
+. (Join-Path $toolDir 'buff-effects.ps1')
 
 function Esc([string]$s) { return $s.Replace('\', '\\').Replace('"', '\"').Replace("`r", '\r').Replace("`n", '\n').Replace("`t", '\t') }
 function Json-Str([string]$s) { return (ConvertTo-Json -InputObject $s -Compress) }
@@ -346,6 +360,17 @@ function Parse-Pairs($tab, $row, $col, [string]$text, [string]$sep) {
     $map[$kv[0].Trim()] = $kv[1].Trim()
   }
   return $map
+}
+function Check-NoDupKeys($tab, $row, $col, [string]$text, [string]$sep) {
+  $seen = @{}
+  foreach ($part in ($text -split $sep)) {
+    $p = $part.Trim(); if ($p -eq '') { continue }
+    $kv = $p -split '=', 2
+    if ($kv.Count -ne 2) { continue }
+    $k = $kv[0].Trim(); if ($k -eq '') { continue }
+    if ($seen.ContainsKey($k)) { Add-Err $tab $row "「$col」のキー「$k」が重複しています" }
+    $seen[$k] = $true
+  }
 }
 function Snbt-Value([string]$v) { if ($v -match $NumPattern) { return $v } else { return "`"$(Esc $v)`"" } }
 
@@ -405,7 +430,6 @@ if ($substatWeapon.Count -eq 0) { Add-Err $Tabs.stats 0 '武器でも抽選に�
 $MaterialRoles = [ordered]@{ '素材' = 'material'; '触媒' = 'catalyst'; '特殊' = 'special'; '型紙' = 'pattern'; 'エッセンス' = 'essence' }
 $materials = [ordered]@{}
 $materialDecls = New-Object System.Collections.Generic.List[string]
-$forgeCraftBody = Read-Fn 'craft\weapon\forge\craft.mcfunction'
 foreach ($r in $data.materials) {
   $tab = $Tabs.materials; $n = $r.__row
   $id = Cell $r 'id'
@@ -424,14 +448,13 @@ foreach ($r in $data.materials) {
     # エッセンス(魔法作物から採れる)は material ではなく essence で持ち、鍛冶場・防具工房の材料として受け付けないようにする
     $snbt = if ($role -eq 'essence') { "essence:{kind:`"$id`"}" } else { "material:{kind:`"$id`"}" }
   }
-  # 特殊素材の効果はコードにある(鍛冶場が kind で探し、asset/weapon/ が効果を付ける)
-  if ($role -eq 'special' -and $forgeCraftBody -notmatch "kind:`"$id`"") { Add-Err $tab $n "特殊素材「$id」の効果がコード(craft/weapon/forge/craft)にありません" }
   # 元のアイテムは全素材 $CommonBaseItem。「元アイテム」列は見た目(item_model)に使う
   $model = if ($item -match ':') { $item } else { "minecraft:$item" }
   $materials[$id] = @{ role = $role; model = $model; name = $name }
   $materialDecls.Add("data modify storage test: asset.material.$id set value {item:`"$CommonBaseItem`",model:`"$model`",name:`"$(Esc $name)`",role:`"$role`",data:{$snbt}}")
   $materialDecls.Add("data modify storage test: asset.material_ids append value `"$id`"")
 }
+$specialMaterialIds = @($materials.Keys | Where-Object { $materials[$_].role -eq 'special' })
 
 # ---------------------------------------------------------------- 武器
 
@@ -653,6 +676,9 @@ foreach ($r in $data.consumables) {
 
 $buffsBody = Read-Fn 'init\asset\buff\buffs.mcfunction'
 $BuffIds = @([regex]::Matches($buffsBody, 'asset\.buff\.types append value \{id:"([a-z_]+)"') | ForEach-Object { $_.Groups[1].Value })
+# バフの表示名(id => label)。アドバンスメントの説明文でバフidをそのまま出さないために使う
+$AdvBuffLabels = @{}
+foreach ($m in [regex]::Matches($buffsBody, 'asset\.buff\.types append value \{id:"([a-z_]+)",label:"([^"]*)"')) { $AdvBuffLabels[$m.Groups[1].Value] = $m.Groups[2].Value }
 # ギミック: battle/enemy_ai/gimmick/<id>.mcfunction があるもの(サブフォルダは補助の関数なので数えない)。
 # 必要な params はその関数の $(…) から読む
 $GimmickParams = @{}
@@ -823,6 +849,7 @@ foreach ($jid in $jobs.Keys) {
     [void](Check-Int $Tabs.jobs $jobs[$jid].row '前提のレベル' $jobs[$jid].requires[$k] 1)
   }
 }
+$pendingMagicRefs = New-Object System.Collections.Generic.List[object]
 foreach ($r in $data.job_skills) {
   $tab = $Tabs.job_skills; $n = $r.__row
   $jid = Cell $r '職業'; $id = Cell $r 'id'
@@ -849,14 +876,33 @@ foreach ($r in $data.job_skills) {
       $d = $StatLabel["$($k)_add"]; if ($null -eq $d) { $d = @{ label = $k; color = 'white'; unit = '' } }
       $lore.Add("{text:`"$(Esc "$($d.label) +$raw$($d.unit)")`",color:`"$($d.color)`",italic:false}")
     }
-    $jobs[$jid].skills[$id] = @{ row = $n; reqs = $reqs; snbt = "label:`"$(Esc $label)`",requires_level:$lv,requires_nodes:[REQS],cost:$cost,kind:`"stat_bonus`",bonus:[$($bonus -join ',')],lore:[$($lore -join ',')]" }
+    $jobs[$jid].skills[$id] = @{ row = $n; reqs = $reqs; snbt = "label:`"$(Esc $label)`",requires_level:$lv,requires_nodes:[REQS],cost:$cost,kind:`"stat_bonus`",bonus:[$($bonus -join ',')],lore:[$($lore -join ',')]"; label = $label; lv = $lv; cost = $cost; kind = $kind; statBonus = $bp }
     continue
   }
-  if (-not $SkillParams.ContainsKey($kind)) { Add-Err $tab $n "種類「$kind」の関数 job/skill/handler/$kind.mcfunction がありません(今あるもの: $(@($SkillParams.Keys) -join ' / '))"; continue }
+  # 種類「magic」: 魔法スキル。params は recipe=<「魔法構成」タブのid> だけで、MPは生成器では持たない(つなぎ済みのレシピをそのまま参照する)
+  if ($kind -ceq 'magic') {
+    Check-NoDupKeys $tab $n 'params' (Cell $r 'params') ';'
+    $mp = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
+    $mkeys = @($mp.Keys)
+    $extra = @($mkeys | Where-Object { $_ -cne 'recipe' })
+    if ($extra.Count -gt 0) { Add-Err $tab $n "種類「magic」の params に使えるキーは recipe だけです(余分: $($extra -join ' / '))" }
+    $recipeId = ''
+    if ($mkeys -cnotcontains 'recipe') {
+      Add-Err $tab $n '種類「magic」には params の recipe が必要です'
+    } else {
+      $recipeId = $mp['recipe']
+      if (Check-Id $tab $n 'params の recipe' $recipeId) {
+        $pendingMagicRefs.Add(@{ tab = $tab; row = $n; jobId = $jid; skillId = $id; recipeId = $recipeId })
+      }
+    }
+    $jobs[$jid].skills[$id] = @{ row = $n; reqs = $reqs; snbt = "label:`"$(Esc $label)`",requires_level:$lv,requires_nodes:[REQS],cost:$cost,kind:`"magic`",params:{recipe:`"$(Esc $recipeId)`"}"; label = $label; lv = $lv; cost = $cost; kind = $kind; recipeId = $recipeId }
+    continue
+  }
+  if (@($SkillParams.Keys) -cnotcontains $kind) { Add-Err $tab $n "種類「$kind」の関数 job/skill/handler/$kind.mcfunction がありません(今あるもの: $(@($SkillParams.Keys) -join ' / '))"; continue }
   $params = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
   foreach ($need in $SkillParams[$kind]) { if (-not $params.Contains($need)) { Add-Err $tab $n "種類「$kind」には params の $need が必要です" } }
   $ps = @($params.Keys | ForEach-Object { "$($_):$(Snbt-Value $params[$_])" }) -join ','
-  $jobs[$jid].skills[$id] = @{ row = $n; reqs = $reqs; snbt = "label:`"$(Esc $label)`",requires_level:$lv,requires_nodes:[REQS],cost:$cost,kind:`"$kind`",params:{$ps}" }
+  $jobs[$jid].skills[$id] = @{ row = $n; reqs = $reqs; snbt = "label:`"$(Esc $label)`",requires_level:$lv,requires_nodes:[REQS],cost:$cost,kind:`"$kind`",params:{$ps}"; label = $label; lv = $lv; cost = $cost; kind = $kind; params = $params }
 }
 $jobDecls = New-Object System.Collections.Generic.List[string]
 # 職業・スキルの数に上限は無い(Jobステーションは7つずつページを送って表示する)
@@ -880,11 +926,29 @@ foreach ($list in @('types', 'effects')) {
   foreach ($m in [regex]::Matches((Read-Fn "init\asset\magic\$list.mcfunction"), 'asset\.magic\.' + $list + ' append value \{id:"([a-z_]+)"[^\r\n]*?folder:"([a-z_]+)"')) {
     $mid = $m.Groups[1].Value; $folder = $m.Groups[2].Value
     $body = Read-Fn "asset\magic\$folder\$mid.mcfunction"
-    $magicReg[$mid] = @{ list = $list; params = @(Macro-Args $body | Where-Object { $_ -ne 'cost' }) }
+    # role と after(role:"link" のみ)も読む。「組み合わせ」タブの検証で、つなぎの行が
+    # 前に置ける形態の一覧と食い違っていないかを見るために使う
+    $role = ''; $after = @(); $label = $mid
+    $rm = [regex]::Match($m.Value, 'role:"([a-z_]+)"'); if ($rm.Success) { $role = $rm.Groups[1].Value }
+    $lm = [regex]::Match($m.Value, 'label:"([^"]*)"'); if ($lm.Success) { $label = $lm.Groups[1].Value }
+    $am = [regex]::Match($m.Value, 'after:\[([^\]]*)\]')
+    if ($am.Success) { $after = @([regex]::Matches($am.Groups[1].Value, '"([a-z_]+)"') | ForEach-Object { $_.Groups[1].Value }) }
+    $magicReg[$mid] = @{ list = $list; role = $role; after = $after; label = $label; params = @(Macro-Args $body | Where-Object { $_ -ne 'cost' }) }
   }
 }
+# 時間に関わる要素の params の下限。0以下だと壊れるものは1以上、0でも意味が通るものは0以上。
+#   period/interval: 0 だと進まない / duration: 0 だと出た瞬間に消える / count: 0 だと一度も起きない
+#   max_alive: 0 だと1つも出せない / mp_per_second: 0 は「無料」として意味がある
+#   radius: 0 だと誰も探せない / turn: 0 は「向きを変えない」として意味がある
+$MagicParamMin = @{
+  'continuous' = [ordered]@{ period = 1; duration = 1; mp_per_second = 0 }
+  'homing'     = [ordered]@{ radius = 1; turn = 0; delay_ticks = 0 }
+  'periodic'   = [ordered]@{ interval = 1; count = 1 }
+}
+
 $magicDecls = New-Object System.Collections.Generic.List[string]
 $magicSeen = @{}
+$magicValueParams = @{}
 foreach ($r in $data.magic_values) {
   $tab = $Tabs.magic_values; $n = $r.__row
   $id = Cell $r '要素'; $cost = Cell $r 'コスト'
@@ -894,15 +958,597 @@ foreach ($r in $data.magic_values) {
   [void](Check-Int $tab $n 'コスト' $cost 0)
   $params = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
   foreach ($need in $magicReg[$id].params) { if (-not $params.Contains($need)) { Add-Err $tab $n "要素「$id」には params の $need が必要です" } }
+  # 時間に関わる数値は、0以下だと「進まない」「何も起きない」「止まらない」といった壊れ方をするので
+  # 書き出す前に範囲を確かめる(キー => 許す最小値)
+  if ($MagicParamMin.ContainsKey($id)) {
+    foreach ($k in $MagicParamMin[$id].Keys) {
+      if ($params.Contains($k)) { [void](Check-Int $tab $n "要素「$id」の params の $k" $params[$k] $MagicParamMin[$id][$k]) }
+    }
+  }
+  # ダッシュの距離: 小数(例: 3.25)を許すため Check-Int は使わず、有限の正の数かを直接確かめる
+  if ($id -eq 'dash') {
+    $dDist = $params['distance']
+    $dOk = $false; $dParsed = [decimal]0
+    if ($null -ne $dDist -and $dDist -match $NumPattern) { $dOk = [decimal]::TryParse($dDist, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$dParsed) }
+    if (-not $dOk -or $dParsed -le 0) { Add-Err $tab $n "要素「dash」の params の distance ($dDist) は0より大きい数値にしてください" }
+  }
   $ps = @($params.Keys | ForEach-Object { "$($_):$(Snbt-Value $params[$_])" }) -join ','
   $magicDecls.Add("data modify storage test: asset.magic.$($magicReg[$id].list)[{id:`"$id`"}] merge value {cost:$cost,params:{$ps}}")
+  $magicValueParams[$id] = $params
 }
 foreach ($id in $magicReg.Keys) { if (-not $magicSeen.ContainsKey($id)) { Add-Err $Tabs.magic_values 0 "要素「$id」の行がありません(すべての要素に コスト と params が要ります)" } }
+
+# ---------------------------------------------------------------- 組み合わせ(どの要素の組が何になるか)
+#
+# 「どの組み合わせが成立し、何になるか」はこの表が持つ。クラフトの検証・魔法台の説明・実行時の
+# ディスパッチはすべて同じ表(asset.magic.combos → test:magic/combo/match)を読む。
+#   適用     段 = 1つの段の中の組み合わせ / つなぎ = 段と段のつなぎ方
+#   必須要素 すべて入っていること。ほかの要素が増えても行は無効にならない(部分一致)
+#   禁止要素 1つでも入っていたらこの行は当たらない
+#   発生元   any = どこからでも / player = プレイヤーが直接唱えた段 / source = 設置物や弾が起こした段
+#   挙動     magic/combo/behavior/<挙動>.mcfunction。データからはここに並ぶ名前しか選べない
+#   params   挙動の関数の $(…) をすべて埋めること
+$ComboApply = [ordered]@{ '段' = 'stage'; 'つなぎ' = 'link' }
+$ComboEmitters = @('any', 'player', 'source')
+# 支払い: 前払い = 唱えたときに消費MPを払う(今までの魔法すべて) /
+#         維持   = 唱えたときは払わず、続けているあいだ払う(押し続けるビーム)。
+#         維持の段は、その段の要素のコストを見積り(アイテムの消費MP)に入れない
+$ComboPay = [ordered]@{ '前払い' = 'upfront'; '維持' = 'upkeep' }
+$ComboBehaviors = @{}
+foreach ($f in Get-ChildItem (Join-Path $fnRoot 'magic\combo\behavior') -Filter *.mcfunction) { $ComboBehaviors[$f.BaseName] = Macro-Args ([IO.File]::ReadAllText($f.FullName, [Text.Encoding]::UTF8)) }
+
+# 要素の一覧(「; 」区切り)を読む。未知の要素は誤り
+function Parse-Elements($tab, $row, $col, [string]$text) {
+  $out = New-Object System.Collections.Generic.List[string]
+  foreach ($part in ($text -split ';')) {
+    $p = $part.Trim(); if ($p -eq '') { continue }
+    if (-not $magicReg.Contains($p)) { Add-Err $tab $row "「$col」の要素「$p」が魔法の一覧(init/asset/magic/types・effects)にありません"; continue }
+    if ($out.Contains($p)) { Add-Err $tab $row "「$col」の要素「$p」が重複しています"; continue }
+    $out.Add($p)
+  }
+  return $out
+}
+
+$combos = [ordered]@{}
+foreach ($r in $data.combos) {
+  $tab = $Tabs.combos; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if ($combos.Contains($id)) { Add-Err $tab $n "id「$id」が重複しています"; continue }
+  $applyJa = Cell $r '適用'; $emitter = Cell $r '発生元'; $behavior = Cell $r '挙動'; $desc = Cell $r '説明'
+  # 支払いは空なら「前払い」(今までの魔法と同じ)
+  $payJa = Cell $r '支払い'; if ($payJa -eq '') { $payJa = '前払い' }
+  if (-not $ComboPay.Contains($payJa)) { Add-Err $tab $n "「支払い」($payJa) は $(@($ComboPay.Keys) -join ' / ') のどちらかにしてください"; continue }
+  if (-not $ComboApply.Contains($applyJa)) { Add-Err $tab $n "「適用」($applyJa) は $(@($ComboApply.Keys) -join ' / ') のどちらかにしてください"; continue }
+  if ($ComboEmitters -notcontains $emitter) { Add-Err $tab $n "「発生元」($emitter) は $($ComboEmitters -join ' / ') のどれかにしてください"; continue }
+  if (-not $ComboBehaviors.ContainsKey($behavior)) { Add-Err $tab $n "「挙動」($behavior) の関数 magic/combo/behavior/$behavior.mcfunction がありません(今あるもの: $(@($ComboBehaviors.Keys | Sort-Object) -join ' / '))"; continue }
+  if ($desc -eq '') { Add-Err $tab $n '「説明」が空です(魔法台のプレビューと、成立しないときの理由に出します)' }
+  $req = Parse-Elements $tab $n '必須要素' (Cell $r '必須要素')
+  $forb = Parse-Elements $tab $n '禁止要素' (Cell $r '禁止要素')
+  if ($req.Count -eq 0) { Add-Err $tab $n '「必須要素」が空です(何も書かないと全ての組み合わせに当たってしまいます)'; continue }
+  foreach ($e in $req) { if ($forb.Contains($e)) { Add-Err $tab $n "要素「$e」が「必須要素」と「禁止要素」の両方にあります(この行は決して当たりません)" } }
+  # params: 挙動の関数の $(…) をすべて埋める。値はそのまま(内部の値)
+  $params = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
+  foreach ($need in $ComboBehaviors[$behavior]) { if (-not $params.Contains($need)) { Add-Err $tab $n "「挙動」$behavior には params の $need が必要です" } }
+  $apply = $ComboApply[$applyJa]
+  # つなぎの行は、つなぎの要素1つと、その前に来る形態を並べる。手書きの一覧の after と食い違っていたら当たらない
+  if ($apply -eq 'link') {
+    $links = @($req | Where-Object { $magicReg[$_].role -eq 'link' })
+    if ($links.Count -ne 1) { Add-Err $tab $n "「適用」が つなぎ の行は、「必須要素」につなぎ(role:`"link`")の要素をちょうど1つ入れてください(今: $($links.Count) 個)"; continue }
+    foreach ($h in @($req | Where-Object { $_ -ne $links[0] })) {
+      if ($magicReg[$links[0]].after -notcontains $h) { Add-Warn $tab $n "つなぎ「$($links[0])」の after に「$h」がありません(init/asset/magic/types。このままではこの行は当たりません)" }
+    }
+  } else {
+    foreach ($e in $req) { if ($magicReg[$e].role -eq 'link') { Add-Err $tab $n "「適用」が 段 の行に、つなぎの要素「$e」は入れられません" } }
+  }
+  $ps = @($params.Keys | ForEach-Object { "$($_):$(Snbt-Value $params[$_])" }) -join ','
+  # 「支払い」が 維持 なのは段の行だけ(つなぎは段ではないので払い方を持たない)
+  if ($apply -ne 'stage' -and $ComboPay[$payJa] -eq 'upkeep') { Add-Err $tab $n '「支払い」が 維持 にできるのは「適用」が 段 の行だけです' }
+  $combos[$id] = @{ row = $n; apply = $apply; req = $req; forb = $forb; emitter = $emitter; behavior = $behavior; pay = $ComboPay[$payJa]; params = $ps; desc = $desc }
+}
+
+# 相反する行を弾く。「同時に成立しうる2行が、同じ出力(挙動とparams)にならない」ものは誤り。
+# 同時に成立しうる = 適用が同じ・発生元が重なる・一方の必須要素が他方の禁止要素に入っていない
+$comboIds = @($combos.Keys)
+for ($i = 0; $i -lt $comboIds.Count; $i++) {
+  for ($j = $i + 1; $j -lt $comboIds.Count; $j++) {
+    $a = $combos[$comboIds[$i]]; $b = $combos[$comboIds[$j]]
+    if ($a.apply -ne $b.apply) { continue }
+    if ($a.emitter -ne $b.emitter -and $a.emitter -ne 'any' -and $b.emitter -ne 'any') { continue }
+    $both = @($a.req) + @($b.req)
+    $banned = @($a.forb) + @($b.forb)
+    $blocked = $false
+    foreach ($e in $both) { if ($banned -contains $e) { $blocked = $true; break } }
+    if ($blocked) { continue }
+    if ($a.behavior -eq $b.behavior -and $a.params -eq $b.params -and $a.pay -eq $b.pay) {
+      Add-Warn $Tabs.combos $b.row "行「$($comboIds[$j])」は行「$($comboIds[$i])」と同時に成立しますが、結果が同じなので害はありません"
+      continue
+    }
+    Add-Err $Tabs.combos $b.row "行「$($comboIds[$j])」と行「$($comboIds[$i])」($($a.row) 行目)は同時に成立しうるのに、挙動が違います($($b.behavior) / $($a.behavior))。どちらかの「禁止要素」で切り分けてください"
+  }
+}
+
+$comboDecls = New-Object System.Collections.Generic.List[string]
+foreach ($id in $combos.Keys) {
+  $c = $combos[$id]
+  $rq = @($c.req | ForEach-Object { "`"$_`"" }) -join ','
+  $fb = @($c.forb | ForEach-Object { "`"$_`"" }) -join ','
+  $comboDecls.Add("data modify storage test: asset.magic.combos append value {id:`"$id`",apply:`"$($c.apply)`",require:[$rq],forbid:[$fb],emitter:`"$($c.emitter)`",behavior:`"$($c.behavior)`",pay:`"$($c.pay)`",params:{$($c.params)},desc:`"$(Esc $c.desc)`"}")
+}
+if ($combos.Count -eq 0) { Add-Err $Tabs.combos 0 '行が1つもありません(どの魔法も組み立てられなくなります)' }
+
+# ---------------------------------------------------------------- 魔法構成(信頼済みの組み立て列。武器の核などが使う既定レシピ)
+#
+# 「魔法構成」タブは、魔法台を介さずコード側(武器の核など)が使う組み立て列(magic_recipe)を表で持つ。
+#   1行 = 1段(「段」が1〜Nの整数で、行はidごとに連続していること)。同じidの行は何行あってもよく、
+#   シート上では他のidの行と混ざっていてもよい(id→段の順に並べ直して処理する)
+#   要素: その段に積む要素(重ねがけは同じidを「;」で繰り返す。重複は許す)
+#   params: その段の要素に status の数値を上書きするための固定値(下のALLOWLIST参照)。要素の関数自体の
+#           paramsではない(そちらは「魔法の数値」タブが持つ)
+#   次のつなぎ: 最後の段(最大の段)以外は必須、最後の段は空。つなぎの要素(role:"link")のid
+#   つなぎparams/つなぎMPコスト: 次のつなぎのパラメータ上書き(省略した分は「魔法の数値」タブの値を使う)とコスト上書き
+$ActionParamSpec = [ordered]@{
+  'aoe.radius'              = @{ kind = 'int'; min = 1;  max = $null; require = @('aoe') }
+  'aoe.half_angle'          = @{ kind = 'int'; min = 0;  max = 180;   require = @('aoe') }
+  'aoe.shape'               = @{ kind = 'enum'; values = @('cone', 'circle'); require = @('aoe') }
+  'projectile.speed'        = @{ kind = 'int'; min = 1;  max = $null; require = @('projectile') }
+  'projectile.range'        = @{ kind = 'int'; min = 1;  max = $null; require = @('projectile') }
+  'projectile.gravity'      = @{ kind = 'int'; min = 0;  max = $null; require = @('projectile', 'gravity') }
+  'place.life'              = @{ kind = 'num'; min = 0;  exclusive = $true;  require = @('place') }
+  'continuous.period'       = @{ kind = 'int'; min = 1;  max = $null; require = @('continuous') }
+  'continuous.duration'     = @{ kind = 'num'; min = 0;  exclusive = $true;  require = @('continuous') }
+  'continuous.mp_per_second'= @{ kind = 'int'; min = 0;  max = $null; require = @('continuous') }
+  'homing.radius'           = @{ kind = 'num'; min = 0;  exclusive = $true;  require = @('homing') }
+  'homing.turn'             = @{ kind = 'int'; min = 0;  max = $null; require = @('homing') }
+  'homing.delay_ticks'      = @{ kind = 'int'; min = 0;  max = $null; require = @('homing') }
+  'data.magic.fire.base'    = @{ kind = 'int'; min = 0;  max = $null; require = @('fire') }
+  'data.magic.water.base'   = @{ kind = 'int'; min = 0;  max = $null; require = @('water') }
+  'data.magic.wood.base'    = @{ kind = 'int'; min = 0;  max = $null; require = @('wood') }
+  'data.magic.metal.base'   = @{ kind = 'int'; min = 0;  max = $null; require = @('metal') }
+  'data.magic.earth.base'   = @{ kind = 'int'; min = 0;  max = $null; require = @('earth') }
+  'data.magic.atk'          = @{ kind = 'int'; min = 0;  max = $null; require = @('atk') }
+}
+
+# 「;」区切りの要素一覧を読む。段の要素は重ねがけ(同じidの重複)を許し、つなぎ(role:"link")は書けない
+function Parse-StageElements($tab, $row, $col, [string]$text) {
+  $out = New-Object System.Collections.Generic.List[string]
+  foreach ($part in ($text -split ';')) {
+    $p = $part.Trim(); if ($p -eq '') { continue }
+    if (@($magicReg.Keys) -cnotcontains $p) { Add-Err $tab $row "「$col」の要素「$p」が魔法の一覧(init/asset/magic/types・effects)にありません"; continue }
+    if ($magicReg[$p].role -eq 'link') { Add-Err $tab $row "「$col」の要素「$p」はつなぎの要素なので段には書けません"; continue }
+    $out.Add($p)
+  }
+  return $out
+}
+function ActionCheck-Int($tab, $row, $col, [string]$value, [long]$min, $max) {
+  if ($value -notmatch '^-?\d+$') { Add-Err $tab $row "「$col」($value) は整数にしてください"; return $null }
+  $v = [long]$value
+  # SNBT のバニラコマンドの素の整数(スコアボードも含む)は32bit int なので、ここで上限を課す(エンジン表現の都合。ゲーム上の上限ではない)
+  $effMax = if ($null -ne $max) { [long]$max } else { [long][int]::MaxValue }
+  if ($v -lt $min) { Add-Err $tab $row "「$col」($value) は$min 以上にしてください"; return $null }
+  if ($v -gt $effMax) { Add-Err $tab $row "「$col」($value) は$effMax 以下にしてください"; return $null }
+  return $v.ToString()
+}
+function ActionCheck-Num($tab, $row, $col, [string]$value, [decimal]$min, [bool]$exclusive) {
+  if ($value -notmatch $NumPattern) { Add-Err $tab $row "「$col」($value) が数値ではありません"; return $null }
+  $d = [decimal]::Parse($value, [Globalization.CultureInfo]::InvariantCulture)
+  if ($exclusive) { if ($d -le $min) { Add-Err $tab $row "「$col」($value) は$min より大きくしてください"; return $null } }
+  elseif ($d -lt $min) { Add-Err $tab $row "「$col」($value) は$min 以上にしてください"; return $null }
+  return $d.ToString([Globalization.CultureInfo]::InvariantCulture)
+}
+
+$actionGroups = [ordered]@{}
+foreach ($r in $data.action_recipes) {
+  $tab = $Tabs.action_recipes; $n = $r.__row
+  $id = Cell $r 'id'
+  if (-not (Check-Id $tab $n 'id' $id)) { continue }
+  if (-not $actionGroups.Contains($id)) { $actionGroups[$id] = New-Object System.Collections.Generic.List[object] }
+  $actionGroups[$id].Add($r)
+}
+
+$actionRecipes = [ordered]@{}
+foreach ($id in $actionGroups.Keys) {
+  # PS5.1: List[object] を @() で直接くるむと引数型が合わないことがあるので ToArray() を使う
+  $rows = $actionGroups[$id].ToArray()
+  $tab = $Tabs.action_recipes
+  # 段で昇順に並べ、重複・抜けを検める
+  $withStage = New-Object System.Collections.Generic.List[object]
+  $stageSeen = @{}
+  $stageOk = $true
+  foreach ($r in $rows) {
+    $n = $r.__row
+    $stageStr = ActionCheck-Int $tab $n '段' (Cell $r '段') 1 $null
+    if ($null -eq $stageStr) { $stageOk = $false; continue }
+    $st = [int]$stageStr
+    if ($stageSeen.ContainsKey($st)) { Add-Err $tab $n "id「$id」の段 $st が重複しています"; $stageOk = $false; continue }
+    $stageSeen[$st] = $true
+    $withStage.Add(@{ row = $r; stage = $st })
+  }
+  if (-not $stageOk) { continue }
+  $sorted = @($withStage | Sort-Object { $_.stage })
+  for ($i = 0; $i -lt $sorted.Count; $i++) {
+    if ($sorted[$i].stage -ne ($i + 1)) { Add-Err $tab $sorted[$i].row.__row "id「$id」の段は1から連続した整数にしてください(抜けか重複があります)"; $stageOk = $false }
+  }
+  if (-not $stageOk) { continue }
+
+  $buildIds = New-Object System.Collections.Generic.List[string]
+  $settings = New-Object System.Collections.Generic.List[object]
+  $ok = $true
+  for ($i = 0; $i -lt $sorted.Count; $i++) {
+    $r = $sorted[$i].row; $n = $r.__row; $isFinal = ($i -eq $sorted.Count - 1)
+
+    # PowerShellのパイプ出力は要素数1だとスカラーに潰れるので、@()で必ず配列にしてから使う
+    $elems = @(Parse-StageElements $tab $n '要素' (Cell $r '要素'))
+    if ($elems.Count -eq 0) { Add-Err $tab $n '「要素」が空です'; $ok = $false; continue }
+    foreach ($e in $elems) { $buildIds.Add($e) }
+
+    Check-NoDupKeys $tab $n 'params' (Cell $r 'params') ';'
+    $params = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
+    $stageSettings = [ordered]@{}
+    foreach ($k in $params.Keys) {
+      if (@($ActionParamSpec.Keys) -cnotcontains $k) { Add-Err $tab $n "「params」のキー「$k」は使えません(使えるのは $(@($ActionParamSpec.Keys) -join ' / '))"; continue }
+      $spec = $ActionParamSpec[$k]
+      foreach ($need in $spec.require) { if ($elems -cnotcontains $need) { Add-Err $tab $n "「params」の$k には、この段の「要素」に $need が要ります" } }
+      $v = $params[$k]
+      if ($spec.kind -eq 'int') {
+        $norm = ActionCheck-Int $tab $n "params の $k" $v $spec.min $spec.max
+        if ($null -ne $norm) { $stageSettings[$k] = $norm }
+      } elseif ($spec.kind -eq 'num') {
+        $norm = ActionCheck-Num $tab $n "params の $k" $v $spec.min $spec.exclusive
+        if ($null -ne $norm) { $stageSettings[$k] = $norm }
+      } else {
+        if ($spec.values -cnotcontains $v) { Add-Err $tab $n "「params」の$k ($v) は $($spec.values -join ' / ') のどれかにしてください" }
+        else { $stageSettings[$k] = "`"$v`"" }
+      }
+    }
+
+    $mp = Cell $r 'MPコスト'
+    $stageCost = $null
+    if ($mp -ne '') { $stageCost = ActionCheck-Int $tab $n 'MPコスト' $mp 0 $null }
+
+    $linkJa = Cell $r '次のつなぎ'; $linkParamsText = Cell $r 'つなぎparams'; $linkCostText = Cell $r 'つなぎMPコスト'
+    $link = $null
+    if ($isFinal) {
+      if ($linkJa -ne '') { Add-Err $tab $n '「次のつなぎ」は最後の段には書けません' }
+      if ($linkParamsText -ne '') { Add-Err $tab $n '「つなぎparams」は「次のつなぎ」が無い行には書けません' }
+      if ($linkCostText -ne '') { Add-Err $tab $n '「つなぎMPコスト」は「次のつなぎ」が無い行には書けません' }
+    } else {
+      if ($linkJa -eq '') { Add-Err $tab $n '「次のつなぎ」が空です(最後の段以外は必須です)'; $ok = $false; continue }
+      if ((@($magicReg.Keys) -cnotcontains $linkJa) -or $magicReg[$linkJa].role -ne 'link') { Add-Err $tab $n "「次のつなぎ」($linkJa) が魔法の一覧でつなぎ(role:`"link`")としてありません"; $ok = $false; continue }
+      $buildIds.Add($linkJa)
+      Check-NoDupKeys $tab $n 'つなぎparams' $linkParamsText ';'
+      $linkOverrides = Parse-Pairs $tab $n 'つなぎparams' $linkParamsText ';'
+      $linkOk = [ordered]@{}
+      foreach ($k in $linkOverrides.Keys) {
+        if ($magicReg[$linkJa].params -cnotcontains $k) { Add-Err $tab $n "「つなぎparams」のキー「$k」はつなぎ「$linkJa」の params にありません(使えるのは $(@($magicReg[$linkJa].params) -join ' / '))"; continue }
+        $v = $linkOverrides[$k]
+        if ($k -eq 'count') {
+          # count は正の整数(32bit int の範囲)。先頭の0や桁あふれを残さないよう、検証済みの値で持ち直す
+          $normCount = ActionCheck-Int $tab $n 'つなぎparams の count' $v 1 $null
+          if ($null -ne $normCount) { $linkOk[$k] = $normCount }
+          continue
+        }
+        if ($v -notmatch $NumPattern) { Add-Err $tab $n "「つなぎparams」の$k ($v) が数値ではありません"; continue }
+        $d = [decimal]::Parse($v, [Globalization.CultureInfo]::InvariantCulture)
+        if ($d -le 0) { Add-Err $tab $n "「つなぎparams」の$k ($v) は0より大きい数値にしてください"; continue }
+        $linkOk[$k] = $d.ToString([Globalization.CultureInfo]::InvariantCulture)
+      }
+      $linkParamsFinal = [ordered]@{}
+      foreach ($k in $magicReg[$linkJa].params) {
+        if ($linkOk.Contains($k)) { $linkParamsFinal[$k] = $linkOk[$k] }
+        elseif ($magicValueParams.ContainsKey($linkJa) -and $magicValueParams[$linkJa].Contains($k)) { $linkParamsFinal[$k] = $magicValueParams[$linkJa][$k] }
+        else { Add-Err $tab $n "つなぎ「$linkJa」の params の $k に既定値がありません(「魔法の数値」タブを確かめてください)" }
+      }
+      $linkCost = $null
+      if ($linkCostText -ne '') { $linkCost = ActionCheck-Int $tab $n 'つなぎMPコスト' $linkCostText 0 $null }
+      $link = @{ params = $linkParamsFinal; cost = $linkCost }
+    }
+
+    $settings.Add(@{ stage = $stageSettings; cost = $stageCost; link = $link })
+  }
+  if (-not $ok) { continue }
+  $actionRecipes[$id] = @{ build = $buildIds; settings = $settings }
+}
+if ($data.action_recipes.Count -gt 0 -and $actionRecipes.Count -eq 0 -and $Errors.Count -eq 0) { Add-Err $Tabs.action_recipes 0 '有効な行がありません' }
+
+# 職業スキルの種類「magic」が参照するレシピidを、「魔法構成」タブを読み終えた今になって確かめる(action_recipesは職業スキルより後に読むため)
+foreach ($pend in $pendingMagicRefs) {
+  if (@($actionRecipes.Keys) -cnotcontains $pend.recipeId) {
+    Add-Err $pend.tab $pend.row "職業「$($pend.jobId)」のスキル「$($pend.skillId)」の params の recipe「$($pend.recipeId)」が「魔法構成」タブにありません"
+  }
+}
+
+$actionDecls = New-Object System.Collections.Generic.List[string]
+$actionDecls.Add('data modify storage test: asset.action.recipes set value {}')
+foreach ($id in $actionRecipes.Keys) {
+  $rec = $actionRecipes[$id]
+  $build = @($rec.build | ForEach-Object { "`"$_`"" }) -join ','
+  $actionDecls.Add("data modify storage test: asset.action.recipes.$id set value {build:[$build],settings:[]}")
+  foreach ($s in $rec.settings) {
+    $actionDecls.Add("data modify storage test: asset.action.recipes.$id.settings append value {stage:{}}")
+    foreach ($k in $s.stage.Keys) {
+      $actionDecls.Add("data modify storage test: asset.action.recipes.$id.settings[-1].stage.$k set value $($s.stage[$k])")
+    }
+    if ($null -ne $s.cost) { $actionDecls.Add("data modify storage test: asset.action.recipes.$id.settings[-1].cost set value $($s.cost)") }
+    if ($null -ne $s.link) {
+      $actionDecls.Add("data modify storage test: asset.action.recipes.$id.settings[-1].link set value {}")
+      foreach ($k in $s.link.params.Keys) {
+        $actionDecls.Add("data modify storage test: asset.action.recipes.$id.settings[-1].link.params.$k set value $($s.link.params[$k])")
+      }
+      if ($null -ne $s.link.cost) { $actionDecls.Add("data modify storage test: asset.action.recipes.$id.settings[-1].link.cost set value $($s.link.cost)") }
+    }
+  }
+}
+
+# ---------------------------------------------------------------- 職業スキルのツリー表示(見るだけのアドバンスメント)
+#
+# 既存の「職業」「職業スキル」タブ(canonical)から、見るだけのアドバンスメントを data/test/advancement/job_tree/ に生成する。
+# 付与・剥奪・SP/MPの操作はこの単位では行わない(学習・リセットはJobステーションのまま、同期は次の単位で繋ぐ)。
+#   <job>/root.json         職業の解放フラグをそのまま映す
+#   <job>/skills/<node>.json 各スキルの習得フラグをそのまま映す
+#   <job>/visibility/<node>.json 視覚上の葉(1つも他のスキルから視覚上の親に選ばれていないスキル)ごとに1つ。
+#                               表示を持たない「取得済みの不可視の子」で、未習得の先祖を見せたまま実際の習得は変えない。
+#                               スキルが1つも無い職業は、root 直下に1つだけ置く(タブ自体を見せ続けるため)
+$AdvRoot = 'data/test/advancement/job_tree'
+$AdvSkillIcon = [ordered]@{ stat_bonus = 'minecraft:golden_apple'; magic = 'minecraft:enchanted_book'; self_buff = 'minecraft:potion'; damage_cone = 'minecraft:fire_charge'; revive = 'minecraft:totem_of_undying' }
+$AdvFallbackIcon = 'minecraft:nether_star'
+function Adv-Icon([string]$kind) { if ($AdvSkillIcon.Contains($kind)) { return $AdvSkillIcon[$kind] } else { return $AdvFallbackIcon } }
+
+# 職業1件の前提スキルの有向グラフ全体(視覚上の親だけでなく全ての前提スキル)に循環が無いか調べる。自己参照も循環として検める
+function Find-SkillCycle($skills) {
+  $state = @{}
+  function Visit-SkillNode([string]$sid) {
+    if ($state[$sid] -eq 2) { return $null }
+    if ($state[$sid] -eq 1) { return @($sid) }
+    $state[$sid] = 1
+    foreach ($q in $skills[$sid].reqs) {
+      if (-not $skills.Contains($q)) { continue }
+      $found = Visit-SkillNode $q
+      if ($null -ne $found) { return (@($sid) + $found) }
+    }
+    $state[$sid] = 2
+    return $null
+  }
+  foreach ($sid in $skills.Keys) {
+    if ($state[$sid] -ne 2) {
+      $found = Visit-SkillNode $sid
+      if ($null -ne $found) { return $found }
+    }
+  }
+  return $null
+}
+
+$advFiles = [ordered]@{}   # data/test/advancement/job_tree 配下の相対パス(/区切り) => JSONテキスト
+# アドバンスメントの付与・剥奪(test:job/advancement/sync、下の $genFns に足す)に使う OhMyDat のストレージ経路。job/unlock・job/skill/unlock と同じ8段
+$OmdPath = 'oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4]'
+$advSyncLines = New-Object System.Collections.Generic.List[string]
+foreach ($jid in $jobs.Keys) {
+  $job = $jobs[$jid]
+  $cyc = Find-SkillCycle $job.skills
+  if ($null -ne $cyc) { Add-Err $Tabs.job_skills 0 "職業「$jid」のスキルの前提が循環しています($($cyc -join ' → '))"; continue }
+
+  $rootAdvId = "test:job_tree/$jid/root"
+  $advFiles["$AdvRoot/$jid/root.json"] = @"
+{
+  "display": {
+    "icon": {"id": "$AdvFallbackIcon"},
+    "title": {"text": $(Json-Str $job.label), "color": "$($job.color)"},
+    "description": {"text": ""},
+    "background": "minecraft:gui/advancements/backgrounds/stone",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "unlocked": {"trigger": "minecraft:impossible"}
+  }
+}
+"@
+
+  # 視覚上の親: 最初の前提スキル(無ければ職業のroot)。葉は、どのスキルからも視覚上の親として選ばれていないスキル
+  $visualParent = @{}
+  $isVisualParentOf = @{}
+  foreach ($sid in $job.skills.Keys) {
+    $reqs = $job.skills[$sid].reqs
+    if ($reqs.Count -gt 0) { $visualParent[$sid] = $reqs[0]; $isVisualParentOf[$reqs[0]] = $true }
+    else { $visualParent[$sid] = $null }
+  }
+  $leaves = @($job.skills.Keys | Where-Object { -not $isVisualParentOf.ContainsKey($_) })
+
+  foreach ($sid in $job.skills.Keys) {
+    $s = $job.skills[$sid]
+    $parentAdvId = if ($null -eq $visualParent[$sid]) { $rootAdvId } else { "test:job_tree/$jid/skills/$($visualParent[$sid])" }
+    $reqLabels = @($s.reqs | ForEach-Object { $job.skills[$_].label })
+    $descParts = New-Object System.Collections.Generic.List[string]
+    $descParts.Add("必要レベル $($s.lv)")
+    $descParts.Add("消費SP $($s.cost)")
+    if ($reqLabels.Count -gt 0) { $descParts.Add("前提: $($reqLabels -join '、')") }
+    if ($s.kind -eq 'stat_bonus') {
+      $effectTerms = @($s.statBonus.Keys | ForEach-Object {
+        $k = $_; $d = $StatLabel["$($k)_add"]; if ($null -eq $d) { $d = @{ label = $k; unit = '' } }
+        "$($d.label)+$($s.statBonus[$k])$($d.unit)"
+      })
+      $descParts.Add($effectTerms -join '、')
+    } elseif ($s.kind -eq 'magic') {
+      $elems = if ($actionRecipes.Contains($s.recipeId)) { $actionRecipes[$s.recipeId].build } else { @() }
+      $elemLabels = @($elems | ForEach-Object { if ($magicReg.Contains($_)) { $magicReg[$_].label } else { $_ } })
+      $descParts.Add("魔法: $($elemLabels -join '→')")
+    } elseif ($s.kind -eq 'damage_cone') {
+      $p = $s.params
+      $descParts.Add("扇状攻撃: 威力$($p['multiplier'])%、角度$($p['angle'])°、射程$($p['reach'])、MP消費$($p['mp_cost'])")
+    } elseif ($s.kind -eq 'self_buff') {
+      $p = $s.params
+      $buffId = $p['buff_id']
+      $advBuffText = if ($AdvBuffLabels.ContainsKey($buffId)) { $AdvBuffLabels[$buffId] } else { $buffId }
+      $descParts.Add("自分に『$advBuffText』を$($p['stacks'])重ね付与")
+    } elseif ($s.kind -eq 'revive') {
+      $p = $s.params
+      $descParts.Add("味方を復活: HP$($p['percent'])%、範囲$($p['radius'])、MP消費$($p['mp_cost'])")
+    } else {
+      $effectTerms = @($s.params.Keys | ForEach-Object { "$($_)=$($s.params[$_])" })
+      $descParts.Add("$($s.kind): $($effectTerms -join '、')")
+    }
+    $desc = $descParts -join ' / '
+    $advFiles["$AdvRoot/$jid/skills/$sid.json"] = @"
+{
+  "parent": "$parentAdvId",
+  "display": {
+    "icon": {"id": "$(Adv-Icon $s.kind)"},
+    "title": {"text": $(Json-Str $s.label)},
+    "description": {"text": $(Json-Str $desc)},
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "learned": {"trigger": "minecraft:impossible"}
+  }
+}
+"@
+  }
+
+  if ($job.skills.Count -eq 0) {
+    $advFiles["$AdvRoot/$jid/visibility/root.json"] = @"
+{
+  "parent": "$rootAdvId",
+  "criteria": {
+    "visible": {"trigger": "minecraft:impossible"}
+  }
+}
+"@
+  } else {
+    foreach ($leafId in $leaves) {
+      $leafAdvId = "test:job_tree/$jid/skills/$leafId"
+      $advFiles["$AdvRoot/$jid/visibility/$leafId.json"] = @"
+{
+  "parent": "$leafAdvId",
+  "criteria": {
+    "visible": {"trigger": "minecraft:impossible"}
+  }
+}
+"@
+    }
+  }
+
+  # 同期(test:job/advancement/sync)。canonical: 職業の解放は unlocked.<職業>、スキルの習得は data.<職業>.skills.<id>:1b。
+  # 無ければ未解放・未習得として剥奪する。表示専用の visibility の印は常に付与する(習得フラグは変えない)
+  $advSyncLines.Add("# 職業「$jid」")
+  $advSyncLines.Add("execute if data storage $OmdPath.test.job.unlocked.$jid run advancement grant @s only $rootAdvId")
+  $advSyncLines.Add("execute unless data storage $OmdPath.test.job.unlocked.$jid run advancement revoke @s only $rootAdvId")
+  foreach ($sid in $job.skills.Keys) {
+    $skillAdvId = "test:job_tree/$jid/skills/$sid"
+    $advSyncLines.Add("execute if data storage $OmdPath.test.job.data.$jid.skills{$sid`:1b} run advancement grant @s only $skillAdvId")
+    $advSyncLines.Add("execute unless data storage $OmdPath.test.job.data.$jid.skills{$sid`:1b} run advancement revoke @s only $skillAdvId")
+  }
+  if ($job.skills.Count -eq 0) {
+    $advSyncLines.Add("advancement grant @s only test:job_tree/$jid/visibility/root")
+  } else {
+    foreach ($leafId in $leaves) {
+      $advSyncLines.Add("advancement grant @s only test:job_tree/$jid/visibility/$leafId")
+    }
+  }
+}
+
+# アドバンスメントの所有権マニフェスト(tools/datasheet/generated/job_advancements.json)。前回このマニフェストが持っていて
+# 今回の出力に無いファイルだけを消す(持っていないファイル・data/test/advancement/job_tree の外には触れない)。
+# 古いマニフェストの項目は、書き換える前にここで確かめる(文字列・.json・job_tree の中に解決できることの3つ)
+$advManifestRel = 'generated\job_advancements.json'
+$advManifestPath = Join-Path $toolDir $advManifestRel
+$advRootFull = (Join-Path $repoRoot ($AdvRoot -replace '/', '\'))
+$oldAdvManifest = @()
+if (Test-Path -LiteralPath $advManifestPath) {
+  $manifestText = [IO.File]::ReadAllText($advManifestPath, [Text.Encoding]::UTF8)
+  $parsed = $null
+  $parseOk = $true
+  try { $parsed = $manifestText | ConvertFrom-Json } catch { $parseOk = $false; Add-Err 'アドバンスメントのマニフェスト' 0 "tools/datasheet/$($advManifestRel -replace '\\','/') が正しいJSONではありません" }
+  if ($parseOk) {
+    # ConvertFrom-Json はPowerShell5だと要素1つの配列を配列でなく値そのものとして返すことがあるので、
+    # ルートが配列かどうかはパース結果でなく元のテキストの形([…])で見る(null・数値・文字列・オブジェクトはどれも配列ではない)
+    $trimmed = $manifestText.Trim()
+    if (-not ($trimmed.StartsWith('[') -and $trimmed.EndsWith(']'))) {
+      Add-Err 'アドバンスメントのマニフェスト' 0 "tools/datasheet/$($advManifestRel -replace '\\','/') のルートは配列([…])にしてください"
+    } elseif ($trimmed -match '^\[\s*\]$') {
+      # 要素が無い配列(空配列は正しく有効)。テキストの形で「空」と確かめてからは解析結果を見ずに項目無しとする
+    } else {
+      foreach ($entry in @($parsed)) {
+        if ($entry -isnot [string]) { Add-Err 'アドバンスメントのマニフェスト' 0 "tools/datasheet/$($advManifestRel -replace '\\','/') の項目は文字列にしてください"; continue }
+        if (-not $entry.EndsWith('.json')) { Add-Err 'アドバンスメントのマニフェスト' 0 "tools/datasheet/$($advManifestRel -replace '\\','/') の「$entry」は.jsonのパスではありません"; continue }
+        $resolved = $null
+        try { $resolved = [IO.Path]::GetFullPath((Join-Path $repoRoot ($entry -replace '/', '\'))) } catch { $resolved = $null }
+        if ($null -eq $resolved -or -not $resolved.StartsWith($advRootFull + '\', [StringComparison]::OrdinalIgnoreCase)) {
+          Add-Err 'アドバンスメントのマニフェスト' 0 "tools/datasheet/$($advManifestRel -replace '\\','/') の「$entry」はdata/test/advancement/job_treeの外を指しています"
+          continue
+        }
+        $oldAdvManifest += $entry
+      }
+    }
+  }
+}
+
+# ---------------------------------------------------------------- 特殊素材効果(特殊素材が右クリック/命中時に出す効果)
+#
+# 「特殊素材効果」タブは、役割「特殊」の素材(アイテムタブ)1件ごとに1行。右クリックは「魔法構成」タブのidと倍率の範囲、
+# 命中時はバフ(init/asset/buff/buffs)とスタック数・発動率を持つ。asset.action.materials にリストとして持ち、
+# 毎回全体を組み直す(reset)。既存の鍛冶・戦闘コードは次の単位まで aoe_core / poison_fang をそのまま使い続ける
+$MaterialEffectTriggers = @('right_click', 'on_hit')
+$materialEffects = [ordered]@{}
+foreach ($r in $data.special_material_effects) {
+  $tab = $Tabs.special_material_effects; $n = $r.__row
+  $id = Cell $r '素材'
+  if ((@($materials.Keys) -cnotcontains $id) -or $materials[$id].role -ne 'special') { Add-Err $tab $n "素材「$id」が「アイテム」タブに種類「特殊」としてありません"; continue }
+  if ($materialEffects.Contains($id)) { Add-Err $tab $n "素材「$id」の行が重複しています"; continue }
+  $trigger = Cell $r '発動条件'
+  if ($MaterialEffectTriggers -cnotcontains $trigger) { Add-Err $tab $n "「発動条件」($trigger) は $($MaterialEffectTriggers -join ' / ') のどれかにしてください"; continue }
+  $recipe = Cell $r '魔法構成'
+  Check-NoDupKeys $tab $n 'params' (Cell $r 'params') ';'
+  $params = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
+  if ($trigger -eq 'right_click') {
+    if ($recipe -eq '' -or (@($actionRecipes.Keys) -cnotcontains $recipe)) { Add-Err $tab $n "「魔法構成」($recipe) が「魔法構成」タブにありません"; continue }
+    $need = @('multiplier_min', 'multiplier_max')
+    $bad = $false
+    foreach ($k in $params.Keys) { if ($need -cnotcontains $k) { Add-Err $tab $n "「params」のキー「$k」は使えません(使えるのは $($need -join ' / '))"; $bad = $true } }
+    foreach ($k in $need) { if (-not $params.Contains($k)) { Add-Err $tab $n "「params」に $k が要ります"; $bad = $true } }
+    if ($bad) { continue }
+    $min = ActionCheck-Int $tab $n 'params の multiplier_min' $params['multiplier_min'] 0 $null
+    $max = ActionCheck-Int $tab $n 'params の multiplier_max' $params['multiplier_max'] 0 $null
+    if ($null -eq $min -or $null -eq $max) { continue }
+    if ([long]$max -lt [long]$min) { Add-Err $tab $n "「params」の multiplier_max ($max) は multiplier_min ($min) 以上にしてください"; continue }
+    $materialEffects[$id] = @{ trigger = $trigger; recipe = $recipe; multiplier_min = $min; multiplier_max = $max }
+  } else {
+    if ($recipe -ne '') { Add-Err $tab $n '「魔法構成」は 発動条件 on_hit の行には書けません'; continue }
+    $need = @('buff_id', 'stacks', 'chance')
+    $bad = $false
+    foreach ($k in $params.Keys) { if ($need -cnotcontains $k) { Add-Err $tab $n "「params」のキー「$k」は使えません(使えるのは $($need -join ' / '))"; $bad = $true } }
+    foreach ($k in $need) { if (-not $params.Contains($k)) { Add-Err $tab $n "「params」に $k が要ります"; $bad = $true } }
+    if ($bad) { continue }
+    $buffId = $params['buff_id']
+    if (@($BuffIds) -cnotcontains $buffId) { Add-Err $tab $n "params の buff_id「$buffId」が init/asset/buff/buffs にありません"; continue }
+    $stacks = ActionCheck-Int $tab $n 'params の stacks' $params['stacks'] 1 $null
+    $chance = ActionCheck-Int $tab $n 'params の chance' $params['chance'] 0 100
+    if ($null -eq $stacks -or $null -eq $chance) { continue }
+    $materialEffects[$id] = @{ trigger = $trigger; buff = @{ id = $buffId; stacks = $stacks; chance = $chance } }
+  }
+}
+foreach ($id in $specialMaterialIds) { if (-not $materialEffects.Contains($id)) { Add-Err $Tabs.special_material_effects 0 "特殊素材「$id」の行がありません(すべての特殊素材に効果の定義が要ります)" } }
+
+$materialEffectDecls = New-Object System.Collections.Generic.List[string]
+$materialEffectDecls.Add('data modify storage test: asset.action.materials set value []')
+foreach ($id in $materialEffects.Keys) {
+  $e = $materialEffects[$id]
+  if ($e.trigger -eq 'right_click') {
+    $materialEffectDecls.Add("data modify storage test: asset.action.materials append value {id:`"$id`",trigger:`"right_click`",recipe:`"$($e.recipe)`",multiplier_min:$($e.multiplier_min),multiplier_max:$($e.multiplier_max)}")
+  } else {
+    $materialEffectDecls.Add("data modify storage test: asset.action.materials append value {id:`"$id`",trigger:`"on_hit`",buff:{id:`"$($e.buff.id)`",stacks:$($e.buff.stacks),chance:$($e.buff.chance)}}")
+  }
+}
 
 # ---------------------------------------------------------------- バフの数値(時間・最大段数・間隔と、効果の関数に渡す params)
 
 $buffDecls = New-Object System.Collections.Generic.List[string]
 $buffSeen = @{}
+$buffInterval = @{}   # バフid => 「間隔」(空なら間隔なし)。「バフ効果」タブの interval の行で使う
+# 掛け直したときの時間の持ち方。independent=段ごとに別の時間 / refresh_all=掛け直しで全部の時間を戻す
+$StackLifetimes = @('independent', 'refresh_all')
 foreach ($r in $data.buff_values) {
   $tab = $Tabs.buff_values; $n = $r.__row
   $id = Cell $r 'バフ'
@@ -913,11 +1559,15 @@ foreach ($r in $data.buff_values) {
   [void](Check-Int $tab $n '時間' $dur 1)
   [void](Check-Int $tab $n '最大段数' $max 1)
   $vals = "duration:$dur,max_stacks:$max"
-  # 一覧で interval のイベントを宣言しているバフは、間隔が要る(使わないバフはキーごと書かない決まり)
-  $needsInterval = $buffsBody -match ('\{id:"' + $id + '"[^\r\n]*events:\{[^}]*interval:1b')
+  # 間隔は効果の表に interval の行があるバフだけに要る(下の「バフ効果」で調べる)
   if ($iv -ne '') { if (Check-Int $tab $n '間隔' $iv 1) { $vals += ",interval:$iv" } }
-  elseif ($needsInterval) { Add-Err $tab $n "バフ「$id」は一定時間ごとの効果(interval)があるので「間隔」が要ります" }
-  # 効果の関数(buff/on/<event>/<id>)の $(…) が必要な params。値は表示の単位で書き、×100して渡す
+  $buffInterval[$id] = $iv
+  # 「時間更新」は後から足した列なので、列ごと無いシートでも通るように(空なら refresh_all)
+  $life = Cell $r '時間更新'
+  if ($life -eq '') { $life = 'refresh_all' }
+  if ($StackLifetimes -cnotcontains $life) { Add-Err $tab $n "「時間更新」($life) は $($StackLifetimes -join ' / ') のどちらかにしてください" }
+  else { $vals += ",stack_lifetime:`"$life`"" }
+  # 関数の行が呼ぶ buff/on/<event>/<id>の $(…) が必要な params。値は表示の単位で書き、×100して渡す
   $need = @()
   foreach ($f in Get-ChildItem (Join-Path $fnRoot 'buff\on') -Recurse -Filter "$id.mcfunction") { $need += Macro-Args ([IO.File]::ReadAllText($f.FullName, [Text.Encoding]::UTF8)) }
   $params = Parse-Pairs $tab $n 'params' (Cell $r 'params') ';'
@@ -927,9 +1577,64 @@ foreach ($r in $data.buff_values) {
 }
 foreach ($id in $BuffIds) { if (-not $buffSeen.ContainsKey($id)) { Add-Err $Tabs.buff_values 0 "バフ「$id」の行がありません(すべてのバフに 時間 と 最大段数 が要ります)" } }
 
+# ---------------------------------------------------------------- バフ効果(バフごとの効果の一覧)
+#
+# 1つのバフに何行でも書ける。行の順がそのまま効果の順になる。
+# test:buff/runtime が段ごとにこの行を動かす(stat は掛かっている間、ほかは指定のイベントで)
+
+# 関数・関数タグは実際にあるものだけ使える
+$FunctionIds = New-Object System.Collections.Generic.List[string]
+$FunctionTagIds = New-Object System.Collections.Generic.List[string]
+foreach ($ns in Get-ChildItem (Join-Path $repoRoot 'data') -Directory) {
+  $fnDir = Join-Path $ns.FullName 'function'
+  # magic/.mcfunction のように名前が空のものは test:magic/ になる
+  if (Test-Path $fnDir) {
+    foreach ($f in Get-ChildItem $fnDir -Recurse -Filter *.mcfunction) {
+      $FunctionIds.Add("$($ns.Name):" + ($f.FullName.Substring($fnDir.Length + 1) -replace '\\', '/' -replace '\.mcfunction$', ''))
+    }
+  }
+  $tagDir = Join-Path $ns.FullName 'tags\function'
+  if (Test-Path $tagDir) {
+    foreach ($f in Get-ChildItem $tagDir -Recurse -Filter *.json) {
+      $FunctionTagIds.Add("$($ns.Name):" + ($f.FullName.Substring($tagDir.Length + 1) -replace '\\', '/' -replace '\.json$', ''))
+    }
+  }
+}
+# 効果の式で見られるステータス。今のHP・MPは参照だけで、stat の対象にはできない(buff-effects.ps1 が止める)
+$BuffStats = @($BaseStats) + @('hp', 'mp')
+$BuffEffectKinds = @('stat', 'function', 'heal', 'damage')
+$BuffEffectEvents = @('apply', 'interval', 'timer', 'expire')
+
+$buffEffects = @{}
+foreach ($r in $data.buff_effects) {
+  $tab = $Tabs.buff_effects; $n = $r.__row
+  $id = Cell $r 'バフ'; $kind = Cell $r '効果'; $event = Cell $r 'イベント'
+  if ($BuffIds -notcontains $id) { Add-Err $tab $n "バフ「$id」が init/asset/buff/buffs にありません"; continue }
+  if ($BuffEffectKinds -cnotcontains $kind) { Add-Err $tab $n "「効果」($kind) は $($BuffEffectKinds -join ' / ') のどれかにしてください"; continue }
+  if ($kind -eq 'stat') {
+    # stat は掛かっている間ずっと効くものなので、イベントでは呼ばない
+    if ($event -ne '') { Add-Err $tab $n '効果「stat」の行は「イベント」を空にしてください(掛かっている間ずっと効きます)'; continue }
+  }
+  elseif ($BuffEffectEvents -cnotcontains $event) { Add-Err $tab $n "「イベント」($event) は $($BuffEffectEvents -join ' / ') のどれかにしてください"; continue }
+  if ($event -eq 'interval' -and -not $buffInterval[$id]) { Add-Err $tab $n "イベント「interval」には、バフ「$id」の「間隔」(「バフの数値」タブ)が要ります"; continue }
+  if ($event -eq 'timer' -and $buffsBody -cnotmatch ('\{id:"' + $id + '"[^\r\n]*timers:\[')) { Add-Err $tab $n "イベント「timer」には、init/asset/buff/buffs のバフ「$id」に timers が要ります"; continue }
+  try {
+    $rec = ConvertFrom-BuffEffect -Kind $kind -Param (Cell $r 'params') -Stats $BuffStats -FunctionIds $FunctionIds -FunctionTagIds $FunctionTagIds
+  } catch { Add-Err $tab $n $_.Exception.Message; continue }
+  if ($event -ne '') { $rec['event'] = $event }
+  if (-not $buffEffects.ContainsKey($id)) { $buffEffects[$id] = New-Object System.Collections.Generic.List[object] }
+  $buffEffects[$id].Add($rec)
+}
+# 順序付きの表をそのままJSONにしたものはSNBTとしても読める(数は int、真偽は true/false のまま)
+foreach ($id in $BuffIds) {
+  # 効果の無いバフを黙って通すと、生成し直したときに effects が消えるだけになる
+  if (-not $buffEffects.ContainsKey($id)) { Add-Err $Tabs.buff_effects 0 "バフ「$id」の効果の行がありません(すべてのバフに1行以上が要ります)"; continue }
+  $snbt = ConvertTo-Json -InputObject ([ordered]@{ effects = [object[]]$buffEffects[$id] }) -Depth 20 -Compress
+  $buffDecls.Add("data modify storage test: asset.buff.types[{id:`"$id`"}] merge value $snbt")
+}
+
 # ---------------------------------------------------------------- プレイヤー初期値(初めて入ったときの能力値。表示の単位)
 
-$BaseStats = @([regex]::Matches((Read-Fn 'init\scoreboard.mcfunction'), 'test\.status\.base\.([a-z_]+) dummy') | ForEach-Object { $_.Groups[1].Value })
 $baseLines = New-Object System.Collections.Generic.List[string]
 $baseSeen = @{}
 $growthPairs = New-Object System.Collections.Generic.List[string]
@@ -952,7 +1657,8 @@ foreach ($s in $BaseStats) { if (-not $baseSeen.ContainsKey($s)) { Add-Err $Tabs
 
 $ConfigKeys = [ordered]@{ turn_time = 1; turn_warn = 0; enemy_delay = 1; accessory_limit = 0; machine_fuel_max = 1
   factory_plot_size = 16; factory_plot_spacing = 16; factory_floor_y = -63; factory_top_y = -62
-  factory_return_x = -29999999; factory_return_y = -64; factory_return_z = -29999999 }   # キー => 最小値
+  factory_return_x = -29999999; factory_return_y = -64; factory_return_z = -29999999
+  magic_fan_angle = 1; magic_root_limit = 1; magic_root_max_alive = 1 }   # キー => 最小値
 $constCfg = [ordered]@{}
 foreach ($r in $data.config) {
   $tab = $Tabs.config; $n = $r.__row
@@ -1827,6 +2533,13 @@ foreach ($key in $recipeIndex.Keys) {
 #   処理: test:talk/generated/act/a<n>(順に行う)。@s = プレイヤー
 # 同じ文字列は1つの関数にまとめる。$genFns(相対パス => 本体の行)は、下の「生成」で $outputs に足す
 $genFns = [ordered]@{}
+# 職業スキルのツリー表示(アドバンスメント)を、canonical な解放・習得フラグに合わせて付与・剥奪するだけの関数。SP/MP・canonical な状態は変えない
+$genFns['job\advancement\sync.mcfunction'] = @(
+  '# @s = 同期するプレイヤー。職業ツリーの見た目(アドバンスメント)を、今の解放・習得フラグに合わせて付与・剥奪するだけ(SP/MP・canonicalな状態は変えない)',
+  '',
+  'function #oh_my_dat:please',
+  ''
+) + $advSyncLines
 $condFns = @{}; $actFns = @{}
 $flagWrites = @{}; $flagReads = New-Object System.Collections.Generic.List[object]
 $OMD = 'oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4]'
@@ -2321,11 +3034,56 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# test:asset/magic/run が params と cost を asset/magic/<folder>/<id> にマクロ引数として渡す', '')
 $outputs[$rel] = $lines + $magicDecls
 
+$rel = 'init\asset\magic\generated\combos.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 要素の組み合わせの表(スプレッドシートの「組み合わせ」タブ)。asset.magic.combos に1行ずつ足す。',
+  '# クラフトの検証・魔法台の説明・実行時のディスパッチはすべて test:magic/combo/match でこの表を読む。',
+  '#   require をすべて含み forbid を1つも含まない行が当たる(ほかの要素が増えても無効にならない)。',
+  '#   当たる行が無い組み合わせは成立しない(魔法台は desc を使って理由を出す)', '',
+  'data modify storage test: asset.magic.combos set value []')
+$outputs[$rel] = $lines + $comboDecls
+
+$rel = 'init\asset\action\generated\recipes.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 信頼済みの組み立て列(スプレッドシートの「魔法構成」タブ)。魔法台を介さずコード側(武器の核など)が使う',
+  '# magic_recipe。asset.action.recipes.<id> = {build:[要素id…], settings:[{stage:{<上書き>}, cost?, link?:{params, cost?}}…]}',
+  '# build は段ごとの要素(重ねがけ含む)とつなぎを順に並べたもの。settings は段の順(つなぎは直前の段のsettingsに入る)', '')
+$outputs[$rel] = $lines + $actionDecls
+
+$rel = 'init\asset\action\generated\materials.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# 特殊素材の効果(スプレッドシートの「特殊素材効果」タブ)。asset.action.materials = [{id, trigger:"right_click", recipe, multiplier_min, multiplier_max} | {id, trigger:"on_hit", buff:{id, stacks, chance}}, …]。',
+  '# 毎回まるごと組み直す(reset)。既存の鍛冶・戦闘コードは次の単位まで aoe_core / poison_fang をコードに直書きしたまま使う', '')
+$outputs[$rel] = $lines + $materialEffectDecls
+
 $rel = 'init\asset\buff\generated\values.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
   '# バフの数値(スプレッドシートの「バフの数値」タブ)。手書きの一覧(init/asset/buff/buffs)に duration・max_stacks・interval・params を足す。',
-  '# params は内部の値(×100済み)で、test:buff/fire_entry が buff/on/<event>/<id> にマクロ引数として渡す', '')
+  '# params は内部の値(×100済み)で、関数の行(buff/on/<event>/<id>)がマクロ引数として受け取る',
+  '# stack_lifetime は掛け直したときの時間の持ち方(independent / refresh_all)。',
+  '# effects は「バフ効果」タブから作る効果の一覧(順番どおり)。test:buff/runtime が読む', '')
 $outputs[$rel] = $lines + $buffDecls
+
+# ステータスごとのスコア。手書きの一覧(init/scoreboard)に足していくと増えるばかりなので、
+# ステータスの数に比例するものはここで作って init/scoreboard から呼ぶ
+$rel = 'init\generated\stat_scores.mcfunction'
+$lines = @($Header, "#> $(Fn-Name $rel)",
+  '# ステータスごとのスコア(init/scoreboard の test.status.base.<名前> の一覧から作る)。test:init/scoreboard が呼ぶ',
+  '#   test.buff.m.<名前>     バフの乗率の合計(×10000。0なら加算だけの昔どおりの挙動)',
+  '#   test.buff.flat.<名前>  純粋な固定値の行だけの合計(参照値 R。式の add も m の寄与も入らない)',
+  '#   test.status.gear.<名前> 装備だけから作る取り分のキャッシュ(職業・レベルのボーナスは入れない。test:status/gear)', '')
+foreach ($s in $BaseStats) {
+  $lines += "scoreboard objectives add test.buff.m.$s dummy"
+  $lines += "scoreboard objectives add test.buff.flat.$s dummy"
+  $lines += "scoreboard objectives add test.status.gear.$s dummy"
+}
+# 効果の式と層カーネルが回すステータスの一覧。test:buff/actor/ がこれを1件ずつ回して
+# 受け身の取り分(passives)と参照値(refs)を作る
+$lines += ''
+$statsJson = ConvertTo-Json -InputObject @($BaseStats) -Compress
+if (-not $statsJson.StartsWith('[')) { $statsJson = "[$statsJson]" }  # shortcut: PS5.1 unwraps a 1要素の配列。ステータスが1件だけの時のため
+$lines += "data modify storage test: asset.buff.stats set value $statsJson"
+$outputs[$rel] = $lines
 
 $rel = 'init\asset\status\generated\base.mcfunction'
 $lines = @($Header, "#> $(Fn-Name $rel)",
@@ -2346,7 +3104,9 @@ $lines = @($Header, "#> $(Fn-Name $rel)",
   '# 定数(スプレッドシートの「定数」タブ)。asset.config.<キー>',
   '#   turn_time: 手番の制限時間(秒) / turn_warn: 予告を出す残り時間(秒) / enemy_delay: 敵が行動するまで(tick) / accessory_limit: 効くアクセサリーの数 / machine_fuel_max: 機械に蓄えられる燃料(回数)',
   '#   factory_plot_size / factory_plot_spacing: 工場の区画の大きさと間隔 / factory_floor_y / factory_top_y: 区画の床と建築できる一番上 /',
-  '#   factory_return_x/y/z: 工場から戻る場所が記録されていないときの test:action の座標', '',
+  '#   factory_return_x/y/z: 工場から戻る場所が記録されていないときの test:action の座標 /',
+  '#   magic_fan_angle: 複数発射が広がる扇の角度(度。全体の幅) / magic_root_limit: キャスト1回につき子ステージが合計で使える発動回数の上限 /',
+  '#   magic_root_max_alive: 発動ルートの子ステージが同時に存在できる持続物の数の上限(一定間隔・ビームの着弾など、繰り返す魔法すべてで共通)', '',
   "data modify storage test: asset.config set value {$cfgSnbt}")
 $outputs[$rel] = $lines
 
@@ -2452,8 +3212,8 @@ $outputs[$rel] = $lines + $shopDecls
 foreach ($gk in $genFns.Keys) { $outputs[$gk] = @($Header, "#> $(Fn-Name $gk)") + $genFns[$gk] }
 
 # 管理しているフォルダから、今回作らない古い生成ファイル(見出し付きのものだけ)を消す
-$managedDirs = @('init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
-  'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
+$managedDirs = @('init\generated', 'init\asset\generated', 'init\asset\equip\generated', 'craft\weapon\forge\recipe', 'craft\equip\recipe', 'init\asset\rune\generated', 'init\asset\consumable\generated',
+  'init\asset\material\generated', 'init\asset\enemy\generated', 'init\asset\job\generated', 'init\asset\magic\generated', 'init\asset\action\generated', 'init\asset\buff\generated', 'init\asset\status\generated',
   'init\asset\ore\generated', 'init\asset\mine\generated', 'init\asset\pickaxe\generated', 'init\asset\refine\generated', 'init\asset\machine\generated', 'init\asset\gather\generated', 'init\asset\fish\generated', 'init\asset\crop\generated',
   'init\asset\research\generated', 'init\asset\recipe\generated', 'talk\generated\cond', 'talk\generated\act',
   'init\asset\npc\generated', 'talk\generated\node', 'npc\generated\entry',
@@ -2500,6 +3260,25 @@ if (-not (Test-Path $mineOresDir)) { New-Item -ItemType Directory -Path $mineOre
 $casingsTagPath = Join-Path $repoRoot 'data\test\tags\block\machine_casings.json'
 $casingLines = @($casings.Values | ForEach-Object { "    `"minecraft:$($_.block)`"" })
 [IO.File]::WriteAllText($casingsTagPath, "{`n  `"values`": [`n$($casingLines -join ",`n")`n  ]`n}`n", $utf8)
+
+# 職業スキルのツリー表示(data/test/advancement/job_tree/)。所有権マニフェスト(tools/datasheet/generated/job_advancements.json)が
+# 前回持っていて今回の出力に無いファイルだけを消す(持っていないファイル・他のアドバンスメントの名前空間には触れない。フォルダのまるごと削除はしない)
+foreach ($relPath in $advFiles.Keys) {
+  $path = Join-Path $repoRoot ($relPath -replace '/', '\')
+  $dir = Split-Path $path -Parent
+  if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir | Out-Null }
+  [IO.File]::WriteAllText($path, $advFiles[$relPath], $utf8)
+}
+foreach ($old in $oldAdvManifest) {
+  if ($advFiles.Contains($old)) { continue }
+  $path = Join-Path $repoRoot ($old -replace '/', '\')
+  if (Test-Path -LiteralPath $path -PathType Leaf) { Remove-Item -LiteralPath $path }
+}
+$advManifestDir = Split-Path $advManifestPath -Parent
+if (-not (Test-Path $advManifestDir)) { New-Item -ItemType Directory -Path $advManifestDir | Out-Null }
+$advManifestEntries = @($advFiles.Keys | ForEach-Object { "  $(Json-Str $_)" })
+$advManifestJson = if ($advManifestEntries.Count -gt 0) { "[`n$($advManifestEntries -join ",`n")`n]`n" } else { "[]`n" }
+[IO.File]::WriteAllText($advManifestPath, $advManifestJson, $utf8)
 
 Write-Host "生成しました($($outputs.Count + $blockLoot.Count + 2) ファイル)。ゲーム内で /reload してください(ルートテーブルやタグを変えたときはワールドの読み直し)。" -ForegroundColor Green
 foreach ($relPath in $outputs.Keys) { Write-Host "  data/test/function/$($relPath -replace '\\','/')" }

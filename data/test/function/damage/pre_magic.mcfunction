@@ -121,6 +121,20 @@ scoreboard players operation #damage test.earth_damage += #damage test.temporary
 
 scoreboard players operation @s test.earth_damage = #damage test.earth_damage
 
+# 属性を選ばない威力上昇(magic.loot.status.data.magic.atk)。選択中の属性(magic.player.effect)
+# にのみ加算する。未選択なら対応するダメージそのものが発生しない(神秘なしの属性にダメージを作らない)
+scoreboard players set #magic_atk_rate test.temporary 0
+execute store result score #magic_atk_rate test.temporary run data get storage test: magic.player.data.magic.atk
+scoreboard players operation #magic_atk_bonus test.temporary = @s test.status.atk
+scoreboard players operation #magic_atk_bonus test.temporary *= #magic_atk_rate test.temporary
+scoreboard players operation #magic_atk_bonus test.temporary /= #100 test.constant
+
+execute if data storage test: magic.player{effect:["fire"]} run scoreboard players operation @s test.fire_damage += #magic_atk_bonus test.temporary
+execute if data storage test: magic.player{effect:["water"]} run scoreboard players operation @s test.water_damage += #magic_atk_bonus test.temporary
+execute if data storage test: magic.player{effect:["wood"]} run scoreboard players operation @s test.wood_damage += #magic_atk_bonus test.temporary
+execute if data storage test: magic.player{effect:["metal"]} run scoreboard players operation @s test.metal_damage += #magic_atk_bonus test.temporary
+execute if data storage test: magic.player{effect:["earth"]} run scoreboard players operation @s test.earth_damage += #magic_atk_bonus test.temporary
+
 scoreboard players operation @s test.fire_damage *= #spell_multiplier test.temporary
 scoreboard players operation @s test.fire_damage /= #100 test.constant
 

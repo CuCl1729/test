@@ -18,6 +18,10 @@
 data remove storage test: asset.magic.effects
 
 data modify storage test: asset.magic.effects append value {id:"fire",label:"火炎",color:"red",item:"fire_charge",max:2,category:"attack",folder:"effect",name:{italic:0b,color:"red",text:"Fire"}}
+data modify storage test: asset.magic.effects append value {id:"water",label:"水流",color:"aqua",item:"water_bucket",max:2,category:"attack",folder:"effect",name:{italic:0b,color:"aqua",text:"Water"}}
+data modify storage test: asset.magic.effects append value {id:"wood",label:"樹木",color:"green",item:"oak_sapling",max:2,category:"attack",folder:"effect",name:{italic:0b,color:"green",text:"Wood"}}
+data modify storage test: asset.magic.effects append value {id:"metal",label:"金属",color:"gray",item:"iron_ingot",max:2,category:"attack",folder:"effect",name:{italic:0b,color:"gray",text:"Metal"}}
+data modify storage test: asset.magic.effects append value {id:"earth",label:"大地",color:"gold",item:"clay_ball",max:2,category:"attack",folder:"effect",name:{italic:0b,color:"gold",text:"Earth"}}
 data modify storage test: asset.magic.effects append value {id:"atk",label:"威力上昇",color:"gold",item:"redstone",max:4,category:"attack",folder:"status"}
 data modify storage test: asset.magic.effects append value {id:"gravity",label:"重力",color:"gray",item:"feather",max:2,category:"attack",requires_type:"projectile",folder:"effect"}
 data modify storage test: asset.magic.effects append value {id:"heal",label:"回復",color:"white",item:"ghast_tear",max:2,category:"support",folder:"effect",name:{italic:0b,color:"white",text:"Heal"}}
@@ -29,3 +33,7 @@ data modify storage test: asset.magic.effects append value {id:"range",label:"�
 # バフ/デバフを付与する効果。付与されるもの自体の内容はバフ側のレジストリ(test:init/asset/buff/buffs)にある
 data modify storage test: asset.magic.effects append value {id:"atk_up",label:"攻撃力上昇",color:"gold",item:"blaze_rod",max:4,category:"support",folder:"effect",name:{italic:0b,color:"gold",text:"Might"}}
 data modify storage test: asset.magic.effects append value {id:"poison",label:"毒",color:"dark_green",item:"spider_eye",max:4,category:"attack",folder:"effect",name:{italic:0b,color:"dark_green",text:"Venom"}}
+# 移動系バフ: ネイティブの属性修飾子を使うためリアルタイム専用(ターン制の戦闘に出ない)
+data modify storage test: asset.magic.effects append value {id:"speed_up",label:"加速",color:"aqua",item:"sugar",max:4,category:"support",battle:0b,folder:"effect",name:{italic:0b,color:"aqua",text:"Swift"}}
+data modify storage test: asset.magic.effects append value {id:"jump_up",label:"跳躍",color:"green",item:"rabbit_foot",max:4,category:"support",battle:0b,folder:"effect",name:{italic:0b,color:"green",text:"Leap"}}
+data modify storage test: asset.magic.effects append value {id:"dash",label:"ダッシュ",color:"aqua",item:"phantom_membrane",max:2,category:"support",requires_type:"self",battle:0b,folder:"effect",name:{italic:0b,color:"aqua",text:"Dash"}}

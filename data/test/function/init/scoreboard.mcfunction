@@ -11,6 +11,36 @@ scoreboard objectives add test.magic_cast dummy
 scoreboard objectives add test.device.life dummy
 scoreboard objectives add test.device.timer dummy
 scoreboard objectives add test.magic.press dummy
+# 継続(ビーム・場・自己持続)と追尾
+#   test.magic.hold    押し続けを記録した時刻(gametime)。途切れたらプレイヤーのビームが止まる
+#   test.magic.beam    プレイヤーのビームが出ている間 1
+#   test.magic.mp_frac 維持MPの端数(1秒未満のぶんを持ち越す。小さい値が0に落ちないように)
+#   test.magic.eid     追尾の相手・場の中に居る者を覚えるための通し番号
+#   test.homing.target 今狙っている相手の test.magic.eid
+#   test.periodic.count 一定間隔で次の段を始められる残り回数
+scoreboard objectives add test.magic.hold dummy
+scoreboard objectives add test.magic.held dummy
+scoreboard objectives add test.magic.billed dummy
+scoreboard objectives add test.magic.beam dummy
+# 発動ルート(magic_roots)のうち、今押し続けているビームが仮想の保持を1つ足している相手のid(無ければ0)
+scoreboard objectives add test.magic.beam_root dummy
+scoreboard objectives add test.magic.mp_frac dummy
+scoreboard objectives add test.magic.eid dummy
+scoreboard objectives add test.homing.target dummy
+scoreboard objectives add test.homing.launch dummy
+scoreboard objectives add test.magic.manual_launch dummy
+scoreboard objectives add test.periodic.count dummy
+# 一定間隔の作成時に持ち主のスコアから間隔を短縮する割合(%)。無ければ0として扱う(test:magic/periodic/interval)
+scoreboard objectives add test.periodic.reduce dummy
+# 継続の魔法の端数の持ち越し(1秒あたりの値を1パルスぶんに縮めたときの余り)。
+# 持続物の本体ごとに持つので、別のビームや別の場の端数を借りることはない
+scoreboard objectives add test.magic.frac.fire dummy
+scoreboard objectives add test.magic.frac.water dummy
+scoreboard objectives add test.magic.frac.wood dummy
+scoreboard objectives add test.magic.frac.metal dummy
+scoreboard objectives add test.magic.frac.earth dummy
+scoreboard objectives add test.magic.frac.physics dummy
+scoreboard objectives add test.magic.frac.heal dummy
 scoreboard objectives add test.Y0 dummy
 scoreboard objectives add test.Z0 dummy
 
@@ -24,6 +54,11 @@ scoreboard objectives add test.constant dummy
 function test:init/set_constant
 
 scoreboard objectives add test.temporary dummy
+
+# 武器弾の着弾グループ(test:action/weapon/group)の再入深度。同期的な一時状態なので
+# リロードをまたいで残らないよう、必ず0に戻す(タグも同様に掃除する)
+scoreboard players set #weapon_group_depth test.temporary 0
+tag @e remove weapon_hit
 
 scoreboard objectives add test.multi_shot dummy
 
@@ -100,6 +135,15 @@ scoreboard objectives add test.aoe_radius dummy
 # 投射体を撃った詠唱者のOhMyDatID。着弾は詠唱の数tick後になるため、
 # ダメージ表示で詠唱者を引けるようにここへ控えておく
 scoreboard objectives add test.owner dummy
+
+# 水平ダッシュ用のmannequin代理(test:magic/dash/)が生まれたgametimeと、
+# ネイティブimpulseが実際にそのtickで解決した(= 持ち主を降ろしてよい)印
+scoreboard objectives add test.dash.birth dummy
+scoreboard objectives add test.dash.ready dummy
+# 代理が他のエンティティを押し出さないための専用チーム(名前・衝突とも非表示)
+team add test.dash
+team modify test.dash collisionRule never
+team modify test.dash nametagVisibility never
 
 # ターン制用
  scoreboard objectives add test.battle.id dummy
@@ -196,7 +240,7 @@ scoreboard objectives add test.owner dummy
 # バフ/デバフ用
 # test.buff.<ステータス名> は「バフ由来の増減の蓄積値」。test.status.<名前>を直接書くと
 # status/updateが装備から組み立て直すときに消えてしまうため、必ずこちらを経由する
-# (実効値への反映は test:status/recalc)。レジストリは test:init/asset/buff/buffs
+# (実効値への反映は test:status/compose。台帳が合計を書く)。レジストリは test:init/asset/buff/buffs
  scoreboard objectives add test.buff.atk dummy
  scoreboard objectives add test.buff.def dummy
  scoreboard objectives add test.buff.hp_max dummy
@@ -208,6 +252,9 @@ scoreboard objectives add test.owner dummy
  scoreboard objectives add test.buff.divergence dummy
  scoreboard objectives add test.buff.hp_regene dummy
  scoreboard objectives add test.buff.mp_regene dummy
+# ステータスの数に比例するぶん(乗率 test.buff.m.<名前>・参照用の固定値 test.buff.flat.<名前>・
+# 装備ぶんのキャッシュ test.status.gear.<名前>)は、上の一覧から自動生成したものを呼んで作る
+ function test:init/generated/stat_scores
 
 # バフ処理のループ用。イベント関数が test.temporary を自由に使えるよう、
 # 進行状態は専用のobjectiveに持つ(共有スコアが入れ子呼び出しで壊れるのを避けるため)

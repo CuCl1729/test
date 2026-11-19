@@ -18,6 +18,7 @@ $data remove storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.job.skill
 # パッシブと実効ステータスを組み直す(最大HP・MPが減れば今の値も切り詰める)。バンドルから消えたスキルの印は使えなくなる
 function test:job/refresh_bonus
 function test:job/bundle/rebuild
+function test:job/advancement/sync
 
 $tellraw @s [{text:"リセットした: ",color:"green"},{nbt:'asset.job.jobs[{id:"$(job)"}].label',storage:"test:",interpret:true,color:"white"},{text:" ポイント ",color:"gray"},{score:{name:"#reset_point",objective:"test.temporary"},color:"white"}]
 # ステーションのボタンを捨てて、次のtickに描き直させる(test:job/station/main)

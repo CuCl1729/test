@@ -1,0 +1,3 @@
+素材,発動条件,魔法構成,params
+aoe_core,right_click,core_cone,multiplier_min=50; multiplier_max=150
+poison_fang,on_hit,,buff_id=poison; stacks=1; chance=30

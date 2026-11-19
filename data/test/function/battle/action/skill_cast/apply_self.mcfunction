@@ -2,6 +2,9 @@
 # @s = 詠唱者。組み立て済みの magic.player をそのまま自分に唱える(回復とバフ)。
 # 手番の行動(test:battle/action/skill_cast/self)と防具の自動発動(test:equip/proc/cast_battle)の両方で使う。手番は終えない
 
+# リアルタイム専用の要素(battle:0b)は手番で払う前に拒否する
+execute unless function test:magic/battle_allowed run return 0
+
 # 消費MP(反動・魔導掌握込み)はリアルタイムと同じ test:magic/pay で払う
 scoreboard players set #skill_sufficient test.temporary 0
 execute store result score #skill_sufficient test.temporary run function test:magic/pay

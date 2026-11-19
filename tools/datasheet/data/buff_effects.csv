@@ -1,0 +1,8 @@
+バフ,効果,イベント,params
+atk_up,stat,,+atk_add=5
+guard,stat,,+def_add=10
+poison,damage,interval,amount=2; resource=hp; type=true
+speed_up,function,apply,test:buff/on/apply/speed_up
+speed_up,function,expire,test:buff/on/expire/speed_up
+jump_up,function,apply,test:buff/on/apply/jump_up
+jump_up,function,expire,test:buff/on/expire/jump_up

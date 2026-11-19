@@ -3,6 +3,13 @@
 # 魔法の与ダメ補正(magic_damage_bonus)→ test:damage/pre_magic → 神秘(effect_damage)の順。
 # リアルタイムの test:magic/ とターン制(test:battle/action/skill_cast/prepare_damage)の両方で使う
 
+# 前回の武器弾のaction_hitが残っていると、今回の呪文(純粋な魔法)に誤って引き継がれるため先に消す
+data remove storage test: action_hit
+
+# magic.player.data.action が武器の記録(手替え後の通常攻撃再現など)なら、
+# test:action/weapon/prepare が武器ダメージ6チャンネルだけを戻して完了する(以降の呪文計算は不要)
+execute if data storage test: magic.player.data.action{kind:"weapon"} run return run function test:action/weapon/prepare
+
 # 魔法の与ダメ補正 = 魔法そのものの補正 + 両手に持った杖などの「魔法ダメージ%」(test:magic/wand_bonus)
 function test:magic/wand_bonus
 execute store result score #spell_multiplier test.temporary run data get storage test: magic.player.magic_damage_bonus

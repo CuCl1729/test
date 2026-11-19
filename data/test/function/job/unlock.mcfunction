@@ -11,3 +11,4 @@ $execute if score #already test.job.work matches 0 run data modify storage oh_my
 $execute if score #already test.job.work matches 0 run data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.job.data.$(id) set value {level:1,exp:0,skill_point:0,skills:{}}
 
 function test:job/recalc_bonus
+function test:job/advancement/sync

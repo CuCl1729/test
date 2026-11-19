@@ -3,12 +3,19 @@ self,20,
 projectile,50,speed=100; range=20
 aoe,80,radius=5
 fire,50,base=1000
+water,50,base=1000
+wood,50,base=1000
+metal,50,base=1000
+earth,50,base=1000
 atk,100,per_stack=1000; max_stacks=3
 gravity,10,gravity=100
 heal,200,power=3
 range,60,per_stack=2; max_stacks=3
 atk_up,120,max_stacks=3
 poison,90,max_stacks=3
+speed_up,120,max_stacks=3
+jump_up,120,max_stacks=3
+dash,120,distance=3
 revive,300,percent=30
 place,30,life=30
 on_land,0,
@@ -16,3 +23,6 @@ on_recast,0,
 on_touch,10,radius=2
 on_timer,10,seconds=3
 blast,60,power=120; lift=80
+continuous,150,period=20; duration=10; mp_per_second=40
+homing,80,radius=16; turn=180; delay_ticks=10
+periodic,60,interval=2; count=5

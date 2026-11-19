@@ -1,0 +1,16 @@
+[
+  "data/test/advancement/job_tree/warrior/root.json",
+  "data/test/advancement/job_tree/warrior/skills/cleave.json",
+  "data/test/advancement/job_tree/warrior/skills/iron_wall.json",
+  "data/test/advancement/job_tree/warrior/skills/might.json",
+  "data/test/advancement/job_tree/warrior/skills/endurance.json",
+  "data/test/advancement/job_tree/warrior/visibility/iron_wall.json",
+  "data/test/advancement/job_tree/warrior/visibility/endurance.json",
+  "data/test/advancement/job_tree/paladin/root.json",
+  "data/test/advancement/job_tree/paladin/skills/smite.json",
+  "data/test/advancement/job_tree/paladin/skills/blessing.json",
+  "data/test/advancement/job_tree/paladin/skills/resurrection.json",
+  "data/test/advancement/job_tree/paladin/skills/vigor.json",
+  "data/test/advancement/job_tree/paladin/visibility/resurrection.json",
+  "data/test/advancement/job_tree/paladin/visibility/vigor.json"
+]

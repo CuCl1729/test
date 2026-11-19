@@ -7,12 +7,19 @@ data modify storage test: asset.magic.types[{id:"self"}] merge value {cost:20,pa
 data modify storage test: asset.magic.types[{id:"projectile"}] merge value {cost:50,params:{speed:100,range:20}}
 data modify storage test: asset.magic.types[{id:"aoe"}] merge value {cost:80,params:{radius:5}}
 data modify storage test: asset.magic.effects[{id:"fire"}] merge value {cost:50,params:{base:1000}}
+data modify storage test: asset.magic.effects[{id:"water"}] merge value {cost:50,params:{base:1000}}
+data modify storage test: asset.magic.effects[{id:"wood"}] merge value {cost:50,params:{base:1000}}
+data modify storage test: asset.magic.effects[{id:"metal"}] merge value {cost:50,params:{base:1000}}
+data modify storage test: asset.magic.effects[{id:"earth"}] merge value {cost:50,params:{base:1000}}
 data modify storage test: asset.magic.effects[{id:"atk"}] merge value {cost:100,params:{per_stack:1000,max_stacks:3}}
 data modify storage test: asset.magic.effects[{id:"gravity"}] merge value {cost:10,params:{gravity:100}}
 data modify storage test: asset.magic.effects[{id:"heal"}] merge value {cost:200,params:{power:3}}
 data modify storage test: asset.magic.effects[{id:"range"}] merge value {cost:60,params:{per_stack:2,max_stacks:3}}
 data modify storage test: asset.magic.effects[{id:"atk_up"}] merge value {cost:120,params:{max_stacks:3}}
 data modify storage test: asset.magic.effects[{id:"poison"}] merge value {cost:90,params:{max_stacks:3}}
+data modify storage test: asset.magic.effects[{id:"speed_up"}] merge value {cost:120,params:{max_stacks:3}}
+data modify storage test: asset.magic.effects[{id:"jump_up"}] merge value {cost:120,params:{max_stacks:3}}
+data modify storage test: asset.magic.effects[{id:"dash"}] merge value {cost:120,params:{distance:3}}
 data modify storage test: asset.magic.effects[{id:"revive"}] merge value {cost:300,params:{percent:30}}
 data modify storage test: asset.magic.types[{id:"place"}] merge value {cost:30,params:{life:30}}
 data modify storage test: asset.magic.types[{id:"on_land"}] merge value {cost:0,params:{}}
@@ -20,3 +27,6 @@ data modify storage test: asset.magic.types[{id:"on_recast"}] merge value {cost:
 data modify storage test: asset.magic.types[{id:"on_touch"}] merge value {cost:10,params:{radius:2}}
 data modify storage test: asset.magic.types[{id:"on_timer"}] merge value {cost:10,params:{seconds:3}}
 data modify storage test: asset.magic.effects[{id:"blast"}] merge value {cost:60,params:{power:120,lift:80}}
+data modify storage test: asset.magic.types[{id:"continuous"}] merge value {cost:150,params:{period:20,duration:10,mp_per_second:40}}
+data modify storage test: asset.magic.types[{id:"homing"}] merge value {cost:80,params:{radius:16,turn:180,delay_ticks:10}}
+data modify storage test: asset.magic.types[{id:"periodic"}] merge value {cost:60,params:{interval:2,count:5}}

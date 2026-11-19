@@ -4,6 +4,12 @@
 
 
 
+execute if data storage test: field_cleanup[0] as @a[scores={test.leave_game=1..}] run function test:magic/field/rejoin
+# ワールドが即停止し1tickも進まずに再ログインした場合、持ち主について回る物の片付けが一度も走らないまま残ってしまうのを防ぐ
+execute as @a[scores={test.leave_game=1..}] at @s run function test:magic/owner/rejoin
+
+execute as @e[type=mannequin,tag=magic_dash_proxy] at @s run function test:magic/dash/tick
+
 execute as @e[tag=projectile] at @s run function test:projectile/move
 execute as @a run function test:cache/slot_check
 execute as @a run function test:job/skill/bundle_check_inventory
@@ -19,6 +25,7 @@ execute as @e[tag=attract] at @s run function test:motion/player/attract/main
 # ログインし直したプレイヤー(職業のボーナスを組み直す。戦闘中にログアウトしていたら、戦闘の続きに戻すか元の場所へ帰す)
 execute as @a[scores={test.leave_game=1..}] run function test:job/refresh_bonus
 execute as @a[scores={test.leave_game=1..}] run function test:job/reset/clear
+execute as @a[scores={test.leave_game=1..}] run function test:job/advancement/sync
 execute as @a[scores={test.leave_game=1..}] at @s run function test:battle/rejoin
 execute in test:arena as @e[tag=battle_marker] at @s run function test:battle/tick
 # 戦闘中の入り口(フィールドに残る。叩くと途中参加できる)を見えるようにする
@@ -58,6 +65,20 @@ execute as @a[gamemode=survival] at @s unless dimension test:factory run gamemod
 scoreboard players add @e[tag=time] test.time 1
 # 設置の魔法で置いた物(起動の条件・残る時間・持ち主)
 execute as @e[type=armor_stand,tag=magic_device] at @s run function test:magic/place/tick
+# 一定間隔で次の段を起こす、持ち主に付いて回る発生源。
+# 場より先に動かすこと: 回数を使い切った発生源は kill タグを付けるので、
+# それに乗っている場が「元が消えた」と気付いて降りられるようにするため(降りないと道連れになる)
+execute as @e[type=armor_stand,tag=magic_emitter] at @s run function test:magic/periodic/self_tick
+# 発動ルートが失効した・持ち主の状態が変わった持続中ビームを、実体の無いもの含めて片付ける
+function test:magic/beam/root/watch
+# 継続の魔法。プレイヤーが押し続けているビームは実体を持たず、毎 tick 視線から線を引く
+execute as @a[scores={test.magic.beam=1}] at @s run function test:magic/beam/tick
+# 設置物・弾・自分から自動で出たビーム(有限の時間。向きは持ち主のカメラによらない)
+execute as @e[type=armor_stand,tag=magic_beam] at @s run function test:magic/beam/auto_tick
+# 継続する場(出した元について動く。出入りは毎 tick 見てバフを付け外しする)
+execute as @e[type=armor_stand,tag=magic_field] at @s run function test:magic/field/tick
+# 自己持続(毎パルスの回復)
+execute as @e[type=armor_stand,tag=magic_sustain] at @s run function test:magic/cont/self_tick
 
 # 全体共通の1秒クロック。バフ/デバフの継続時間は「秒」で持っているためここで進める
 scoreboard players add #clock test.time 1
@@ -104,10 +125,14 @@ tag @e[tag=executer] remove executer
 # ターン制の戦闘の外(test:action・フィールドの先制攻撃など)で倒した敵の報酬を、近くのプレイヤーに渡す
 # (戦闘中の敵は手番の終わりに test:battle/proc_all が渡す。ダミーは報酬を持たない)
 execute as @e[tag=kill,tag=enemy,tag=!battle_member,tag=!battle_killed,tag=!dummy] at @s run function test:reward/field_kill
+# 手番の外で倒れた戦闘中の敵(バフの効果切れなど)は、消える前にその戦闘の参加者へ渡す
+execute as @e[tag=kill,tag=battle_reward_pending] at @s run function test:battle/reward_flush
 
 # 死亡するエンティティに騎乗しているtext_display(HP表示等)は道連れにしないと取り残されるため、
 # 同じタイミングでkillタグを付けてまとめて消す
 execute as @e[tag=kill] on passengers run tag @s add kill
+
+execute as @e[tag=kill,tag=magic_root_member] run function test:magic/root/release
 
 scoreboard players reset @e[tag=kill]
 kill @e[tag=kill]

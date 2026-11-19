@@ -10,4 +10,4 @@ $execute if score #atk_apply test.temporary matches 1 run scoreboard players add
 scoreboard players operation #atk_value test.temporary = #atk_stack test.temporary
 $scoreboard players set #atk_per_stack test.temporary $(per_stack)
 scoreboard players operation #atk_value test.temporary *= #atk_per_stack test.temporary
-execute store result storage test: magic.loot.status.data.magic.fire.atk int 1 run scoreboard players get #atk_value test.temporary
+execute store result storage test: magic.loot.status.data.magic.atk int 1 run scoreboard players get #atk_value test.temporary

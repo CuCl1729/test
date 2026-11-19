@@ -12,3 +12,5 @@ scoreboard players set #radius_bonus test.temporary 0
 # バフ/デバフを付与する効果の重ねがけカウンタ
 scoreboard players set #atk_up_stack test.temporary 0
 scoreboard players set #poison_stack test.temporary 0
+scoreboard players set #speed_up_stack test.temporary 0
+scoreboard players set #jump_up_stack test.temporary 0

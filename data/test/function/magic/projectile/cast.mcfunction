@@ -1,5 +1,8 @@
 data remove storage test: status
 
+# 確定ビームの待ち行列から起きた弾は、乗せ替え+1.75ではなく実行位置にそのまま出す
+execute if data storage test: magic.player.fixed_origin run data modify storage test: status.exact_origin set from storage test: magic.player.fixed_origin
+
 data modify storage test: status.Tags set value []
 data modify storage test: status.Tags set from storage test: magic.player.projectile.behavior
 execute if data storage test: magic.player.projectile.gravity unless data storage test: status{Tags:["gravity"]} run data modify storage test: status.Tags append value "gravity"
@@ -28,6 +31,21 @@ data remove storage test: chain_work.peek
 data modify storage test: chain_work.peek set from storage test: magic.player.chain[0]
 execute if data storage test: chain_work{peek:{link:"on_land"}} run data modify storage test: status.Tags append value "on_land"
 
+# 一定間隔: 飛びながら、間隔ごとに今の位置で次の段を繰り返し始める
+execute if data storage test: chain_work{peek:{link:"periodic"}} run data modify storage test: status.Tags append value "periodic"
+execute if data storage test: chain_work{peek:{link:"periodic"}} run data modify storage test: status.data.periodic.behavior set from storage test: chain_work.peek.link_behavior
+execute if data storage test: chain_work{peek:{link:"periodic"}} run function test:magic/periodic/interval with storage test: chain_work.peek.link_params
+execute if data storage test: chain_work{peek:{link:"periodic"}} store result storage test: status.data.periodic.interval_ticks int 1 run scoreboard players get #periodic_result test.temporary
+execute if data storage test: chain_work{peek:{link:"periodic"}} run data modify storage test: status.data.periodic.count set from storage test: chain_work.peek.link_params.count
+
+# 追尾: 相手を探す距離と回る速さを弾に運ばせる(test:projectile/move が毎 tick 少しずつ向きを回す)。
+# 発射直後に向きを変えないdelay_ticksは、プレイヤーが直接撃った弾(magic/combo/behavior/shotが立てるtest.magic.manual_launch)だけに効く。
+# 設置物・弾が起こした段(aimed・radial・periodicの子)は、乗せ替えのとき0に直す
+execute if data storage test: magic.player.homing run data modify storage test: status.data.homing set from storage test: magic.player.homing
+execute if data storage test: magic.player.homing unless score @s test.magic.manual_launch matches 1 run data modify storage test: status.data.homing.delay_ticks set value 0
+
 execute if data storage test: magic.player{device_radial:1b} run data modify storage test: status.radial set value 1b
+# 狙いを付けて撃つ(設置物の追尾)。向きは呼び出し元が execute facing で決めている
+execute if data storage test: magic.player{aimed:1b} run data modify storage test: status.aimed set value 1b
 function test:projectile/shot
 

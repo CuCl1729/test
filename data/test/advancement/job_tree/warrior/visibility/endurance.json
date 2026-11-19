@@ -1,0 +1,6 @@
+{
+  "parent": "test:job_tree/warrior/skills/endurance",
+  "criteria": {
+    "visible": {"trigger": "minecraft:impossible"}
+  }
+}

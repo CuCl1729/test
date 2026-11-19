@@ -18,5 +18,9 @@ data remove storage test: magic_blast
 execute if data entity @s data.blast run data modify storage test: magic_blast set from entity @s data.blast
 execute if data entity @s data.blast store result storage test: magic_blast.radius int 1 run scoreboard players get #aoe_radius test.temporary
 
+# 着弾の円は旧剣AoEの扇形ではないため、storage test: magic.playerが別の詠唱で
+# 上書きされていても誤って拾わないよう常に0にしておく
+scoreboard players set #aoe_weapon_cone test.temporary 0
+
 execute at @s run function test:magic/aoe/scan
 execute at @s run function test:magic/aoe/apply

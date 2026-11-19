@@ -13,4 +13,8 @@ scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.aw
 scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.awaiting_target 0
 scoreboard players set @s test.battle.pending_target_action 0
 
+# 対象選択中の他の効果で個別ストレージの指す先が変わっていることがあるため、@s向けに取り直してから消す
+function #oh_my_dat:please
+data remove storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.job.pending_magic
+
 function test:battle/target/clear

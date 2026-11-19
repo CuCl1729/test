@@ -5,6 +5,10 @@
 
 data modify storage test: magic.player set from storage test: equip_work.proc_queue[0].magic
 
+# 継続の魔法は「押し続ける」入力が要るので、自動発動の枠からは唱えない
+# (押し始めの判定を通らないだけでなく、プレイヤー自身の押し続けの記録を乱すため)
+execute if data storage test: magic.player.type_flags{continuous:1b} run return 0
+
 tag @s add equip_proc_casting
 function test:magic/
 tag @s remove equip_proc_casting

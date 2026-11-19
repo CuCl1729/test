@@ -18,9 +18,10 @@ CONSTANTS
   FieldKillSkipsMember,       \* tick: reward/field_kill selector has tag=!battle_member
   FieldKillSkipsBattleKilled, \* tick: reward/field_kill selector has tag=!battle_killed
   AttackSkipsMember,          \* attack/damage: hit_apply selector has tag=!battle_member
-  MagicSkipsMember,           \* projectile/move + magic/aoe/apply (magic/hit) skip battle_member
+  MagicSkipsMember,           \* projectile/move_body + magic/aoe/apply (magic/hit) skip battle_member
   BuffStepBeforeProcAll,      \* battle/turn_end: buff/step runs before proc_all
-  ProcAllBeforeCheckEnd       \* battle/turn_end: proc_all runs before check_end
+  ProcAllBeforeCheckEnd,      \* battle/turn_end: proc_all runs before check_end
+  FlushPaysPending            \* tick: battle/reward_flush pays kill + battle_reward_pending before kill @e[tag=kill]
 
 VARIABLES
   pc,      \* phase of the tick
@@ -66,7 +67,9 @@ EndBattle ==
    (contact by field AI, or a non-lethal first strike). One battle instance is modelled. *)
 StartBattle ==
   /\ InArena = {}
-  /\ \E e \in Enemies : loc[e] = "turn" /\ up[e] /\ loc' = [loc EXCEPT ![e] = "arena"]
+  /\ \E joined \in SUBSET {e \in Enemies : loc[e] = "turn" /\ up[e]} :
+       /\ joined # {}
+       /\ loc' = [e \in Enemies |-> IF e \in joined THEN "arena" ELSE loc[e]]
 
 Init ==
   /\ pc = "player" /\ step = 1
@@ -80,7 +83,7 @@ Init ==
 (* Between ticks: trigger/left_click -> attack/ (sword), trigger/right_click/mainhand ->
    magic/ (aoe hits at once), or a non-lethal hit / contact that starts a battle. *)
 Player ==
-  /\ pc = "player" /\ pc' = "projectiles"
+  /\ pc = "player" /\ pc' \in {"player", "projectiles"}
   /\ \/ MayKill(SwordCanHit) /\ UNCHANGED loc
      \/ MayKill(MagicCanHit) /\ UNCHANGED loc
      \/ StartBattle /\ UNCHANGED <<up, killT, pend, bkill>>
@@ -88,9 +91,10 @@ Player ==
 
 (* tick line: projectile/move -> magic/hit for a projectile cast earlier. *)
 Projectiles ==
-  /\ pc = "projectiles" /\ pc' = "battle"
-  /\ MayKill(MagicCanHit)
-  /\ UNCHANGED <<step, loc, paid>>
+  /\ pc = "projectiles" /\ pc' \in {"projectiles", "battle"}
+  /\ \/ MayKill(MagicCanHit) /\ UNCHANGED loc
+     \/ StartBattle /\ UNCHANGED <<up, killT, pend, bkill>>
+  /\ UNCHANGED <<step, paid>>
 
 (* tick line: battle/tick. Either no turn ends this tick, the acting player flees
    (action/flee ends the battle without a result), or an action (attack, skill, item,
@@ -121,12 +125,21 @@ TurnEnd ==
 
 (* tick line: battle/field_ai/tick for enemies in test:turn at HP >= 1, not battle_member. *)
 FieldAI ==
-  /\ pc = "fieldai" /\ pc' = "poison"
+  /\ pc = "fieldai" /\ pc' = "continuous"
   /\ \/ StartBattle
      \/ UNCHANGED loc
   /\ UNCHANGED <<step, up, killT, pend, bkill, paid>>
 
 (* tick line: buff/tick_second_all, only outside test:turn and test:arena: poison may kill. *)
+
+(* Continuous beams, fields and source emissions run after field AI, before poison/reward/removal. Repetition covers multiple sources in one tick. *)
+(* A field leave/cleanup can expire a buff after battle entry, outside turn_end. *)
+Continuous ==
+  /\ pc = "continuous" /\ pc' \in {"continuous", "poison"}
+  /\ \/ MayKill(AnyCanHit) /\ UNCHANGED loc
+     \/ StartBattle /\ UNCHANGED <<up, killT, pend, bkill>>
+  /\ UNCHANGED <<step, paid>>
+
 Poison ==
   /\ pc = "poison" /\ pc' = "fieldkill"
   /\ \/ \E e \in Enemies : loc[e] = "action" /\ up[e] /\ Kill(e)
@@ -139,9 +152,18 @@ FieldPaid(e) ==
   /\ (loc[e] # "arena" \/ ~FieldKillSkipsMember)
   /\ (~bkill[e] \/ ~FieldKillSkipsBattleKilled)
 FieldKill ==
-  /\ pc = "fieldkill" /\ pc' = "remove"
+  /\ pc = "fieldkill" /\ pc' = "flush"
   /\ paid' = [x \in Enemies |-> IF FieldPaid(x) THEN paid[x] + 1 ELSE paid[x]]
   /\ pend' = [x \in Enemies |-> IF FieldPaid(x) THEN FALSE ELSE pend[x]]
+  /\ UNCHANGED <<step, loc, up, killT, bkill>>
+
+(* tick line: execute as @e[tag=kill,tag=battle_reward_pending] run function test:battle/reward_flush.
+   A battle enemy killed outside turn_end (a buff expiring when a field is left) is paid to its battle's
+   members before removal. grant_reward removes battle_reward_pending, so proc_all never pays it again. *)
+Flush ==
+  /\ pc = "flush" /\ pc' = "remove"
+  /\ paid' = [x \in Enemies |-> IF FlushPaysPending /\ Live(x) /\ killT[x] /\ pend[x] THEN paid[x] + 1 ELSE paid[x]]
+  /\ pend' = [x \in Enemies |-> IF FlushPaysPending /\ Live(x) /\ killT[x] THEN FALSE ELSE pend[x]]
   /\ UNCHANGED <<step, loc, up, killT, bkill>>
 
 (* tick line: kill @e[tag=kill] *)
@@ -151,7 +173,7 @@ Remove ==
   /\ killT' = [x \in Enemies |-> FALSE]
   /\ UNCHANGED <<step, up, pend, bkill, paid>>
 
-Next == Player \/ Projectiles \/ BattleAct \/ TurnEnd \/ FieldAI \/ Poison \/ FieldKill \/ Remove
+Next == Player \/ Projectiles \/ BattleAct \/ TurnEnd \/ FieldAI \/ Continuous \/ Poison \/ FieldKill \/ Flush \/ Remove
 
 Spec == Init /\ [][Next]_vars
 

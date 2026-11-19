@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Implementation ownership and live verification
+
+Claude CLI runs with Opus as the primary implementation owner. Opus may delegate bounded implementation to Sonnet and focused read-only investigation to Haiku. Avoid redundant agents, overlapping file edits and parallel dependent work. Opus integrates and checks worker changes; Codex reviews the final diff and runs static checks and automated tests.
+
+The user performs all verification in the running Minecraft client. Do not capture its screen, send input, click, reload, or otherwise operate the client. Provide concise manual steps with prerequisites, actions, expected results and cleanup. Report automated results separately from user-confirmed live results. Ask before introducing unconfirmed gameplay behavior.
+
 ## What this is
 
 A Minecraft Java Edition data pack (namespace `test`) implementing a turn-based/real-time RPG battle
@@ -132,17 +138,31 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   Actions are weighted-random over attack (fixed) + defend (0 unless an enemy explicitly declares
   `data.ai.defend_weight` — enemies deliberately default to *not* defending, since HP-scaled defend
   weight was found to make fights drag on) + eligible gimmicks.
-- **Buffs/debuffs**: registered once in `init/asset/buff/buffs.mcfunction` (id, label, icon, kind,
-  refresh, which of `apply`/`expire`/`interval` events it needs); `duration`, `max_stacks`, `interval` and
-  the effect strength `params` are merged in from the sheet's バフの数値 tab
-  (`init/asset/buff/generated/values`). The actual effect is `buff/on/{apply,expire,interval}/<id>.mcfunction`,
-  which `buff/fire_entry` calls `with` the buff's `params` (never hard-code amounts there), almost always via `buff/stat/add`/`buff/stat/remove`
-  (`{stat, amount}`) rather than touching scores directly. `status/recalc.mcfunction` reconciles the
-  accumulated buff amount into the effective `test.status.<stat>`: players get fully rebuilt from
-  equipment via `status/update` (except mid-battle turn-UI, where the main hand is a UI item, not the
-  real weapon — there it patches the score directly instead, matching `damage/pre_magic`'s handling of
-  the same situation); non-players (no equipment) just add onto the `test.status.base.<stat>` recorded
-  at summon time.
+- **Buffs/debuffs** (`buff/`; behavior spec: Codex's `magic-expansion/BUFF_REWORK_SPEC.md`):
+  - `init/asset/buff/buffs` holds only the look and the side (id, label, color, icon, kind). The sheet adds the rest
+    (`init/asset/buff/generated/values`): バフの数値 gives `duration`, `max_stacks`, `stack_lifetime` (`independent` /
+    `refresh_all`), `interval` and the `params` of function rows; バフ効果 gives `effects`, rows of
+    - `stat`: `+atk_add=hp_max*10+atk*20+100; max=1000` (`_add` / `_m`, percentages of the caster's reference stats,
+      `max` per stack)
+    - `function`: a function or `#tag`, on `apply` / `interval` / `timer` / `expire`
+    - `heal` / `damage` on the current HP or MP. `damage` `type:true` ignores defense; an element type uses
+      `damage/def_rate` + `damage/type_scale` without crit or 神秘
+    The parser is `tools/datasheet/buff-effects.ps1`; nothing parses strings at run time.
+  - Entry points (@s = target): `buff/apply {id,stacks}`, `buff/apply_list` (`buff_work.pending`, with `chance`),
+    `buff/apply_source {id,stacks,key,duration,initial}` / `buff/remove_source {id,key}` (fields: staying never adds
+    stacks; leaving removes only that key), `buff/clear {reason}`, `buff/step` (`#buff_step` seconds: 1 a second in real
+    time via `tick_second_all`, 10 per turn in `battle/turn_end`). All go through `buff/op` → `buff/events/submit` →
+    `buff/runtime/operate`, then the chat notices and the HP-bar icons.
+  - The ledger (oh_my_dat `.test.buff_state = {version:2, next_seq, ledger}`) keeps every stack apart: its source key,
+    caster, order, values frozen at grant (`buff/prepare`, caster stats from `buff/actor/reference`) and its own time.
+    Past `max_stacks` the oldest stacks are pushed out (their `expire` runs before the new `apply`). `.test.buff` is only
+    a display copy. Saves from before the ledger are converted once by `buff/migrate`.
+  - Stats: `status/compose` = (passive + Σadd) × (1 + Σm), passive = gear cache + job + level bonus (`status/passive`).
+    `buff/runtime/commit_one` writes `test.buff.<stat>`, `test.buff.m.<stat>` and the effective `test.status.<stat>`.
+  - Events are queued and drained FIFO outside operations (`buff/events/`), one call per event and row with the
+    stack count and per-stack values. Buff HP damage records the source with the most damage (`.test.buff_killer`) and
+    goes through `damage/kill`; a battle enemy it kills outside `turn_end` is paid by `battle/reward_flush` in `tick`.
+  - `speed_up` / `jump_up` are named attribute modifiers set from the ledger total (`buff/native/reconcile`).
 - **Job bonuses** (`test.job_bonus.<stat>`, added at the end of `status/update`): `job/recalc_bonus` rebuilds them
   from zero every time, from each unlocked job's `growth` × level and its acquired passive skills (kind `stat_bonus`,
   `bonus:[{stat, amount}]` from the 職業スキル tab's params, plus `lore` for the tree). `job/refresh_bonus` also rebuilds
@@ -195,6 +215,62 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   - Effect 爆風 (`blast`, needs 範囲) pushes the players and non-battle enemies within the radius outward from the
     center (`magic/aoe/blast` → `blast_one`). Velocity is `power` along the unit vector plus `lift` upward, in 0.01
     blocks/tick.
+- **What a combination becomes is owned by one sheet table**, 組み合わせ (`init/asset/magic/generated/combos` →
+  `asset.magic.combos`). A row is `{id, apply, require[], forbid[], emitter, behavior, params, desc}`; a row matches
+  when every `require` element is present and no `forbid` one is, so unrelated extra elements never disable it. The
+  flag set it matches against (`status.type_flags`) holds **every** element id, types and effects alike
+  (`crafter/build_effect_entry` sets one per processed element), so a rule may name `fire`/`heal` too. `emitter` is
+  `any` / `player` (the player cast this stage) / `source` (a device or a flying projectile started it) — that is how
+  one element set becomes a view-following fan from the hand but a horizontal 360/N spread from a turret.
+  `magic/combo/match` is the single matcher, shared by craft validation (`crafter/stage_combo`), the 魔法台 preview and
+  runtime dispatch (`magic/dispatch` for player casts, `magic/chain/form` for chained stages). **A stage with no
+  matching row does not fall back to a default — it is rejected**, at craft time with a reason in the preview and at
+  runtime via `magic/combo/reject`. `behavior` names a file in `magic/combo/behavior/`; the generator checks it exists
+  and that `params` fills its `$(…)`, and rejects two rows that can match at once but name different behaviors. Adding
+  a combination is a sheet row plus (only for a genuinely new action) one behavior file. The registry keeps just the
+  structural checks the table sits on top of: `role` (delivery exclusivity) and a link's `after` list.
+- **Time-based elements (real-time only; all three are `battle:0b`)**:
+  - **継続 `continuous`** — a modifier. With 範囲 → a field (`magic/field/`); with 投射 → a beam (`magic/beam/`); with
+    both → a beam whose AoE fires only at the wall/max-range endpoint; with 自己 → sustained self (`magic/cont/`).
+    Numbers live in one place: `period` (ticks between applications), `duration` (seconds), `mp_per_second`.
+    Per-second sheet values are scaled to one pulse by `magic/cont/scale`; `period` 20 makes that exact.
+    A player beam has **no entity** — `magic/beam/tick` re-draws the fan from the caster's eyes every tick, so it
+    follows the view for free. MP is billed **per tick actually held** (`magic/beam/upkeep`), with the sub-MP
+    remainder kept in `test.magic.mp_frac` across release and re-press so tapping cannot be free; damage lands only
+    after a whole `period` has been held. Auto beams (from a source) are `magic_beam` armor stands riding their
+    source, with a finite life and no upkeep. Continuous self buffs and dash apply once; only healing repeats.
+  - **追尾 `homing`** — a modifier. `magic/homing/` picks the nearest eligible enemy and remembers it by a serial
+    (`test.magic.eid`), so a closer enemy does not steal the lock; `look` drops the lock only when the target dies,
+    leaves the dimension or enters battle, and `tick` then re-acquires. `steer` turns at most `turn`÷20 degrees a tick.
+    Direct player projectiles fly straight for `delay_ticks` first (default 10); turret projectiles steer immediately.
+  - **一定間隔 `periodic`** — a link whose `after` is a list (設置 / 投射 / 自己). The host keeps its
+    `data.periodic.interval_ticks` and fires `magic/periodic/fire` on each interval; `chain/next` only
+    reads the carrier's `data.chain`, so every activation starts a fresh copy of the rest of the chain. **Everything
+    after a periodic link is free** — excluded from the quote (`#periodic_seen` in `crafter/stage_close`) and never
+    charged at activation. Nested periodic links are allowed. The shared root ledger limits cumulative child casts
+    (default 256; a multishot batch counts once) and that cumulative budget is shared by the whole cast; `max_alive`
+    separately limits persistent children **per emitter** — every emitter (each projectile, device or auto-beam) counts
+    its own simultaneous children, so three devices may each hold three. A blocked attempt
+    consumes the emitter's remaining count but does not consume the cumulative allowance. Each source snapshots
+    `test.periodic.reduce` when created; interval shortening uses a percentage and has a minimum of two ticks.
+  - **Lifecycle** is one shared check, `magic/owner/find`: the owner counts as available only while present in the
+    same dimension, alive (HP ≥ 1, not `downed`) and outside turn-based battle. While they are not, a placed device
+    **pauses** — life, interval and remaining count all freeze and resume with no catch-up — while fields, auto beams
+    and non-device periodic emitters end. A field whose emission source disappears is **not** ended: it detaches
+    (`field/detach_check`, which also dismounts from a source already tagged `kill`, as 着弾で does) and keeps working
+    at the source's last position for its remaining life. Auto beams following a physical source end with that source.
+    Fields and auto beams emitted from a beam tip instead remain at that emission point for their own lifetime.
+  - Fields use the buff source ledger (`buff/apply_source` / `remove_source`). Each field has its own contribution
+    key; normal casts and other fields keep independent stacks and timers. Leaving a field removes only its key.
+- **Shared actions** use `action/cast` for magic and weapon profiles. Special materials and `kind:magic` job skills
+  refer to sheet-defined action recipes. Job skill acquisition spends job SP; casting spends the recipe's MP.
+  `magic/battle_allowed` rejects real-time-only compiled effects before battle payment.
+- **Movement effects** (`speed_up`, `jump_up`, `dash`) are real-time only. Speed and jump use named attribute modifiers
+  through ordinary buffs (three stacks, ten seconds; default +20% speed or +0.1 jump strength per stack).
+  Dash is self-only and horizontal. `magic/dash/` composes same-tick vectors and resolves native collision after a
+  proxy's impulse tick. The acknowledgement enchantment writes a scoreboard flag, not entity NBT: reloading NBT
+  clamps Motion components above 10 and would erase a large composed impulse. Keep both caster position and rotation
+  explicit in helper contexts; use relative macro coordinates from decimal origin to avoid integer auto-centering.
 - **Player velocity** (`motion/player/push`): set `#motion test.X0/Y0/Z0` (world axes, 0.01 blocks/tick) and run it
   as the player. It converts to look-relative axes with markers summoned at the player into `@s test.impulse.x/y/z`.
   The enchantments `test:move/add_impulse_{x,y,z}` (`apply_impulse`, bit-split levels read by `impulse/pre_*`) apply
@@ -220,11 +296,12 @@ generic driver — it means adding a declaration plus a small per-id handler fun
   (PowerShell 5.1; run `generate.cmd`, or `generate.cmd -Offline` to use `tools/datasheet/data/*.csv`).
   **Balance numbers belong in the sheet, not in function literals** — when adding a feature with tunable
   values, add them to a tab (or `params`) and read them via macro args/storage.
-  - Tabs (36), in 5 spreadsheet files (`config.json` `sheets.<file> = {sheet_id, tabs:{<key>: gid}}`; the old
+  - Tabs are configured across spreadsheet files (`config.json` `sheets.<file> = {sheet_id, tabs:{<key>: gid}}`; the old
     single-file `sheet_id`/`tabs` still works as a fallback):
     - common: stats, items, tools, drops, constants, player base stats, recipes
     - equip: weapons, forge recipes, armor/accessories, series, 4-piece effects, workshop recipes
-    - battle: enemies, enemy gimmicks, jobs, job skills, magic values, buff values
+    - battle: enemies, enemy gimmicks, jobs, job skills, magic values, element combinations, action recipes,
+      special material effects, buff values
     - industry: mines, veins, refining main / by-products, pre-processing by-products, fuels, machine casings
     - field: gathering kinds, fishing spots, magic crops, scans, researches, NPCs, dialogues, quests,
       quest stages, shops
@@ -818,7 +895,7 @@ Turn-based battle (`battle/`) uses the same formulas as real time, through share
   pays for; see the `kill-rewards-model` skill.
 - Stats are recalculated with `status/refresh {status}`, which skips non-players and players holding a
   battle UI item in the main hand (`status/ui_in_hand`: `battle_action` / `active_skill` / `battle_item_pick`).
-  `equip/recalc` and `status/recalc` use the same check, so armor changed outside your own action applies at
+  `equip/recalc` uses the same check, so armor changed outside your own action applies at
   once. `battle/turn_start_player` rebuilds everything (`equip/rebuild_status`) and the wand bonus while the
   real weapon is still in hand. Use `status/refresh` instead of `status/update` in anything a battle action
   can reach.
@@ -833,6 +910,8 @@ Turn-based battle (`battle/`) uses the same formulas as real time, through share
   (`battle/drop_log`); `grant_reward_to_player` only hands them out, so everyone gets the same materials and
   the same equipment ids (only each piece's rarity/substats are rolled per player in `equip/drop/give`).
   Returning from a battle (`return_member*`) clears buffs and `turn_order`.
+  A battle enemy killed outside `turn_end` (a buff ending when a field is left) is paid to that battle's members by
+  `battle/reward_flush`, one `tick` line before the kill line.
   Kills outside battle (test:action, field first strikes) are paid by one `tick` line before the kill line →
   `reward/field_kill` (everyone within 32 blocks; `dummy` excluded), never mid-damage.
 - Player actions: 攻撃 / スキル / アイテム (`action/item` chat list or `ui/item_hover_*` minecart →

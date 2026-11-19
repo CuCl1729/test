@@ -25,7 +25,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .claude/skills/kill-rewards-
 
 The script does the following:
 
-1. Reads 8 facts from the current `.mcfunction` files and prints them.
+1. Reads 9 facts from the current `.mcfunction` files and prints them.
 2. Writes them as constants.
 3. Runs TLC from `tla2tools` 1.7.4. It downloads the jar to `%LOCALAPPDATA%\tlaplus\` on the first run and
    checks the jar's SHA-256.
@@ -48,8 +48,9 @@ words. For a pass it draws how an enemy moves between field, battle and removal.
 | `KillTagsBattleKilled` | `damage/kill.mcfunction` | `tag=battle_member] run tag @s add battle_killed` |
 | `FieldKillSkipsMember` / `FieldKillSkipsBattleKilled` | `tick.mcfunction`, the one line that runs `test:reward/field_kill` | `tag=!battle_member` / `tag=!battle_killed` |
 | `AttackSkipsMember` | `attack/damage.mcfunction`, the line that runs `test:attack/hit_apply` | `tag=!battle_member` |
-| `MagicSkipsMember` | `projectile/move.mcfunction` and `magic/aoe/apply.mcfunction` (the lines that run `test:magic/hit`), `magic/hit.mcfunction`, `magic/.mcfunction` | both hit lines have `tag=!battle_member`, or `magic/hit` returns for a `battle_member`, or the cast entry has `execute if score @s test.battle.id matches 1.. run return fail` |
+| `MagicSkipsMember` | `projectile/move_body.mcfunction` and `magic/aoe/apply.mcfunction` (the lines that run `test:magic/hit`), `magic/hit.mcfunction`, `magic/.mcfunction` | both hit lines have `tag=!battle_member`, or `magic/hit` returns for a `battle_member`, or the cast entry has `execute if score @s test.battle.id matches 1.. run return fail` |
 | `BuffStepBeforeProcAll` / `ProcAllBeforeCheckEnd` | `battle/turn_end.mcfunction` | line order of `buff/step`, `battle/proc_all`, `battle/check_end` |
+| `FlushPaysPending` | `tick.mcfunction`, `battle/reward_flush.mcfunction` | a line with `tag=battle_reward_pending` that runs `test:battle/reward_flush` before `kill @e[tag=kill]`, and `reward_flush` runs `test:battle/grant_reward` |
 
 ## Coverage record
 
@@ -57,15 +58,17 @@ Each part of the model stands for code. The parts not read automatically are wri
 
 | Model part | Code |
 | --- | --- |
-| Tick phase order | `tick.mcfunction`: `projectile/move` (line 7), `battle/tick` (17), `field_ai/tick` (27), `buff/tick_second_all` (57), `reward/field_kill` (95), `kill @e[tag=kill]` (102) |
+| Tick phase order | `tick.mcfunction`: `projectile/move`, `battle/tick`, `field_ai/tick`, the continuous magic lines (beams, fields, devices), `buff/tick_second_all`, `reward/field_kill`, `battle/reward_flush`, `kill @e[tag=kill]` |
 | `Player` | `trigger/left_click/` → `attack/`, `trigger/right_click/mainhand` → `magic/` (aoe hits at once), `attack/damage` lines 12–13 (first strike and battle start) |
-| `Kill` | `damage/.mcfunction` (`if hp ..0 run function test:damage/kill`), `damage/kill.mcfunction`, `buff/on/interval/poison.mcfunction` |
+| `Kill` | `damage/.mcfunction` (`if hp ..0 run function test:damage/kill`), `damage/kill.mcfunction`, `buff/resource/apply` (buff HP damage) |
 | `BattleAct` / `TurnEnd` | `battle/tick` → actions → `battle/turn_end` (buff/step, proc_all, check_end), `battle/turn_skip`, `battle/action/flee` |
 | proc step | `battle/proc_all.mcfunction`: `grant_reward` for `battle_reward_pending` of this battle id; `grant_reward` removes the tag |
 | `EndBattle` | `battle/end`, `battle/return_member` (alive), `battle/return_member_defeated` (HP reset to max, battle_member removed, teleported into test:turn) |
 | `StartBattle` | `battle/start`, `battle/setup`, `battle/enter_arena` (battle_member); `battle/field_ai/tick` only for HP ≥ 1, not battle_member |
+| `Continuous` | beams, fields and periodic sources (`magic/beam/`, `magic/field/`, `magic/periodic/`). It may kill any enemy, `battle_member` too: leaving a field ends its buffs (`buff/remove_source`), whose `expire` damage runs outside `turn_end` |
 | `Poison` | `buff/tick_second_all` (not in test:turn or test:arena) |
 | `FieldKill` | `reward/field_kill` → `battle/grant_reward` |
+| `Flush` | `battle/reward_flush` → `battle/grant_reward` for that battle's members (gated by `FlushPaysPending`) |
 
 **Last confirmed in sync at commit `24451c7`.** To find what changed since then, run
 `git diff 24451c7 -- data/test/function/{tick,damage,battle,attack,projectile,magic,buff,reward}`.
@@ -87,7 +90,16 @@ that the model still describes it.
      whose tick line excludes it. Fix the model, and say what was wrong.
 4. Update the sync commit (see above).
 
-## Past finding (fixed in `24451c7`)
+## Past findings
+
+### Buff damage outside `turn_end` (fixed by `battle/reward_flush`)
+
+A buff that ends when its field is left (`remove_source`) can deal its `expire` damage to a `battle_member` enemy
+outside `turn_end`. `damage/kill` tags it `battle_reward_pending` and `kill`, `proc_all` never runs for it, the
+`reward/field_kill` line skips `battle_member`, and `kill @e[tag=kill]` removed it unpaid. The fix is the tick line
+that runs `battle/reward_flush` before the removal. Removing that line makes `PaidWhenRemoved` fail again (checked).
+
+### Real-time magic in a battle (fixed in `24451c7`)
 
 At `b77c43e`, `PaidWhenRemoved` was violated because `MagicSkipsMember` was FALSE. The steps:
 

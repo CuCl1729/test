@@ -2,8 +2,13 @@
 # scanで拾った対象(hitタグ)へ、組み合わせた効果をまとめて適用する。
 # 攻撃効果は敵へ、回復効果は味方(プレイヤー)へ適用する
 
-particle explosion ~ ~0.5 ~ 0 0 0 0 1 force @a
-playsound minecraft:entity.generic.explode master @a ~ ~ ~ 1 1.4
+# 旧剣AoE(武器コンテキストの明示的cone)はscan側で既に薙ぎ払いのパーティクル/音を出しているため、
+# ここでの爆発演出は二重発生になる。他のcone/魔法AoEでは従来通り鳴らす
+# #aoe_weapon_cone は呼び出し元(cast_body/beam/prepare/burst)がこの発動自身の内容から用意する
+# (projectile/burstなどはこの関数が呼ばれるまでにstorage test: magic.playerが別の詠唱で
+# 上書きされている場合があり、ここで読み直すと取り違える)
+execute if score #aoe_weapon_cone test.temporary matches 0 run particle explosion ~ ~0.5 ~ 0 0 0 0 1 force @a
+execute if score #aoe_weapon_cone test.temporary matches 0 run playsound minecraft:entity.generic.explode master @a ~ ~ ~ 1 1.4
 
 # ダメージ(test:magic/hitはfunction test:damage/のみの既存関数。投射魔法の着弾処理と同じ経路)
 execute as @e[tag=hit,type=!player,tag=!projectile,scores={test.status.hp=1..}] run function test:magic/hit
@@ -24,5 +29,12 @@ execute if score #aoe_revive test.temporary matches 1 run function test:magic/ao
 
 # 爆風(magic_blast は呼び出し元が用意する)。周りを中心から外へ吹き飛ばす
 execute if data storage test: magic_blast.power run function test:magic/aoe/blast with storage test: magic_blast
+
+# 旧剣AoEの移行先。action/finishはここでは呼ばない(呼ぶのは呼び出し元のtest:action/weapon/group、
+# 深度0に戻った最外周でまとめて一度だけ)。battle_entranceは加入のためだけのダミーでHPを持たず、
+# magic/hitのHP対象判定を通らないためweapon_hitタグが付かない。武器弾のaoeだけ、
+# 下のhit掃除の前にweapon_hitへ写しておき、weapon/groupの回収に合わせる
+# (HPを持つ対象はmagic/hitが既にweapon_hitを付けている)
+execute if data storage test: action_hit{kind:"weapon"} run tag @e[tag=hit,tag=battle_entrance] add weapon_hit
 
 tag @e remove hit

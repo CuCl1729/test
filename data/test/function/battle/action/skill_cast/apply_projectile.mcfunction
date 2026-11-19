@@ -3,6 +3,9 @@
 # 選んだデバフを付ける。手番の行動(projectile_resolve)と防具の自動発動(test:equip/proc/cast_battle)の両方で使う。
 # 手番は終えず、対象のタグも外さない(呼び出し元が行う)
 
+# リアルタイム専用の要素(battle:0b)は払う前に拒否する
+execute unless function test:magic/battle_allowed run return 0
+
 # 対象は同じ戦闘のものだけ(他のアリーナで選択中の敵を巻き込まない)
 execute store result score #has_target test.temporary run function test:battle/target/exists
 execute if score #has_target test.temporary matches 0 run return 0

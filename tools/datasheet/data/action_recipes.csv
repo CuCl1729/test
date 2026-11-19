@@ -1,0 +1,2 @@
+id,段,要素,params,MPコスト,次のつなぎ,つなぎparams,つなぎMPコスト
+core_cone,1,aoe,aoe.shape=cone; aoe.half_angle=45,20,,,

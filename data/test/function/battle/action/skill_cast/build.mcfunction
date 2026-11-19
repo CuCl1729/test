@@ -24,3 +24,8 @@ data modify storage test: magic.player set from storage test: magic.loot.status
 scoreboard players operation #skill_cost test.temporary = #cost test.temporary
 # 支払い(test:magic/pay)は magic.player.cost を読む(クラフトした魔法のアイテムと同じ形にする)
 execute store result storage test: magic.player.cost int 1 run scoreboard players get #cost test.temporary
+
+# 組み立て終わりに今の禁止設定(battle:0b)へ再検証する。MPの支払い・手番の消費より前に拒否する
+execute store result score #cast_ok test.temporary run function test:magic/battle_allowed
+execute unless score #cast_ok test.temporary matches 1 run data remove storage test: magic.player
+return run scoreboard players get #cast_ok test.temporary

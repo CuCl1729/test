@@ -1,0 +1,6 @@
+{
+  "parent": "test:job_tree/warrior/skills/iron_wall",
+  "criteria": {
+    "visible": {"trigger": "minecraft:impossible"}
+  }
+}

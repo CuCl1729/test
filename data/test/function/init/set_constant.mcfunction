@@ -15,6 +15,7 @@ scoreboard players set #8 test.constant 8
 scoreboard players set #9 test.constant 9
 
 scoreboard players set #10 test.constant 10
+scoreboard players set #20 test.constant 20
 scoreboard players set #50 test.constant 50
 scoreboard players set #200 test.constant 200
 scoreboard players set #500 test.constant 500
@@ -40,3 +41,5 @@ scoreboard players set #65536 test.constant 65536
 scoreboard players set #18000 test.constant 18000
 scoreboard players set #9000 test.constant 9000
 scoreboard players set #12000 test.constant 12000
+# 360度 × 100。追尾の向きの差を -180..180 に畳むときの法(test:magic/homing/steer)
+scoreboard players set #36000 test.constant 36000

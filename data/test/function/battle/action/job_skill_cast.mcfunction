@@ -5,7 +5,7 @@
 execute unless function test:battle/ui/current_actor run return 0
 function #oh_my_dat:please
 $execute unless data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.job.data.$(job).skills{$(node):1b} run return 0
-$execute store result score #job_active test.job.work run function test:job/skill/is_active {job:"$(job)",node:"$(node)"}
+$execute store result score #job_active test.job.work run function test:job/skill/is_battle_active {job:"$(job)",node:"$(node)"}
 execute if score #job_active test.job.work matches 0 run return run function test:battle/action/passive_refused
 $function test:job/skill/load_entry {job:"$(job)",node:"$(node)"}
 

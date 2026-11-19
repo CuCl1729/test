@@ -1,0 +1,6 @@
+{
+  "parent": "test:job_tree/paladin/skills/resurrection",
+  "criteria": {
+    "visible": {"trigger": "minecraft:impossible"}
+  }
+}

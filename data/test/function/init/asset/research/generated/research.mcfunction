@@ -25,6 +25,14 @@ data modify storage test: asset.research.magic_aoe set value {id:"magic_aoe",nam
 data modify storage test: asset.research_ids append value "magic_aoe"
 data modify storage test: asset.research.magic_fire set value {id:"magic_fire",name:"火炎",icon:"fire_charge",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"fire",path:"magic.known"}]}
 data modify storage test: asset.research_ids append value "magic_fire"
+data modify storage test: asset.research.magic_water set value {id:"magic_water",name:"水流",icon:"water_bucket",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"water",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_water"
+data modify storage test: asset.research.magic_wood set value {id:"magic_wood",name:"樹木",icon:"oak_sapling",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"wood",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_wood"
+data modify storage test: asset.research.magic_metal set value {id:"magic_metal",name:"金属",icon:"iron_ingot",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"metal",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_metal"
+data modify storage test: asset.research.magic_earth set value {id:"magic_earth",name:"大地",icon:"clay_ball",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"earth",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_earth"
 data modify storage test: asset.research.magic_atk set value {id:"magic_atk",name:"威力上昇",icon:"redstone",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"atk",path:"magic.known"}]}
 data modify storage test: asset.research_ids append value "magic_atk"
 data modify storage test: asset.research.magic_gravity set value {id:"magic_gravity",name:"重力",icon:"feather",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"gravity",path:"magic.known"}]}
@@ -39,6 +47,12 @@ data modify storage test: asset.research.magic_atk_up set value {id:"magic_atk_u
 data modify storage test: asset.research_ids append value "magic_atk_up"
 data modify storage test: asset.research.magic_poison set value {id:"magic_poison",name:"毒",icon:"spider_eye",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"poison",path:"magic.known"}]}
 data modify storage test: asset.research_ids append value "magic_poison"
+data modify storage test: asset.research.magic_speed_up set value {id:"magic_speed_up",name:"加速",icon:"sugar",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"speed_up",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_speed_up"
+data modify storage test: asset.research.magic_jump_up set value {id:"magic_jump_up",name:"跳躍",icon:"rabbit_foot",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"jump_up",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_jump_up"
+data modify storage test: asset.research.magic_dash set value {id:"magic_dash",name:"ダッシュ",icon:"phantom_membrane",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"dash",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_dash"
 data modify storage test: asset.research.earth_crop set value {id:"earth_crop",name:"土の作物",icon:"melon_seeds",cost:1,pre:[],scans:["herb"],knowledge:[{el:"wood",label:"木",n:3}],unlock:[{kind:"crop",id:"earth_crop",path:"unlock.crop"}]}
 data modify storage test: asset.research_ids append value "earth_crop"
 data modify storage test: asset.research.water_crop set value {id:"water_crop",name:"水の作物",icon:"pumpkin_seeds",cost:1,pre:["earth_crop"],scans:[],knowledge:[{el:"water",label:"水",n:1},{el:"wood",label:"木",n:3}],unlock:[{kind:"crop",id:"water_crop",path:"unlock.crop"}]}
@@ -59,3 +73,9 @@ data modify storage test: asset.research.magic_on_timer set value {id:"magic_on_
 data modify storage test: asset.research_ids append value "magic_on_timer"
 data modify storage test: asset.research.magic_blast set value {id:"magic_blast",name:"爆風",icon:"wind_charge",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"blast",path:"magic.known"}]}
 data modify storage test: asset.research_ids append value "magic_blast"
+data modify storage test: asset.research.magic_continuous set value {id:"magic_continuous",name:"継続",icon:"soul_lantern",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"continuous",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_continuous"
+data modify storage test: asset.research.magic_homing set value {id:"magic_homing",name:"追尾",icon:"ender_eye",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"homing",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_homing"
+data modify storage test: asset.research.magic_periodic set value {id:"magic_periodic",name:"一定間隔",icon:"repeater",cost:1,pre:[],scans:[],knowledge:[],unlock:[{kind:"magic",id:"periodic",path:"magic.known"}]}
+data modify storage test: asset.research_ids append value "magic_periodic"

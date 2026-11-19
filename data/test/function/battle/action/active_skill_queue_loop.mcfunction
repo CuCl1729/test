@@ -8,7 +8,7 @@ data modify storage test: registry_work.active_skill_entry set from storage test
 data remove storage test: registry_work.active_skill_queue[-1]
 
 # パッシブは番号を振らずに飛ばす(番号と data.turn.active_skill_slot の並びをずらさないため)
-execute store result score #job_active test.job.work run function test:job/skill/is_active with storage test: registry_work.active_skill_entry
+execute store result score #job_active test.job.work run function test:job/skill/is_battle_active with storage test: registry_work.active_skill_entry
 execute if score #job_active test.job.work matches 1 run scoreboard players add #active_slot test.temporary 1
 execute store result storage test: registry_work.active_skill_entry.index int 1 run scoreboard players get #active_slot test.temporary
 execute if score #job_active test.job.work matches 1 run function test:battle/action/active_skill_queue_entry with storage test: registry_work.active_skill_entry

@@ -5,3 +5,4 @@ scoreboard players set @e[tag=battle_marker,sort=nearest,limit=1] test.battle.aw
 
 execute if score @s test.battle.pending_target_action matches 1 run function test:battle/action/attack_resolve
 execute if score @s test.battle.pending_target_action matches 2 run function test:battle/action/skill_cast/projectile_resolve
+execute if score @s test.battle.pending_target_action matches 3 run function test:battle/action/job_skill/magic/resolve

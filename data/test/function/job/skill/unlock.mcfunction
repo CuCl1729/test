@@ -21,6 +21,7 @@ scoreboard players operation #point test.job.work -= #cost test.job.work
 $execute store result storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.job.data.$(job).skill_point int 1 run scoreboard players get #point test.job.work
 
 $data modify storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].test.job.data.$(job).skills.$(node) set value 1b
+function test:job/advancement/sync
 
 # パッシブは発動しないので skill_order(バンドルと戦闘のスキル一覧の元)に入れず、ステータスだけ組み直す
 execute if data storage test: job_work.skill_entry{kind:"stat_bonus"} run return run function test:job/refresh_bonus

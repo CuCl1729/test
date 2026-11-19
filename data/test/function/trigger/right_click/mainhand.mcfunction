@@ -7,7 +7,7 @@ function test:magic/
 
 # 範囲攻撃剣(右クリック)。test:attack/damageが戦闘中の対象を除外するため、バトル中かどうかのゲートは不要
 execute if data storage oh_my_dat: _[-4][-4][-4][-4][-4][-4][-4][-4].player_data.SelectedItem.components."minecraft:custom_data".test{aoe_attack:1b} run \
-function test:attack/aoe
+function test:action/weapon/use
 
 execute if score @s test.battle.id matches 1.. if score @s test.battle.turn_order matches 1.. if score @s test.battle.turn_order = @e[tag=battle_marker,sort=nearest,limit=1] test.battle.current_turn run function test:battle/ui/item_check
 

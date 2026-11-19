@@ -26,7 +26,7 @@ scoreboard players operation @n[tag=summoned] test.def.coefficient = #enemy test
 scoreboard players operation @n[tag=summoned] test.def.pene = #enemy test.def.pene
 
 # 敵は装備からステータスを組み立て直す status/update を通らないため、
-# バフ/デバフを乗せ降ろしする土台として基礎値をそのまま控えておく(test:status/recalc が使う)
+# バフ/デバフを乗せ降ろしする土台として基礎値をそのまま控えておく(test:status/compose が使う)
 scoreboard players operation @n[tag=summoned] test.status.base.atk = #enemy test.status.atk
 scoreboard players operation @n[tag=summoned] test.status.base.def = #enemy test.status.def
 scoreboard players operation @n[tag=summoned] test.status.base.hp_max = #enemy test.status.hp_max

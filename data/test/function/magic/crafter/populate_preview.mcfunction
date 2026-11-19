@@ -17,7 +17,10 @@ function test:item/magic/set_lore
 # 現在の組み合わせが成立するかも合わせて表示する(判定はクラフト確定時と同じtest:magic/crafter/validate)
 function test:magic/crafter/validate
 
-execute if score #combo_invalid test.temporary matches 1 run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:red,text:"組み合わせが不正です"}]
+# 成立しない理由は、できるだけ組み合わせの表と同じ言葉で出す(registry_work.invalid_reason)
+execute if score #combo_invalid test.temporary matches 1 if data storage test: registry_work.invalid_reason run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:red,text:""}]
+execute if score #combo_invalid test.temporary matches 1 if data storage test: registry_work.invalid_reason run data modify storage test: loot.item.components.minecraft:lore[-1][0].text set from storage test: registry_work.invalid_reason
+execute if score #combo_invalid test.temporary matches 1 unless data storage test: registry_work.invalid_reason run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:red,text:"組み合わせが不正です"}]
 execute unless data storage test: magic.loot.status.magic_type run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:gray,text:"要素を追加してください"}]
 execute if data storage test: magic.loot.status.magic_type if score #combo_invalid test.temporary matches 0 run data modify storage test: loot.item.components.minecraft:lore append value [{italic:0b,color:green,text:"クラフトできます"}]
 

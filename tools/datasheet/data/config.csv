@@ -11,3 +11,6 @@ factory_top_y,127,工場の区画で建築できる一番上の高さ(その1つ
 factory_return_x,0,工場から戻る場所が記録されていないときの test:action の x
 factory_return_y,0,同じく y
 factory_return_z,0,同じく z
+magic_fan_angle,120,複数発射の投射・ビームが広がる扇の角度(度。全体の幅)
+magic_root_limit,256,呪文のキャスト1回につき、子ステージ(複数発射など)が合計で使える発動回数の上限(キャスト開始時に設定。同時に存在できる数の上限は magic_root_max_alive の方)
+magic_root_max_alive,3,同時に存在できる、発動ルートの子ステージが出した持続物(一定間隔・ビームの着弾など)の数の上限(繰り返す魔法すべてで共通)

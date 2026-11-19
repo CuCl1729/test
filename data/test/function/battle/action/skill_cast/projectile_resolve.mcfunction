@@ -3,7 +3,9 @@
 # (test:battle/action/skill_cast/apply_projectile)、手番を終える
 
 function #oh_my_dat:please
-function test:battle/action/skill_cast/build
+execute store result score #cast_ok test.temporary run function test:battle/action/skill_cast/build
+execute unless score #cast_ok test.temporary matches 1 run return run function test:battle/action/skill_cast/refused
+
 function test:battle/action/skill_cast/apply_projectile
 
 function test:battle/target/clear

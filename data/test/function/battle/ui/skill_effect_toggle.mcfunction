@@ -2,6 +2,7 @@
 # @s = 効果をトグルしたプレイヤー。@macro id: 切り替える効果id  @macro max: 循環させる段階数
 # 加算してmaxで割った余りを取ることで循環させる(max=2ならON/OFF、max=4なら0〜3の重ねがけ)
 
+$execute if data storage test: asset.magic.effects[{id:"$(id)",battle:0b}] run return 0
 function #oh_my_dat:please
 
 scoreboard players set #select test.temporary 0

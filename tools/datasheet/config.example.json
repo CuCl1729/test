@@ -31,7 +31,8 @@
         "jobs": "",
         "job_skills": "",
         "magic_values": "",
-        "buff_values": ""
+        "buff_values": "",
+        "buff_effects": ""
       }
     },
     "industry": {
