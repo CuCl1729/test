@@ -26,6 +26,10 @@ data modify storage test: magic.player set from entity @s data.field
 # 出入り(バフの付け外し)は毎 tick
 function test:magic/field/members with storage test: magic.player.aoe
 
+# 範囲は4 tickごとに描き続ける(すぐ消える粒なので、間を空けても途切れて見えない)
+scoreboard players operation #field_draw test.temporary = @s test.device.life
+scoreboard players operation #field_draw test.temporary %= #4 test.constant
+execute if score #field_draw test.temporary matches 0 run function test:magic/field/draw
 # ダメージ・回復はパルスの間隔ごと
 scoreboard players remove @s test.device.timer 1
 execute if score @s test.device.timer matches 1.. run return 0

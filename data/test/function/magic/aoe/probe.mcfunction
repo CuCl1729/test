@@ -11,4 +11,4 @@ execute as @e[tag=!hit,tag=!beam_hit,tag=!projectile,scores={test.status.hp=1..}
 # 武器弾の円/投射/ビームのAoEなら、旧剣AoE(scan/aoe/probe)と同じく乱入用マーカーも拾う。
 # 純粋な魔法(action_hitが武器でない)はこれまで通りマーカーを無視する
 execute if data storage test: action_hit{kind:"weapon"} as @e[tag=!hit,tag=!beam_hit,tag=battle_entrance,dx=-0.5,dy=-0.5,dz=-0.5] positioned ~-1 ~-1 ~-1 if entity @s[dx=0.5,dy=0.5,dz=0.5] run function test:scan/hit
-particle end_rod ~ ~ ~ 0 0 0 0 0
+execute unless score #aoe_quiet test.temporary matches 1 run particle end_rod ~ ~ ~ 0 0 0 0 0

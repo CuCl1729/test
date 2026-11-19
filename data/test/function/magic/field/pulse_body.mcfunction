@@ -14,7 +14,10 @@ execute as @a if score @s OhMyDatID = #field_owner test.temporary run tag @s add
 
 execute store result score #aoe_radius test.temporary run data get storage test: magic.player.aoe.radius
 scoreboard players set #beam_apply test.temporary 1
+# 場の範囲は test:magic/field/draw が出し続けるので、パルスごとの爆発・点の演出は出さない
+scoreboard players set #aoe_quiet test.temporary 1
 function test:magic/aoe/scan
 function test:magic/aoe/apply
+scoreboard players set #aoe_quiet test.temporary 0
 
 tag @a remove damage_attacker

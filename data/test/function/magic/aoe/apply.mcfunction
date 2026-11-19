@@ -7,8 +7,9 @@
 # #aoe_weapon_cone は呼び出し元(cast_body/beam/prepare/burst)がこの発動自身の内容から用意する
 # (projectile/burstなどはこの関数が呼ばれるまでにstorage test: magic.playerが別の詠唱で
 # 上書きされている場合があり、ここで読み直すと取り違える)
-execute if score #aoe_weapon_cone test.temporary matches 0 run particle explosion ~ ~0.5 ~ 0 0 0 0 1 force @a
-execute if score #aoe_weapon_cone test.temporary matches 0 run playsound minecraft:entity.generic.explode master @a ~ ~ ~ 1 1.4
+# 場のパルス(#aoe_quiet=1)は範囲を出し続けているので鳴らさない
+execute if score #aoe_weapon_cone test.temporary matches 0 unless score #aoe_quiet test.temporary matches 1 run particle explosion ~ ~0.5 ~ 0 0 0 0 1 force @a
+execute if score #aoe_weapon_cone test.temporary matches 0 unless score #aoe_quiet test.temporary matches 1 run playsound minecraft:entity.generic.explode master @a ~ ~ ~ 1 1.4
 
 # ダメージ(test:magic/hitはfunction test:damage/のみの既存関数。投射魔法の着弾処理と同じ経路)
 execute as @e[tag=hit,type=!player,tag=!projectile,scores={test.status.hp=1..}] run function test:magic/hit
